@@ -1,0 +1,218 @@
+import Link from "next/link";
+import {
+  ArrowRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  Clock3,
+  Filter,
+  Link2,
+  Search
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+const features = [
+  {
+    title: "Fresh jobs",
+    description: "Scan active Greenhouse boards and surface recently updated software roles.",
+    icon: Clock3
+  },
+  {
+    title: "Direct apply links",
+    description: "Open the official company job page instead of another crowded aggregator.",
+    icon: Link2
+  },
+  {
+    title: "Remote filters",
+    description: "Filter for remote roles and locations without losing the direct source context.",
+    icon: Filter
+  },
+  {
+    title: "Freshness score",
+    description: "Rank roles by recency, location quality, apply URL presence, and software relevance.",
+    icon: BadgeCheck
+  }
+];
+
+export default function LandingPage() {
+  return (
+    <>
+      <section className="border-b border-gray-100 bg-white">
+        <div className="container-shell grid min-h-[calc(100vh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
+          <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
+            <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
+              Find hidden software jobs before they get crowded
+            </h1>
+            <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
+              Hirevate scans company career pages and finds fresh direct-apply software jobs from
+              official Greenhouse boards.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild href="/jobs" size="lg">
+                Browse Hidden Jobs
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <Button asChild href="/signup" size="lg" variant="outline">
+                Start Free
+              </Button>
+            </div>
+          </div>
+          <HeroProductPreview />
+        </div>
+      </section>
+
+      <section className="bg-gray-50 py-16">
+        <div className="container-shell grid gap-8 lg:grid-cols-2">
+          <Card className="p-7">
+            <h2 className="text-2xl font-semibold text-ink-900">
+              LinkedIn and Indeed jobs are crowded
+            </h2>
+            <p className="mt-4 text-base leading-7 text-ink-500">
+              Public job boards are where everyone goes first. By the time a software role is
+              heavily promoted, it can already have hundreds of applicants.
+            </p>
+          </Card>
+          <Card className="p-7">
+            <h2 className="text-2xl font-semibold text-ink-900">
+              Direct company career page jobs
+            </h2>
+            <p className="mt-4 text-base leading-7 text-ink-500">
+              Hirevate focuses on one clean source: official Greenhouse public boards, normalized
+              into searchable direct-apply job cards.
+            </p>
+          </Card>
+        </div>
+      </section>
+
+      <section className="bg-white py-16">
+        <div className="container-shell">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-semibold text-ink-900">Built for focused job discovery</h2>
+            <p className="mt-3 text-base leading-7 text-ink-500">
+              Search by title, location, remote preference, and freshness without adding noisy
+              application tools.
+            </p>
+          </div>
+          <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature) => (
+              <Card className="p-5" key={feature.title}>
+                <feature.icon className="h-5 w-5 text-brand-600" aria-hidden="true" />
+                <h3 className="mt-5 text-lg font-semibold text-ink-900">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{feature.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-gray-100 bg-gray-50 py-16">
+        <div className="container-shell grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <h2 className="text-3xl font-semibold text-ink-900">Simple pricing for serious search</h2>
+            <p className="mt-3 text-base leading-7 text-ink-500">
+              Start free, then unlock unlimited views and saved jobs when the search gets active.
+            </p>
+            <Button asChild href="/pricing" className="mt-6" variant="secondary">
+              View pricing
+            </Button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              ["Free", "10 jobs/day", "$0"],
+              ["Pro Monthly", "Unlimited", "$12"],
+              ["Annual", "Best value", "$49"]
+            ].map(([name, detail, price]) => (
+              <Card className="p-5" key={name}>
+                <h3 className="font-semibold text-ink-900">{name}</h3>
+                <p className="mt-5 text-3xl font-semibold text-ink-900">{price}</p>
+                <p className="mt-2 text-sm text-ink-500">{detail}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-16">
+        <div className="container-shell max-w-3xl">
+          <h2 className="text-3xl font-semibold text-ink-900">FAQ</h2>
+          <div className="mt-6 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
+            {[
+              [
+                "Does Hirevate scrape LinkedIn or Indeed?",
+                "No. This MVP only uses public Greenhouse job board APIs from company career pages."
+              ],
+              [
+                "Can Hirevate auto-apply for me?",
+                "No. Hirevate helps you find direct-apply roles and sends you to the official apply page."
+              ],
+              [
+                "What does freshness score mean?",
+                "It combines recent updates, location completeness, apply URL availability, and software-title relevance."
+              ]
+            ].map(([question, answer]) => (
+              <div className="p-5" key={question}>
+                <h3 className="font-semibold text-ink-900">{question}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function HeroProductPreview() {
+  return (
+    <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] overflow-hidden rounded-lg border border-gray-200 bg-white p-3 shadow-soft sm:w-full sm:max-w-full">
+      <div className="rounded-md border border-gray-100 bg-gray-50 p-4">
+        <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink-900">Hidden jobs feed</p>
+            <p className="mt-1 text-xs text-ink-500">Greenhouse boards · sorted by freshness</p>
+          </div>
+          <Badge tone="green">Fresh Verified</Badge>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
+          <div className="flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm text-ink-500">
+            <Search className="h-4 w-4" aria-hidden="true" />
+            Backend engineer
+          </div>
+          <Button asChild href="/jobs" className="w-full sm:w-auto">
+            Search
+          </Button>
+        </div>
+      </div>
+      <div className="mt-3 space-y-3">
+        {[
+          ["Senior Frontend Engineer", "Figma", "Remote", "96"],
+          ["AI Product Engineer", "Notion", "San Francisco", "91"],
+          ["Data Platform Engineer", "Ramp", "New York", "84"]
+        ].map(([title, company, location, score]) => (
+          <div
+            className="rounded-md border border-gray-100 bg-white p-4 shadow-sm"
+            key={`${company}-${title}`}
+          >
+            <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:justify-between">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-ink-900">{title}</h3>
+                <p className="mt-1 text-sm text-ink-500">
+                  {company} · {location}
+                </p>
+              </div>
+              <Badge tone="blue">Greenhouse</Badge>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
+              <Badge tone="green">Score {score}</Badge>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
+                <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
+                Direct apply
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
