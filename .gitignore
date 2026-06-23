@@ -17,3 +17,5 @@ pnpm-debug.log*
 next-detached.*
 *.tsbuildinfo
 .DS_Store
+
+.vercel
