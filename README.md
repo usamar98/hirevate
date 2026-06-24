@@ -145,6 +145,13 @@ keyword coverage checks, impact suggestions, templates, accent colors, and print
 Users can build and preview for free, then unlock resume export with a one-time `$1` Stripe Checkout
 payment.
 
+## Admin User Analytics
+
+Admins can open `/admin/users` to see registered users, paid vs freemium counts, recent signups,
+and country breakdowns. Run `supabase/migrations/003_profile_geography.sql` to persist country and
+last-seen data on profiles. Country data is captured from production request headers such as
+`x-vercel-ip-country`, so existing users may show as unknown until they log in again.
+
 ## Vercel Deployment
 
 1. Create a Vercel project from this repository.

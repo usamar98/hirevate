@@ -30,9 +30,14 @@ export async function SiteHeader() {
             </Link>
           ) : null}
           {isAdmin ? (
-            <Link className="transition hover:text-ink-900" href="/admin/jobs-sync">
-              Admin
-            </Link>
+            <>
+              <Link className="transition hover:text-ink-900" href="/admin/users">
+                Users
+              </Link>
+              <Link className="transition hover:text-ink-900" href="/admin/jobs-sync">
+                Admin
+              </Link>
+            </>
           ) : null}
         </nav>
         <div className="flex items-center gap-2">

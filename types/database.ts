@@ -18,6 +18,9 @@ export type Database = {
           subscription_status: string;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          country_code: string | null;
+          country_name: string | null;
+          last_seen_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -28,6 +31,9 @@ export type Database = {
           subscription_status?: string;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          country_code?: string | null;
+          country_name?: string | null;
+          last_seen_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -38,6 +44,9 @@ export type Database = {
           subscription_status?: string;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          country_code?: string | null;
+          country_name?: string | null;
+          last_seen_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
