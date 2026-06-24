@@ -1,4 +1,5 @@
 import { jobSearchSchema, type JobSearchInput } from "@/lib/validators/jobs";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JobWithCompany, SavedJobWithJob } from "@/types/database";
 
@@ -19,9 +20,19 @@ export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchIn
   });
 }
 
+async function createPublicJobsReadClient() {
+  const admin = createSupabaseAdminClient();
+
+  if (admin) {
+    return admin;
+  }
+
+  return createSupabaseServerClient();
+}
+
 export async function getJobs(searchParams: RawSearchParams) {
   const filters = parseJobSearchParams(searchParams);
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createPublicJobsReadClient();
 
   if (!supabase) {
     return { jobs: [] as JobWithCompany[], filters, configured: false };
@@ -73,7 +84,7 @@ export async function getJobs(searchParams: RawSearchParams) {
 }
 
 export async function getJobById(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createPublicJobsReadClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase
