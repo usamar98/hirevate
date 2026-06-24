@@ -5,9 +5,9 @@ import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { signInAction, signUpAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { authSchema, type AuthFormValues } from "@/lib/validators/auth";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -38,34 +38,19 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setMessageTone("error");
 
     try {
-      const supabase = createSupabaseBrowserClient();
       const result =
         mode === "signup"
-          ? await supabase.auth.signUp({
-              email: values.email,
-              password: values.password,
-              options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-                  redirectTo
-                )}`,
-                data: {
-                  full_name: values.fullName
-                }
-              }
-            })
-          : await supabase.auth.signInWithPassword({
-              email: values.email,
-              password: values.password
-            });
+          ? await signUpAction(values, redirectTo)
+          : await signInAction(values);
 
-      if (result.error) {
-        setMessage(result.error.message);
+      if (!result.ok) {
+        setMessage(result.error);
         return;
       }
 
-      if (mode === "signup" && !result.data.session) {
+      if (result.needsConfirmation) {
         setMessageTone("success");
-        setMessage("Check your email to confirm your account, then log in.");
+        setMessage(result.message ?? "Check your email to confirm your account, then log in.");
         return;
       }
 
