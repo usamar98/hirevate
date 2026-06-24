@@ -16,6 +16,14 @@ const plans = [
     cta: "Start Free"
   },
   {
+    key: "resume_builder",
+    name: "Resume Builder",
+    price: "$2",
+    cadence: "/resume",
+    features: ["ATS scoring", "Keyword targeting", "Print-ready PDF export"],
+    cta: "Build resume"
+  },
+  {
     key: "pro",
     name: "Pro Monthly",
     price: "$12",
@@ -37,6 +45,10 @@ const plans = [
 export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function startResumeCheckout() {
+    window.location.href = "/resume-builder";
+  }
 
   async function startCheckout(plan: "pro" | "annual") {
     if (!isLoggedIn) {
@@ -77,7 +89,7 @@ export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
           {error}
         </div>
       ) : null}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-4">
         {plans.map((plan) => (
           <Card
             className={plan.bestValue ? "relative border-amber-200 p-6 shadow-soft" : "p-6"}
@@ -103,6 +115,10 @@ export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
             </ul>
             {plan.key === "free" ? (
               <Button asChild href={isLoggedIn ? "/jobs" : "/signup"} className="mt-7 w-full" variant="outline">
+                {plan.cta}
+              </Button>
+            ) : plan.key === "resume_builder" ? (
+              <Button className="mt-7 w-full" onClick={startResumeCheckout} variant="outline">
                 {plan.cta}
               </Button>
             ) : (

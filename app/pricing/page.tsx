@@ -15,7 +15,8 @@ export default async function PricingPage() {
         <div className="max-w-2xl">
           <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
           <p className="mt-3 text-base leading-7 text-ink-500">
-            Upgrade when you need unlimited job views, unlimited saved jobs, and freshness filters.
+            Upgrade for unlimited hidden jobs, or build a role-targeted resume and export it for $2
+            when it is ready.
           </p>
         </div>
         <div className="mt-8">

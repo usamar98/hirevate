@@ -15,6 +15,7 @@ It does not include resume building, cover letter generation, interview prep, ap
 - Tailwind CSS
 - Supabase database, auth, and RLS
 - Stripe Checkout and webhooks
+- Advanced resume builder with $2 export checkout
 - Zod validation
 - React Hook Form
 
@@ -136,6 +137,13 @@ Freshness scoring starts at 50:
 - Free users can view 10 job detail pages per UTC day.
 - Free users can save 5 jobs.
 - Pro and Annual users have unlimited job views and saved jobs.
+
+## Resume Builder
+
+The resume builder at `/resume-builder` lets users create a role-targeted resume with ATS scoring,
+keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
+Users can build and preview for free, then unlock resume export with a one-time `$2` Stripe Checkout
+payment.
 
 ## Vercel Deployment
 

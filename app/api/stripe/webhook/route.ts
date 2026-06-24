@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getStripe, stripePlans, type StripePlanKey } from "@/lib/stripe/server";
+import {
+  getStripe,
+  resumeBuilderProduct,
+  stripePlans,
+  type StripePlanKey
+} from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,6 +72,10 @@ export async function POST(request: Request) {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      if (session.metadata?.product === resumeBuilderProduct.key) {
+        return NextResponse.json({ received: true });
+      }
+
       const subscriptionId = session.subscription;
 
       if (subscriptionId) {

@@ -29,3 +29,9 @@ export const stripePlans = {
 };
 
 export type StripePlanKey = keyof typeof stripePlans;
+
+export const resumeBuilderProduct = {
+  key: "resume_builder",
+  name: "Hirevate Resume Builder Export",
+  amount: 200
+} as const;
