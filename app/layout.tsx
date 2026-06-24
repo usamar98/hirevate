@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | Hirevate Hidden Jobs"
   },
   description:
-    "Find fresh direct-apply software jobs from official Greenhouse company career pages."
+    "Find fresh direct-apply roles from official company career pages and hiring sources."
 };
 
 export const viewport: Viewport = {

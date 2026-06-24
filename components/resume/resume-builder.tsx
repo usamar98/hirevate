@@ -7,7 +7,6 @@ import {
   Download,
   FileText,
   GraduationCap,
-  Loader2,
   Palette,
   Plus,
   Sparkles,
@@ -66,7 +65,6 @@ type ResumeDraft = {
 };
 
 const storageKey = "hirevate-resume-builder-draft-v1";
-const unlockKey = "hirevate-resume-builder-export-unlocked";
 
 const initialDraft: ResumeDraft = {
   template: "precision",
@@ -412,33 +410,114 @@ function PreviewBlock({
 }
 
 function buildPrintableHtml(draft: ResumeDraft) {
-  const preview = document.getElementById("resume-preview");
-  const content = preview?.outerHTML ?? "";
+  const contactItems = [draft.email, draft.phone, draft.location, draft.website]
+    .filter(Boolean)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+  const skills = splitList(draft.skills);
+  const certifications = splitList(draft.certifications);
+  const experience = draft.experience
+    .map(
+      (item) => `<section class="item">
+        <div class="row">
+          <div>
+            <h3>${escapeHtml(item.role)}</h3>
+            <p class="muted">${escapeHtml(item.company)}${item.location ? ` / ${escapeHtml(item.location)}` : ""}</p>
+          </div>
+          <p class="dates">${escapeHtml(item.start)} - ${escapeHtml(item.end)}</p>
+        </div>
+        <ul>${item.bullets.filter(Boolean).map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul>
+      </section>`
+    )
+    .join("");
+  const projects = draft.projects
+    .map(
+      (item) => `<section class="item">
+        <h3>${escapeHtml(item.name)}${item.link ? ` <span class="muted">${escapeHtml(item.link)}</span>` : ""}</h3>
+        <ul>${item.bullets.filter(Boolean).map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul>
+      </section>`
+    )
+    .join("");
+  const education = draft.education
+    .map(
+      (item) => `<div class="row item compact-row">
+        <p><strong>${escapeHtml(item.school)}</strong>${item.degree ? `, ${escapeHtml(item.degree)}` : ""}</p>
+        <p class="dates">${escapeHtml(item.dates)}</p>
+      </div>`
+    )
+    .join("");
 
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(draft.fullName || "Resume")}</title>
   <style>
-    @page { size: A4; margin: 0; }
+    @page { size: A4; margin: 14mm; }
     * { box-sizing: border-box; }
-    body { margin: 0; background: #fff; color: #111827; font-family: Arial, sans-serif; }
-    #resume-preview { min-height: 1122px; width: 794px; max-width: none; margin: 0 auto; box-shadow: none !important; }
+    body { margin: 0; background: #f3f4f6; color: #111827; font-family: Arial, sans-serif; }
+    .page { width: 794px; min-height: 1122px; margin: 24px auto; background: #fff; padding: 48px; border-top: 7px solid ${escapeHtml(draft.accent)}; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12); }
+    header { border-bottom: 1px solid #d1d5db; padding-bottom: 22px; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.08; letter-spacing: 0; }
+    .headline { margin: 7px 0 0; color: ${escapeHtml(draft.accent)}; font-size: 16px; font-weight: 700; }
+    .contact { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; color: #4b5563; font-size: 12px; }
+    section.block { margin-top: 22px; }
+    h2 { margin: 0 0 9px; border-bottom: 1px solid ${escapeHtml(draft.accent)}; color: ${escapeHtml(draft.accent)}; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; padding-bottom: 5px; }
+    h3 { margin: 0; font-size: 14px; line-height: 1.35; }
+    p { margin: 0; line-height: 1.55; }
+    .summary, .skills { color: #374151; font-size: 13px; }
+    .item { margin-top: 14px; }
+    .row { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+    .compact-row { margin-top: 8px; }
+    .muted { color: #4b5563; font-size: 12px; }
+    .dates { color: #6b7280; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+    ul { margin: 7px 0 0; padding-left: 18px; color: #374151; font-size: 12.5px; line-height: 1.55; }
+    li { margin-top: 3px; }
+    .skill-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill { background: #f3f4f6; border-radius: 4px; padding: 5px 7px; font-size: 11.5px; }
     a { color: inherit; }
+    @media print {
+      body { background: #fff; }
+      .page { width: auto; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
+    }
   </style>
 </head>
-<body>${content}</body>
+<body>
+  <main class="page">
+    <header>
+      <h1>${escapeHtml(draft.fullName)}</h1>
+      <p class="headline">${escapeHtml(draft.headline)}</p>
+      <div class="contact">${contactItems}</div>
+    </header>
+
+    <section class="block">
+      <h2>Profile</h2>
+      <p class="summary">${escapeHtml(draft.summary)}</p>
+    </section>
+
+    <section class="block">
+      <h2>Core Skills</h2>
+      <div class="skill-list">${skills.map((skill) => `<span class="skill">${escapeHtml(skill)}</span>`).join("")}</div>
+    </section>
+
+    <section class="block">
+      <h2>Experience</h2>
+      ${experience}
+    </section>
+
+    ${projects ? `<section class="block"><h2>Projects</h2>${projects}</section>` : ""}
+    ${education ? `<section class="block"><h2>Education</h2>${education}</section>` : ""}
+    ${certifications.length ? `<section class="block"><h2>Certifications</h2><p class="skills">${certifications.map(escapeHtml).join(" / ")}</p></section>` : ""}
+  </main>
+</body>
 </html>`;
 }
 
-export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function ResumeBuilder() {
   const [draft, setDraft] = useState<ResumeDraft>(initialDraft);
   const [activeTab, setActiveTab] = useState("profile");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
 
   const analysis = useMemo(() => scoreResume(draft), [draft]);
 
@@ -451,41 +530,11 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
         window.localStorage.removeItem(storageKey);
       }
     }
-
-    setIsUnlocked(window.localStorage.getItem(unlockKey) === "true");
   }, []);
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(draft));
   }, [draft]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("session_id");
-
-    if (!sessionId || params.get("checkout") !== "success") return;
-    const checkoutSessionId = sessionId;
-
-    async function verifyUnlock() {
-      const response = await fetch(
-        `/api/stripe/resume-unlock?session_id=${encodeURIComponent(checkoutSessionId)}`
-      );
-      const payload = (await response.json()) as { unlocked?: boolean; error?: string };
-
-      if (response.ok && payload.unlocked) {
-        window.localStorage.setItem(unlockKey, "true");
-        setIsUnlocked(true);
-        setUnlockMessage("Resume export is unlocked. You can print or save this resume as a PDF.");
-        window.history.replaceState(null, "", "/resume-builder");
-      } else {
-        setCheckoutError(payload.error ?? "Unable to verify payment.");
-      }
-    }
-
-    verifyUnlock().catch((error) =>
-      setCheckoutError(error instanceof Error ? error.message : "Unable to verify payment.")
-    );
-  }, []);
 
   function updateDraft(partial: Partial<ResumeDraft>) {
     setDraft((current) => ({ ...current, ...partial }));
@@ -512,52 +561,29 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
     }));
   }
 
-  async function startResumeCheckout() {
-    if (!isLoggedIn) {
-      window.location.href = "/login?redirect=/resume-builder";
-      return;
-    }
-
-    setIsCheckingOut(true);
-    setCheckoutError(null);
-
-    try {
-      const response = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ product: "resume_builder" })
-      });
-      const payload = (await response.json()) as { url?: string; error?: string };
-
-      if (!response.ok || !payload.url) {
-        setCheckoutError(payload.error ?? "Unable to start checkout.");
-        return;
-      }
-
-      window.location.href = payload.url;
-    } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : "Unable to start checkout.");
-    } finally {
-      setIsCheckingOut(false);
-    }
-  }
-
   function exportResume() {
-    if (!isUnlocked) {
-      startResumeCheckout();
-      return;
-    }
+    setCheckoutError(null);
+    const html = buildPrintableHtml(draft);
+    const resumeUrl = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    const printWindow = window.open(resumeUrl, "_blank", "width=900,height=1100");
 
-    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
     if (!printWindow) {
+      URL.revokeObjectURL(resumeUrl);
       setCheckoutError("Allow pop-ups to print or save your resume.");
       return;
     }
 
-    printWindow.document.write(buildPrintableHtml(draft));
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    printWindow.addEventListener(
+      "load",
+      () => {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 250);
+      },
+      { once: true }
+    );
+    setTimeout(() => URL.revokeObjectURL(resumeUrl), 60_000);
   }
 
   return (
@@ -573,8 +599,8 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
           </div>
           <div className="flex flex-wrap gap-3">
             <Button onClick={exportResume}>
-              {isUnlocked ? <Download className="h-4 w-4" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
-              {isUnlocked ? "Export resume" : "Unlock export - $1"}
+              <Download className="h-4 w-4" aria-hidden="true" />
+              Export resume
             </Button>
             <Button variant="outline" onClick={() => setDraft(initialDraft)}>
               Reset demo
@@ -883,26 +909,21 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
           </Card>
 
           <Card className="border-brand-100 bg-brand-50 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">$1 Resume Export</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">Free Resume Export</p>
             <h2 className="mt-2 text-xl font-semibold text-ink-900">
-              {isUnlocked ? "Export unlocked" : "Finish, then unlock export"}
+              Testing mode enabled
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink-600">
-              Build and tune for free. Pay $1 when your resume is ready, then print or save it as PDF.
+              Build, tune, print, or save your resume as PDF without payment while testing.
             </p>
-            {unlockMessage ? (
-              <div className="mt-4 rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                {unlockMessage}
-              </div>
-            ) : null}
             {checkoutError ? (
               <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {checkoutError}
               </div>
             ) : null}
-            <Button className="mt-5 w-full" onClick={exportResume} disabled={isCheckingOut}>
-              {isCheckingOut ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-              {isUnlocked ? "Export resume" : "Pay $1 and export"}
+            <Button className="mt-5 w-full" onClick={exportResume}>
+              <Download className="h-4 w-4" aria-hidden="true" />
+              Export resume
             </Button>
           </Card>
         </aside>

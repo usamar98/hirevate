@@ -9,7 +9,7 @@ import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/sessi
 import { getJobs, getSavedJobIds } from "@/lib/jobs/queries";
 
 export const metadata: Metadata = {
-  title: "Hidden Software Jobs"
+  title: "Hidden Jobs"
 };
 
 export default async function JobsPage({
@@ -35,10 +35,9 @@ export default async function JobsPage({
       <div className="container-shell">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
-            <h1 className="text-4xl font-semibold text-ink-900">Hidden software jobs</h1>
+            <h1 className="text-4xl font-semibold text-ink-900">Hidden jobs</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-              Search official Greenhouse company boards by keyword, location, remote preference, and
-              freshness.
+              Search official hiring sources by keyword, location, remote preference, and freshness.
             </p>
           </div>
           <Button asChild href="/pricing" variant="outline">
@@ -54,7 +53,7 @@ export default async function JobsPage({
           <div className="mt-8">
             <EmptyState
               title="Connect Supabase to load jobs"
-              description="Add your Supabase environment variables, run the SQL migration and seed file, then use the admin sync page to import Greenhouse jobs."
+              description="Add your Supabase environment variables, run the SQL migration and seed file, then use the admin sync page to import jobs."
               action={
                 <Button asChild href="/admin/jobs-sync">
                   Open admin sync

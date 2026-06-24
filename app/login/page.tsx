@@ -15,7 +15,7 @@ export default function LoginPage() {
         <Card className="p-6">
           <h1 className="text-3xl font-semibold text-ink-900">Log in</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            Continue finding direct-apply software jobs.
+            Continue finding fresh direct-apply roles.
           </p>
           <div className="mt-6">
             <Suspense>

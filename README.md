@@ -1,10 +1,11 @@
 # Hirevate Hidden Jobs
 
-Production-ready MVP SaaS for discovering fresh direct-apply software jobs from official Greenhouse public job boards.
+Production-ready MVP SaaS for discovering fresh direct-apply roles from official company hiring sources.
 
 ## Scope
 
-This MVP intentionally focuses on one service: hidden job discovery from Greenhouse public boards.
+This MVP started with hidden job discovery from Greenhouse public boards and is designed to expand
+into additional job APIs and hiring sources.
 
 It does not include cover letter generation, interview prep, application tracking, LinkedIn scraping, Indeed scraping, protected-site scraping, or auto-apply flows.
 
@@ -15,7 +16,7 @@ It does not include cover letter generation, interview prep, application trackin
 - Tailwind CSS
 - Supabase database, auth, and RLS
 - Stripe Checkout and webhooks
-- Advanced resume builder with $1 export checkout
+- Advanced resume builder with free testing-mode export
 - Zod validation
 - React Hook Form
 
@@ -92,6 +93,23 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 
 Then copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
 
+### Switching Stripe Accounts
+
+If you move production checkout to a different Stripe account, update these Vercel Production
+environment variables together:
+
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+For sensitive variables in Vercel, delete the old variable and add the new value if the dashboard
+does not let you edit it. Then redeploy production. The checkout page merchant name comes from the
+Stripe account behind `STRIPE_SECRET_KEY` and Stripe Dashboard branding/business settings.
+
+Admins can verify the live connected Stripe account at `/admin/stripe`. Existing saved Stripe
+customer IDs are account-scoped; checkout validates them before reuse so old-account customer IDs do
+not block new-account checkout sessions.
+
 ## Security Notes
 
 - Supabase service role key is only imported by server-only modules.
@@ -142,8 +160,7 @@ Freshness scoring starts at 50:
 
 The resume builder at `/resume-builder` lets users create a role-targeted resume with ATS scoring,
 keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
-Users can build and preview for free, then unlock resume export with a one-time `$1` Stripe Checkout
-payment.
+Resume export is currently free for testing.
 
 ## Admin User Analytics
 

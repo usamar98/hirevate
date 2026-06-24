@@ -15,7 +15,7 @@ import { Card } from "@/components/ui/card";
 const features = [
   {
     title: "Fresh jobs",
-    description: "Scan active Greenhouse boards and surface recently updated software roles.",
+    description: "Scan active company career pages and surface recently updated professional roles.",
     icon: Clock3
   },
   {
@@ -30,7 +30,7 @@ const features = [
   },
   {
     title: "Freshness score",
-    description: "Rank roles by recency, location quality, apply URL presence, and software relevance.",
+    description: "Rank roles by recency, location quality, apply URL presence, and role relevance.",
     icon: BadgeCheck
   }
 ];
@@ -42,11 +42,11 @@ export default function LandingPage() {
         <div className="container-shell grid min-h-[calc(100vh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
             <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
-              Find hidden software jobs before they get crowded
+              Find hidden career opportunities before they get crowded
             </h1>
             <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
-              Hirevate scans company career pages and finds fresh direct-apply software jobs from
-              official Greenhouse boards.
+              Hirevate scans company career pages and finds fresh direct-apply roles from official
+              hiring sources.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild href="/jobs" size="lg">
@@ -69,8 +69,8 @@ export default function LandingPage() {
               LinkedIn and Indeed jobs are crowded
             </h2>
             <p className="mt-4 text-base leading-7 text-ink-500">
-              Public job boards are where everyone goes first. By the time a software role is
-              heavily promoted, it can already have hundreds of applicants.
+              Public job boards are where everyone goes first. By the time a strong role is heavily
+              promoted, it can already have hundreds of applicants.
             </p>
           </Card>
           <Card className="p-7">
@@ -78,8 +78,8 @@ export default function LandingPage() {
               Direct company career page jobs
             </h2>
             <p className="mt-4 text-base leading-7 text-ink-500">
-              Hirevate focuses on one clean source: official Greenhouse public boards, normalized
-              into searchable direct-apply job cards.
+              Hirevate focuses on clean hiring sources, normalized into searchable direct-apply job
+              cards.
             </p>
           </Card>
         </div>
@@ -140,7 +140,7 @@ export default function LandingPage() {
             {[
               [
                 "Does Hirevate scrape LinkedIn or Indeed?",
-                "No. This MVP only uses public Greenhouse job board APIs from company career pages."
+                "No. Hirevate uses official and public hiring sources, then sends you to the original apply page."
               ],
               [
                 "Can Hirevate auto-apply for me?",
@@ -148,7 +148,7 @@ export default function LandingPage() {
               ],
               [
                 "What does freshness score mean?",
-                "It combines recent updates, location completeness, apply URL availability, and software-title relevance."
+                "It combines recent updates, location completeness, apply URL availability, and role relevance."
               ]
             ].map(([question, answer]) => (
               <div className="p-5" key={question}>
@@ -170,7 +170,7 @@ function HeroProductPreview() {
         <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-900">Hidden jobs feed</p>
-            <p className="mt-1 text-xs text-ink-500">Greenhouse boards · sorted by freshness</p>
+            <p className="mt-1 text-xs text-ink-500">Official sources · sorted by freshness</p>
           </div>
           <Badge tone="green">Fresh Verified</Badge>
         </div>

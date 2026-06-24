@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { z } from "zod";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
@@ -13,6 +14,43 @@ const checkoutSchema = z.union([
     product: z.literal("resume_builder")
   })
 ]);
+
+async function getReusableCustomerId(stripe: Stripe, customerId: string | null | undefined) {
+  if (!customerId) return undefined;
+
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if ("deleted" in customer && customer.deleted) return undefined;
+
+    return customer.id;
+  } catch (error) {
+    const stripeError = error as { statusCode?: number };
+    if (stripeError.statusCode === 404) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+async function saveCheckoutCustomer(
+  userId: string,
+  sessionCustomer: Stripe.Checkout.Session["customer"],
+  existingCustomerId?: string | null
+) {
+  if (!sessionCustomer) return;
+
+  const customerId = String(sessionCustomer);
+  if (customerId === existingCustomerId) return;
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) return;
+
+  await admin
+    .from("profiles")
+    .update({ stripe_customer_id: customerId })
+    .eq("id", userId);
+}
 
 export async function POST(request: Request) {
   const stripe = getStripe();
@@ -32,12 +70,13 @@ export async function POST(request: Request) {
   }
 
   const profile = await getProfile(user.id);
+  const customerId = await getReusableCustomerId(stripe, profile?.stripe_customer_id);
 
   if ("product" in parsed.data) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer: profile?.stripe_customer_id ?? undefined,
-      customer_email: profile?.stripe_customer_id ? undefined : user.email,
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email,
       client_reference_id: user.id,
       line_items: [
         {
@@ -59,13 +98,7 @@ export async function POST(request: Request) {
       cancel_url: `${env.appUrl}/resume-builder?checkout=cancelled`
     });
 
-    const admin = createSupabaseAdminClient();
-    if (admin && session.customer && !profile?.stripe_customer_id) {
-      await admin
-        .from("profiles")
-        .update({ stripe_customer_id: String(session.customer) })
-        .eq("id", user.id);
-    }
+    await saveCheckoutCustomer(user.id, session.customer, profile?.stripe_customer_id);
 
     return NextResponse.json({ url: session.url });
   }
@@ -73,8 +106,8 @@ export async function POST(request: Request) {
   const plan = stripePlans[parsed.data.plan];
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
-    customer: profile?.stripe_customer_id ?? undefined,
-    customer_email: profile?.stripe_customer_id ? undefined : user.email,
+    customer: customerId,
+    customer_email: customerId ? undefined : user.email,
     client_reference_id: user.id,
     line_items: [
       {
@@ -105,13 +138,7 @@ export async function POST(request: Request) {
     cancel_url: `${env.appUrl}/pricing?checkout=cancelled`
   });
 
-  const admin = createSupabaseAdminClient();
-  if (admin && session.customer && !profile?.stripe_customer_id) {
-    await admin
-      .from("profiles")
-      .update({ stripe_customer_id: String(session.customer) })
-      .eq("id", user.id);
-  }
+  await saveCheckoutCustomer(user.id, session.customer, profile?.stripe_customer_id);
 
   return NextResponse.json({ url: session.url });
 }

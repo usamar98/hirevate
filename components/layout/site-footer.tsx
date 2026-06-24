@@ -8,8 +8,8 @@ export function SiteFooter() {
         <div>
           <Logo />
           <p className="mt-3 max-w-xl text-sm leading-6 text-ink-500">
-            Direct-apply software jobs from official Greenhouse boards. No LinkedIn scraping, no
-            auto-apply, no noisy boards.
+            Direct-apply roles from official hiring sources. No LinkedIn scraping, no auto-apply,
+            no noisy boards.
           </p>
         </div>
         <div className="flex flex-wrap gap-5 text-sm font-medium text-ink-500">

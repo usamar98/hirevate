@@ -34,6 +34,9 @@ export async function SiteHeader() {
               <Link className="transition hover:text-ink-900" href="/admin/users">
                 Users
               </Link>
+              <Link className="transition hover:text-ink-900" href="/admin/stripe">
+                Stripe
+              </Link>
               <Link className="transition hover:text-ink-900" href="/admin/jobs-sync">
                 Admin
               </Link>
