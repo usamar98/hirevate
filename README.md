@@ -79,7 +79,7 @@ Create a webhook endpoint for:
 Set the webhook URL to:
 
 ```text
-https://your-domain.com/api/stripe/webhook
+https://www.hirevate.com/api/stripe/webhook
 ```
 
 For local testing, use the Stripe CLI:
@@ -132,9 +132,9 @@ Freshness scoring starts at 50:
 
 1. Create a Vercel project from this repository.
 2. Add the environment variables from `.env.example`.
-3. Set `NEXT_PUBLIC_APP_URL` to your production URL.
+3. Set `NEXT_PUBLIC_APP_URL` to `https://www.hirevate.com`.
 4. Apply Supabase migrations and seed data.
-5. Configure the Stripe webhook to point to `/api/stripe/webhook`.
+5. Configure the Stripe webhook to point to `https://www.hirevate.com/api/stripe/webhook`.
 6. Deploy.
 
 ## Useful Commands

@@ -4,6 +4,9 @@ import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getStripe, stripePlans, type StripePlanKey } from "@/lib/stripe/server";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 function isPlanKey(value: unknown): value is StripePlanKey {
   return value === "pro" || value === "annual";
 }
@@ -32,6 +35,10 @@ async function updateProfileFromSubscription(subscription: Stripe.Subscription) 
       stripe_subscription_id: subscription.id
     })
     .eq("id", userId);
+}
+
+export async function GET() {
+  return NextResponse.json({ ok: true, endpoint: "stripe-webhook" });
 }
 
 export async function POST(request: Request) {
