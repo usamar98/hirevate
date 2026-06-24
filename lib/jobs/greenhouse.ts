@@ -1,4 +1,5 @@
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
+import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Company, Database, Json } from "@/types/database";
 
@@ -82,12 +83,39 @@ async function fetchGreenhouseJobs(slug: string) {
   return payload.jobs ?? [];
 }
 
+async function ensureDefaultCompanies(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>
+) {
+  const { count, error: countError } = await supabase
+    .from("companies")
+    .select("id", { count: "exact", head: true })
+    .eq("is_active", true);
+
+  if (countError) {
+    throw countError;
+  }
+
+  if ((count ?? 0) > 0) {
+    return;
+  }
+
+  const { error } = await supabase.from("companies").upsert(defaultGreenhouseCompanies, {
+    onConflict: "greenhouse_slug"
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function syncGreenhouseJobs(): Promise<SyncResult> {
   const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     throw new Error("Supabase service role environment variables are not configured.");
   }
+
+  await ensureDefaultCompanies(supabase);
 
   const { data: companies, error: companiesError } = await supabase
     .from("companies")

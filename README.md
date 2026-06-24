@@ -35,6 +35,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+JOB_SYNC_SECRET=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -103,6 +104,14 @@ Then copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
 - Saved jobs and job views are scoped to `auth.uid()`.
 
 ## Greenhouse Sync
+
+The admin sync page and protected sync endpoint import jobs from Greenhouse. Set
+`JOB_SYNC_SECRET` in production if you want to trigger sync without a browser admin session:
+
+```bash
+curl -X POST https://www.hirevate.com/api/jobs/sync \
+  -H "x-job-sync-secret: $JOB_SYNC_SECRET"
+```
 
 The sync route:
 

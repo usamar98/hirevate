@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
+import { env } from "@/lib/env";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
 
 const WINDOW_MS = 10 * 60 * 1000;
@@ -29,20 +30,32 @@ function rateLimit(request: NextRequest, userId: string) {
   return true;
 }
 
-export async function POST(request: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
+function hasValidSyncSecret(request: NextRequest) {
+  const providedSecret = request.headers.get("x-job-sync-secret");
+  return Boolean(env.jobSyncSecret && providedSecret && providedSecret === env.jobSyncSecret);
+}
 
-  const profile = await getProfile(user.id);
-  if (profile?.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+export async function POST(request: NextRequest) {
+  const isSecretAuthorized = hasValidSyncSecret(request);
+  let actorId = "sync-secret";
+
+  if (!isSecretAuthorized) {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    }
+
+    const profile = await getProfile(user.id);
+    if (profile?.role !== "admin") {
+      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    }
+
+    actorId = user.id;
   }
 
   // Basic in-memory rate limiting reduces accidental sync abuse. Production deployments can
   // replace this with Redis, Upstash, or Vercel KV without changing the route contract.
-  if (!rateLimit(request, user.id)) {
+  if (!rateLimit(request, actorId)) {
     return NextResponse.json({ error: "Too many sync requests. Try again later." }, { status: 429 });
   }
 

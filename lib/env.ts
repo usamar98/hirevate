@@ -30,6 +30,7 @@ export const env = {
   stripeSecretKey: readEnv("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: readEnv("STRIPE_WEBHOOK_SECRET"),
   stripePublishableKey: readEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
+  jobSyncSecret: readEnv("JOB_SYNC_SECRET"),
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 
