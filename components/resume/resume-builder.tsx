@@ -574,7 +574,7 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
           <div className="flex flex-wrap gap-3">
             <Button onClick={exportResume}>
               {isUnlocked ? <Download className="h-4 w-4" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
-              {isUnlocked ? "Export resume" : "Unlock export - $2"}
+              {isUnlocked ? "Export resume" : "Unlock export - $1"}
             </Button>
             <Button variant="outline" onClick={() => setDraft(initialDraft)}>
               Reset demo
@@ -883,12 +883,12 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
           </Card>
 
           <Card className="border-brand-100 bg-brand-50 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">$2 Resume Export</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">$1 Resume Export</p>
             <h2 className="mt-2 text-xl font-semibold text-ink-900">
               {isUnlocked ? "Export unlocked" : "Finish, then unlock export"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink-600">
-              Build and tune for free. Pay $2 when your resume is ready, then print or save it as PDF.
+              Build and tune for free. Pay $1 when your resume is ready, then print or save it as PDF.
             </p>
             {unlockMessage ? (
               <div className="mt-4 rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
@@ -902,7 +902,7 @@ export function ResumeBuilder({ isLoggedIn }: { isLoggedIn: boolean }) {
             ) : null}
             <Button className="mt-5 w-full" onClick={exportResume} disabled={isCheckingOut}>
               {isCheckingOut ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-              {isUnlocked ? "Export resume" : "Pay $2 and export"}
+              {isUnlocked ? "Export resume" : "Pay $1 and export"}
             </Button>
           </Card>
         </aside>

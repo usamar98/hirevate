@@ -6,7 +6,7 @@ Production-ready MVP SaaS for discovering fresh direct-apply software jobs from 
 
 This MVP intentionally focuses on one service: hidden job discovery from Greenhouse public boards.
 
-It does not include resume building, cover letter generation, interview prep, application tracking, LinkedIn scraping, Indeed scraping, protected-site scraping, or auto-apply flows.
+It does not include cover letter generation, interview prep, application tracking, LinkedIn scraping, Indeed scraping, protected-site scraping, or auto-apply flows.
 
 ## Stack
 
@@ -15,7 +15,7 @@ It does not include resume building, cover letter generation, interview prep, ap
 - Tailwind CSS
 - Supabase database, auth, and RLS
 - Stripe Checkout and webhooks
-- Advanced resume builder with $2 export checkout
+- Advanced resume builder with $1 export checkout
 - Zod validation
 - React Hook Form
 
@@ -142,7 +142,7 @@ Freshness scoring starts at 50:
 
 The resume builder at `/resume-builder` lets users create a role-targeted resume with ATS scoring,
 keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
-Users can build and preview for free, then unlock resume export with a one-time `$2` Stripe Checkout
+Users can build and preview for free, then unlock resume export with a one-time `$1` Stripe Checkout
 payment.
 
 ## Vercel Deployment

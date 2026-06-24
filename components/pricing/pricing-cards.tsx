@@ -18,7 +18,7 @@ const plans = [
   {
     key: "resume_builder",
     name: "Resume Builder",
-    price: "$2",
+    price: "$1",
     cadence: "/resume",
     features: ["ATS scoring", "Keyword targeting", "Print-ready PDF export"],
     cta: "Build resume"
