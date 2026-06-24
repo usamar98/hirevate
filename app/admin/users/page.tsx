@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+const adminUsersPath = "/admin/users";
 
 function StatCard({
   icon: Icon,
@@ -35,7 +36,7 @@ function StatCard({
 }
 
 export default async function AdminUsersPage() {
-  await requireAdmin();
+  await requireAdmin(adminUsersPath);
   const dashboard = await getAdminUsersDashboard();
   const maxCountryCount = Math.max(...dashboard.countryStats.map((country) => country.total), 1);
 

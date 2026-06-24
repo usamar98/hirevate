@@ -152,6 +152,9 @@ and country breakdowns. Run `supabase/migrations/003_profile_geography.sql` to p
 last-seen data on profiles. Country data is captured from production request headers such as
 `x-vercel-ip-country`, so existing users may show as unknown until they log in again.
 
+If `/admin/users` shows the admin access page, run `supabase/admin_set_admin.sql` in Supabase SQL
+Editor after replacing `you@example.com` with your login email.
+
 ## Vercel Deployment
 
 1. Create a Vercel project from this repository.

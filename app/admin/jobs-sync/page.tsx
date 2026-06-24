@@ -7,8 +7,10 @@ export const metadata: Metadata = {
   title: "Admin Job Sync"
 };
 
+const adminJobsSyncPath = "/admin/jobs-sync";
+
 export default async function AdminJobsSyncPage() {
-  await requireAdmin();
+  await requireAdmin(adminJobsSyncPath);
 
   return (
     <section className="bg-gray-50 py-10">

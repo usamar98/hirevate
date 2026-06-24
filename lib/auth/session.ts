@@ -21,18 +21,32 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
-export async function requireUser() {
+function getSafeRedirectPath(value: string | undefined) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return null;
+  }
+
+  return value;
+}
+
+export async function requireUser(redirectTo?: string) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  const safeRedirectTo = getSafeRedirectPath(redirectTo);
+
+  if (!user) {
+    redirect(safeRedirectTo ? `/login?redirect=${encodeURIComponent(safeRedirectTo)}` : "/login");
+  }
+
   return user;
 }
 
-export async function requireAdmin() {
-  const user = await requireUser();
+export async function requireAdmin(redirectTo = "/admin") {
+  const safeRedirectTo = getSafeRedirectPath(redirectTo) ?? "/admin";
+  const user = await requireUser(safeRedirectTo);
   const profile = await getProfile(user.id);
 
   if (profile?.role !== "admin") {
-    redirect("/dashboard");
+    redirect(`/admin/no-access?from=${encodeURIComponent(safeRedirectTo)}`);
   }
 
   return { user, profile };
