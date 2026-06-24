@@ -13,8 +13,11 @@ import { authSchema, type AuthFormValues } from "@/lib/validators/auth";
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
+  const redirectParam = searchParams.get("redirect") ?? "/dashboard";
+  const redirectTo =
+    redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : "/dashboard";
   const [message, setMessage] = useState<string | null>(null);
+  const [messageTone, setMessageTone] = useState<"error" | "success">("error");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     formState: { errors },
@@ -32,6 +35,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   async function onSubmit(values: AuthFormValues) {
     setIsSubmitting(true);
     setMessage(null);
+    setMessageTone("error");
 
     try {
       const supabase = createSupabaseBrowserClient();
@@ -41,6 +45,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               email: values.email,
               password: values.password,
               options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+                  redirectTo
+                )}`,
                 data: {
                   full_name: values.fullName
                 }
@@ -53,6 +60,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
       if (result.error) {
         setMessage(result.error.message);
+        return;
+      }
+
+      if (mode === "signup" && !result.data.session) {
+        setMessageTone("success");
+        setMessage("Check your email to confirm your account, then log in.");
         return;
       }
 
@@ -94,7 +107,13 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         ) : null}
       </label>
       {message ? (
-        <div className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div
+          className={
+            messageTone === "success"
+              ? "rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+              : "rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700"
+          }
+        >
           {message}
         </div>
       ) : null}
