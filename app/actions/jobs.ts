@@ -10,14 +10,38 @@ import type { Database } from "@/types/database";
 
 const FREE_SAVED_JOB_LIMIT = 5;
 
+function readRedirectPath(formData: FormData) {
+  const redirectPath = formData.get("redirectPath");
+  return typeof redirectPath === "string" && redirectPath.length > 0 ? redirectPath : undefined;
+}
+
+function getFallbackJobPath(jobId: string) {
+  return `/jobs/${jobId}`;
+}
+
+function revalidateJobSurfaces(jobId: string, redirectPath?: string) {
+  revalidatePath("/jobs");
+  revalidatePath(getFallbackJobPath(jobId));
+
+  if (redirectPath) {
+    revalidatePath(redirectPath);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/saved");
+}
+
 export async function saveJobAction(formData: FormData) {
   const parsed = saveJobSchema.safeParse({
-    jobId: formData.get("jobId")
+    jobId: formData.get("jobId"),
+    redirectPath: readRedirectPath(formData)
   });
 
   if (!parsed.success) {
     throw new Error("Invalid job id.");
   }
+
+  const returnPath = parsed.data.redirectPath ?? getFallbackJobPath(parsed.data.jobId);
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -29,10 +53,26 @@ export async function saveJobAction(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?redirect=/jobs/${parsed.data.jobId}`);
+    redirect(`/login?redirect=${encodeURIComponent(returnPath)}`);
   }
 
   const profile = await getProfile(user.id);
+  const { data: existingSavedJob, error: existingSavedJobError } = await supabase
+    .from("saved_jobs")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("job_id", parsed.data.jobId)
+    .maybeSingle();
+
+  if (existingSavedJobError) {
+    throw new Error(existingSavedJobError.message);
+  }
+
+  if (existingSavedJob) {
+    revalidateJobSurfaces(parsed.data.jobId, parsed.data.redirectPath);
+    return;
+  }
+
   const savedCount = await countSavedJobs(user.id);
 
   if (!isPaidSubscription(profile?.subscription_status) && savedCount >= FREE_SAVED_JOB_LIMIT) {
@@ -50,15 +90,13 @@ export async function saveJobAction(formData: FormData) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/jobs");
-  revalidatePath(`/jobs/${parsed.data.jobId}`);
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/saved");
+  revalidateJobSurfaces(parsed.data.jobId, parsed.data.redirectPath);
 }
 
 export async function deleteSavedJobAction(formData: FormData) {
   const parsed = saveJobSchema.safeParse({
-    jobId: formData.get("jobId")
+    jobId: formData.get("jobId"),
+    redirectPath: readRedirectPath(formData)
   });
 
   if (!parsed.success) {
@@ -75,7 +113,8 @@ export async function deleteSavedJobAction(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    const returnPath = parsed.data.redirectPath ?? getFallbackJobPath(parsed.data.jobId);
+    redirect(`/login?redirect=${encodeURIComponent(returnPath)}`);
   }
 
   const { error } = await supabase
@@ -88,8 +127,5 @@ export async function deleteSavedJobAction(formData: FormData) {
     throw new Error(error.message);
   }
 
-  revalidatePath("/jobs");
-  revalidatePath(`/jobs/${parsed.data.jobId}`);
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/saved");
+  revalidateJobSurfaces(parsed.data.jobId, parsed.data.redirectPath);
 }

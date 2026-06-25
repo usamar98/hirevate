@@ -11,6 +11,7 @@ type RawSearchParams = Record<string, string | string[] | undefined> | undefined
 type PublicJobsReadClient = SupabaseClient<Database>;
 
 const jobWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
+const JOBS_PAGE_SIZE = 50;
 
 function createAnonPublicJobsClient() {
   if (!hasSupabaseBrowserConfig()) return null;
@@ -34,7 +35,8 @@ export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchIn
     location: readParam(searchParams, "location") ?? "",
     remote: readParam(searchParams, "remote"),
     freshness: readParam(searchParams, "freshness") ?? "all",
-    sort: readParam(searchParams, "sort") ?? "newest"
+    sort: readParam(searchParams, "sort") ?? "newest",
+    page: readParam(searchParams, "page")
   });
 }
 
@@ -51,16 +53,28 @@ function createPublicJobsReadClient(): PublicJobsReadClient | null {
 export async function getJobs(searchParams: RawSearchParams) {
   const filters = parseJobSearchParams(searchParams);
   const supabase = createPublicJobsReadClient();
+  const page = filters.page;
+  const pageSize = JOBS_PAGE_SIZE;
+  const rangeStart = (page - 1) * pageSize;
+  const rangeEnd = rangeStart + pageSize - 1;
 
   if (!supabase) {
-    return { jobs: [] as JobWithCompany[], filters, configured: false };
+    return {
+      jobs: [] as JobWithCompany[],
+      filters,
+      configured: false,
+      page,
+      pageSize,
+      totalCount: 0,
+      totalPages: 0
+    };
   }
 
   let query = supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobWithCompanySelect, { count: "exact" })
     .eq("status", "active")
-    .limit(80);
+    .range(rangeStart, rangeEnd);
 
   if (filters.keyword) {
     query = query.ilike("title", `%${filters.keyword}%`);
@@ -90,13 +104,31 @@ export async function getJobs(searchParams: RawSearchParams) {
     query = query.order("discovered_at", { ascending: false });
   }
 
-  const { data, error } = await query;
+  const { count, data, error } = await query;
   if (error) {
     console.error("Failed to load jobs", error);
-    return { jobs: [] as JobWithCompany[], filters, configured: true };
+    return {
+      jobs: [] as JobWithCompany[],
+      filters,
+      configured: true,
+      page,
+      pageSize,
+      totalCount: 0,
+      totalPages: 0
+    };
   }
 
-  return { jobs: (data ?? []) as JobWithCompany[], filters, configured: true };
+  const totalCount = count ?? 0;
+
+  return {
+    jobs: (data ?? []) as JobWithCompany[],
+    filters,
+    configured: true,
+    page,
+    pageSize,
+    totalCount,
+    totalPages: Math.ceil(totalCount / pageSize)
+  };
 }
 
 export async function getJobById(id: string) {

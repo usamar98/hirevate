@@ -62,7 +62,9 @@ export function JobCard({
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           ) : null}
-          {showSave ? <SaveJobButton isSaved={isSaved} jobId={job.id} /> : null}
+          {showSave ? (
+            <SaveJobButton isSaved={isSaved} jobId={job.id} redirectPath={jobPath} />
+          ) : null}
           <Button asChild href={jobPath} variant="outline">
             View details
           </Button>

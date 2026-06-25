@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LockKeyhole } from "lucide-react";
+import { ChevronLeft, ChevronRight, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
 import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
 import { absoluteUrl } from "@/lib/seo";
+import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const jobsDescription =
   "Search fresh direct-apply jobs from official company career pages and hiring sources, with filters for title, location, remote work, and freshness.";
@@ -20,6 +21,20 @@ const popularJobPages = [
 ];
 
 export const dynamic = "force-dynamic";
+
+function buildJobsPageHref(filters: JobSearchInput, page: number) {
+  const params = new URLSearchParams();
+
+  if (filters.keyword) params.set("keyword", filters.keyword);
+  if (filters.location) params.set("location", filters.location);
+  if (filters.remote) params.set("remote", "on");
+  if (filters.freshness !== "all") params.set("freshness", filters.freshness);
+  if (filters.sort !== "newest") params.set("sort", filters.sort);
+  if (page > 1) params.set("page", String(page));
+
+  const query = params.toString();
+  return query ? `/jobs?${query}` : "/jobs";
+}
 
 export async function generateMetadata({
   searchParams
@@ -64,7 +79,7 @@ export default async function JobsPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const [{ configured, filters, jobs }, user] = await Promise.all([
+  const [{ configured, filters, jobs, page, pageSize, totalCount, totalPages }, user] = await Promise.all([
     getJobs(resolvedSearchParams),
     getCurrentUser()
   ]);
@@ -74,7 +89,17 @@ export default async function JobsPage({
   ]);
   const isPaid = isPaidSubscription(profile?.subscription_status);
   const visibleJobs = isPaid ? jobs : jobs.slice(0, 10);
-  const isLimited = !isPaid && jobs.length > visibleJobs.length;
+  const hasVisibleJobs = visibleJobs.length > 0;
+  const isLimited = !isPaid && hasVisibleJobs && totalCount > visibleJobs.length;
+  const pageStart = hasVisibleJobs ? (page - 1) * pageSize + 1 : 0;
+  const pageEnd = Math.min(page * pageSize, totalCount);
+  const visibleEnd = hasVisibleJobs
+    ? isPaid
+      ? pageEnd
+      : Math.min(pageStart + visibleJobs.length - 1, totalCount)
+    : 0;
+  const hasPreviousPage = page > 1;
+  const hasNextPage = totalPages > page;
 
   return (
     <>
@@ -156,11 +181,40 @@ export default async function JobsPage({
             <div className="mt-8 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 md:flex-row md:items-center md:justify-between">
               <span className="inline-flex items-center gap-2 font-medium">
                 <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-                Free plan preview: showing 10 jobs from this result set.
+                Free plan preview: showing 10 jobs from {totalCount.toLocaleString()} matching roles.
               </span>
               <Button asChild href="/pricing" size="sm" variant="outline">
                 Upgrade
               </Button>
+            </div>
+          ) : null}
+
+          {configured ? (
+            <div className="mt-8 flex flex-col gap-2 text-sm text-ink-500 md:flex-row md:items-center md:justify-between">
+              <p>
+                {hasVisibleJobs ? (
+                  <>
+                    Showing{" "}
+                    <span className="font-semibold text-ink-800">
+                      {pageStart.toLocaleString()}-{visibleEnd.toLocaleString()}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-ink-800">
+                      {totalCount.toLocaleString()}
+                    </span>{" "}
+                    active jobs
+                  </>
+                ) : totalCount > 0 ? (
+                  "This result page is empty. Use the previous page or clear filters."
+                ) : (
+                  "No active jobs match these filters yet."
+                )}
+              </p>
+              {isPaid && totalPages > 1 ? (
+                <p>
+                  Page {page.toLocaleString()} of {totalPages.toLocaleString()}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
@@ -169,6 +223,41 @@ export default async function JobsPage({
               <JobCard isSaved={savedJobIds.has(job.id)} job={job} key={job.id} />
             ))}
           </div>
+
+          {isPaid && configured && totalPages > 1 ? (
+            <nav
+              aria-label="Jobs pagination"
+              className="mt-8 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 md:flex-row md:items-center md:justify-between"
+            >
+              <p className="text-sm font-medium text-ink-500">
+                Browse all {totalCount.toLocaleString()} active direct-apply roles.
+              </p>
+              <div className="flex gap-2">
+                {hasPreviousPage ? (
+                  <Button asChild href={buildJobsPageHref(filters, page - 1)} variant="outline">
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                    Previous
+                  </Button>
+                ) : (
+                  <span className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-100 bg-gray-50 px-4 text-sm font-semibold text-ink-300">
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                    Previous
+                  </span>
+                )}
+                {hasNextPage ? (
+                  <Button asChild href={buildJobsPageHref(filters, page + 1)} variant="outline">
+                    Next
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                ) : (
+                  <span className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-100 bg-gray-50 px-4 text-sm font-semibold text-ink-300">
+                    Next
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                )}
+              </div>
+            </nav>
+          ) : null}
 
           {configured && visibleJobs.length === 0 ? (
             <div className="mt-8">

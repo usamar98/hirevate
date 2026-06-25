@@ -147,7 +147,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 ) : null}
-                <SaveJobButton isSaved={savedJobIds.has(job.id)} jobId={job.id} />
+                <SaveJobButton
+                  isSaved={savedJobIds.has(job.id)}
+                  jobId={job.id}
+                  redirectPath={canonicalPath}
+                />
               </div>
             </Card>
             {!access.allowed ? (
