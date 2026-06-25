@@ -52,6 +52,7 @@ SERPAPI_GL=us
 SERPAPI_HL=en
 SERPAPI_MONTHLY_LIMIT=220
 SERPAPI_MAX_SEARCHES_PER_SYNC=5
+GOOGLE_SITE_VERIFICATION=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -229,6 +230,16 @@ Editor after replacing `you@example.com` with your login email.
 4. Apply Supabase migrations and seed data.
 5. Configure the Stripe webhook to point to `https://www.hirevate.com/api/stripe/webhook`.
 6. Deploy.
+
+## Search Console and SEO
+
+- Production sitemap: `https://www.hirevate.com/sitemap.xml`
+- Production robots file: `https://www.hirevate.com/robots.txt`
+- Use a Google Search Console Domain property when possible, then verify with the DNS TXT record Google provides.
+- If you use the URL-prefix HTML tag method, copy only the `content` value from Google's meta tag into `GOOGLE_SITE_VERIFICATION` in Vercel Production, then redeploy.
+- Keep `/admin`, `/api`, `/auth`, and `/dashboard` private. They are blocked from crawl and marked noindex in page metadata.
+- Do not submit protected job detail pages to Google until those pages are publicly visible to anonymous crawlers. The public `/jobs` page is the crawlable jobs discovery page.
+- See `docs/search-console.md` for the launch checklist, index request steps, and off-page SEO plan.
 
 ## Useful Commands
 

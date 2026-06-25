@@ -9,7 +9,11 @@ import { getProfile, requireUser } from "@/lib/auth/session";
 import { countSavedJobs, getSavedJobs } from "@/lib/jobs/queries";
 
 export const metadata: Metadata = {
-  title: "Dashboard"
+  title: "Dashboard",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export default async function DashboardPage({

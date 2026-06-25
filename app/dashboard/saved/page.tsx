@@ -6,7 +6,11 @@ import { getSavedJobs } from "@/lib/jobs/queries";
 import { requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "Saved Jobs"
+  title: "Saved Jobs",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export default async function SavedJobsPage() {

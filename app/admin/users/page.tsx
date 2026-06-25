@@ -8,7 +8,11 @@ import { requireAdmin } from "@/lib/auth/session";
 import { formatDate, formatRelativeDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Admin Users"
+  title: "Admin Users",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export const dynamic = "force-dynamic";

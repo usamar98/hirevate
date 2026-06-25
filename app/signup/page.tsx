@@ -5,7 +5,11 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Start Free"
+  title: "Start Free",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export default function SignupPage() {

@@ -21,9 +21,21 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const job = await getJobById(id);
+  const companyName = job?.companies?.name ?? "Company";
+  const title = job ? `${job.title} at ${companyName}` : "Job detail";
 
   return {
-    title: job ? `${job.title} at ${job.companies?.name ?? "Company"}` : "Job detail"
+    title,
+    description: job
+      ? `View ${job.title} at ${companyName} inside Hirevate. Sign in to access direct-apply details and save the role.`
+      : "View a Hirevate job detail page.",
+    alternates: {
+      canonical: `/jobs/${id}`
+    },
+    robots: {
+      index: false,
+      follow: false
+    }
   };
 }
 

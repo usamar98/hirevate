@@ -45,6 +45,7 @@ export const env = {
   serpApiHl: readEnv("SERPAPI_HL") || "en",
   serpApiMonthlyLimit: readEnv("SERPAPI_MONTHLY_LIMIT"),
   serpApiMaxSearchesPerSync: readEnv("SERPAPI_MAX_SEARCHES_PER_SYNC"),
+  googleSiteVerification: readEnv("GOOGLE_SITE_VERIFICATION"),
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 

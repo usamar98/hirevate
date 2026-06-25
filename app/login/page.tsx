@@ -5,7 +5,11 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Log in"
+  title: "Log in",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export default function LoginPage() {

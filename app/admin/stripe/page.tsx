@@ -7,7 +7,11 @@ import { getStripeAccountStatus } from "@/lib/admin/stripe";
 import { requireAdmin } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "Admin Stripe"
+  title: "Admin Stripe",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export const dynamic = "force-dynamic";

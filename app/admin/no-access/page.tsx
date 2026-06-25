@@ -5,7 +5,11 @@ import { Card } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "Admin Access Required"
+  title: "Admin Access Required",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export default async function AdminNoAccessPage({

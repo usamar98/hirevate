@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,6 +12,27 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { JsonLd } from "@/components/seo/json-ld";
+import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
+
+const landingDescription =
+  "Hirevate helps job seekers find fresh direct-apply jobs from official hiring sources, build targeted resumes, and measure which applications convert.";
+
+export const metadata: Metadata = {
+  description: landingDescription,
+  alternates: {
+    canonical: "/"
+  },
+  openGraph: {
+    title: siteName,
+    description: landingDescription,
+    url: "/"
+  },
+  twitter: {
+    title: siteName,
+    description: landingDescription
+  }
+};
 
 const features = [
   {
@@ -38,6 +60,23 @@ const features = [
 export default function LandingPage() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: siteName,
+          url: absoluteUrl("/"),
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          description: defaultDescription,
+          offers: {
+            "@type": "Offer",
+            name: "Free job search plan",
+            price: "0",
+            priceCurrency: "USD"
+          }
+        }}
+      />
       <section className="border-b border-gray-100 bg-white">
         <div className="container-shell grid min-h-[calc(100vh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
@@ -170,7 +209,7 @@ function HeroProductPreview() {
         <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-900">Hidden jobs feed</p>
-            <p className="mt-1 text-xs text-ink-500">Official sources · sorted by freshness</p>
+            <p className="mt-1 text-xs text-ink-500">Official sources - sorted by freshness</p>
           </div>
           <Badge tone="green">Fresh Verified</Badge>
         </div>
@@ -198,7 +237,7 @@ function HeroProductPreview() {
               <div className="min-w-0">
                 <h3 className="font-semibold text-ink-900">{title}</h3>
                 <p className="mt-1 text-sm text-ink-500">
-                  {company} · {location}
+                  {company} - {location}
                 </p>
               </div>
               <Badge tone={company === "Notion" ? "green" : "blue"}>

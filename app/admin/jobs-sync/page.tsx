@@ -4,7 +4,11 @@ import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "Admin Job Sync"
+  title: "Admin Job Sync",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 const adminJobsSyncPath = "/admin/jobs-sync";

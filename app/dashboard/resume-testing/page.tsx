@@ -33,7 +33,11 @@ import { getResumeAbDashboard, type ResumeAbDashboard } from "@/lib/resume-ab-te
 import { cn, formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Resume A/B Testing"
+  title: "Resume A/B Testing",
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export const dynamic = "force-dynamic";
