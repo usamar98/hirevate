@@ -7,7 +7,7 @@ export function Logo() {
       <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink-900 text-white shadow-soft">
         <BriefcaseBusiness className="h-[18px] w-[18px]" aria-hidden="true" />
       </span>
-      <span>Hirevate Hidden Jobs</span>
+      <span>Hirevate</span>
     </Link>
   );
 }

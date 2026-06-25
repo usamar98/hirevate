@@ -5,11 +5,14 @@ import { SiteHeader } from "@/components/layout/site-header";
 
 export const metadata: Metadata = {
   title: {
-    default: "Hirevate Hidden Jobs",
-    template: "%s | Hirevate Hidden Jobs"
+    default: "Hirevate",
+    template: "%s | Hirevate"
   },
   description:
-    "Find fresh direct-apply roles from official company career pages and hiring sources."
+    "Find fresh direct-apply roles from official company career pages and hiring sources.",
+  icons: {
+    icon: "/icon.svg"
+  }
 };
 
 export const viewport: Viewport = {
