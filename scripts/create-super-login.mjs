@@ -36,13 +36,18 @@ loadEnvFile(".env.production.local");
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const username = process.env.SUPER_LOGIN_USERNAME?.trim() || "usamariaz";
-const email = process.env.SUPER_LOGIN_EMAIL?.trim() || "usamariaz@hirevate.test";
+const username = process.env.SUPER_LOGIN_USERNAME?.trim();
+const email = process.env.SUPER_LOGIN_EMAIL?.trim();
 const password = process.env.SUPER_LOGIN_PASSWORD?.trim();
-const fullName = process.env.SUPER_LOGIN_FULL_NAME?.trim() || "Usama Riaz";
+const fullName = process.env.SUPER_LOGIN_FULL_NAME?.trim() || "Super Test User";
 
 if (!supabaseUrl || !serviceRoleKey || supabaseUrl.length < 10 || serviceRoleKey.length < 10) {
   console.error("Missing real NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
+  process.exit(1);
+}
+
+if (!username || !email) {
+  console.error("Set SUPER_LOGIN_USERNAME and SUPER_LOGIN_EMAIL before running this script.");
   process.exit(1);
 }
 

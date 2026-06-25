@@ -53,8 +53,8 @@ SERPAPI_HL=en
 SERPAPI_MONTHLY_LIMIT=220
 SERPAPI_MAX_SEARCHES_PER_SYNC=5
 GOOGLE_SITE_VERIFICATION=
-SUPER_LOGIN_USERNAME=usamariaz
-SUPER_LOGIN_EMAIL=usamariaz@hirevate.test
+SUPER_LOGIN_USERNAME=
+SUPER_LOGIN_EMAIL=
 SUPER_LOGIN_PASSWORD=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -233,8 +233,8 @@ test password in the repository.
 Set these environment variables in the environment where you run the setup script:
 
 ```bash
-SUPER_LOGIN_USERNAME=usamariaz
-SUPER_LOGIN_EMAIL=usamariaz@hirevate.test
+SUPER_LOGIN_USERNAME=<private test username>
+SUPER_LOGIN_EMAIL=<private test email>
 SUPER_LOGIN_PASSWORD=<set a private test password>
 ```
 

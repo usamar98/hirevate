@@ -80,7 +80,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </span>
         <Input
           autoComplete={mode === "signup" ? "email" : "username"}
-          placeholder={mode === "signup" ? "you@example.com" : "you@example.com or usamariaz"}
+          placeholder={mode === "signup" ? "you@example.com" : "you@example.com or username"}
           type={mode === "signup" ? "email" : "text"}
           {...register("email")}
         />
