@@ -162,6 +162,13 @@ The resume builder at `/resume-builder` lets users create a role-targeted resume
 keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
 Resume export is currently free for testing.
 
+## Resume A/B Testing
+
+Users can open `/dashboard/resume-testing` to create two resume versions, log applications against
+version A or B, update outcomes as interviews arrive, and compare application-to-interview rates by
+resume version and job title. Run `supabase/migrations/004_resume_ab_testing.sql` before using this
+dashboard in production.
+
 ## Admin User Analytics
 
 Admins can open `/admin/users` to see registered users, paid vs freemium counts, recent signups,

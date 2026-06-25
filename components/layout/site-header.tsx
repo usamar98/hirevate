@@ -25,9 +25,14 @@ export async function SiteHeader() {
             Pricing
           </Link>
           {user ? (
-            <Link className="transition hover:text-ink-900" href="/dashboard">
-              Dashboard
-            </Link>
+            <>
+              <Link className="transition hover:text-ink-900" href="/dashboard">
+                Dashboard
+              </Link>
+              <Link className="transition hover:text-ink-900" href="/dashboard/resume-testing">
+                Resume Tests
+              </Link>
+            </>
           ) : null}
           {isAdmin ? (
             <>

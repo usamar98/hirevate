@@ -199,6 +199,98 @@ export type Database = {
         };
         Relationships: [];
       };
+      resume_ab_tests: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          resume_a_name: string;
+          resume_a_notes: string | null;
+          resume_b_name: string;
+          resume_b_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          resume_a_name?: string;
+          resume_a_notes?: string | null;
+          resume_b_name?: string;
+          resume_b_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          resume_a_name?: string;
+          resume_a_notes?: string | null;
+          resume_b_name?: string;
+          resume_b_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      resume_ab_applications: {
+        Row: {
+          id: string;
+          user_id: string;
+          ab_test_id: string;
+          resume_variant: "A" | "B";
+          job_title: string;
+          company: string | null;
+          status: "applied" | "interview" | "offer" | "rejected";
+          applied_at: string;
+          interview_at: string | null;
+          source_url: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          ab_test_id: string;
+          resume_variant: "A" | "B";
+          job_title: string;
+          company?: string | null;
+          status?: "applied" | "interview" | "offer" | "rejected";
+          applied_at?: string;
+          interview_at?: string | null;
+          source_url?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          ab_test_id?: string;
+          resume_variant?: "A" | "B";
+          job_title?: string;
+          company?: string | null;
+          status?: "applied" | "interview" | "offer" | "rejected";
+          applied_at?: string;
+          interview_at?: string | null;
+          source_url?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "resume_ab_applications_ab_test_id_fkey";
+            columns: ["ab_test_id"];
+            isOneToOne: false;
+            referencedRelation: "resume_ab_tests";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -219,6 +311,8 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Company = Database["public"]["Tables"]["companies"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type SavedJob = Database["public"]["Tables"]["saved_jobs"]["Row"];
+export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applications"]["Row"];
+export type ResumeAbTest = Database["public"]["Tables"]["resume_ab_tests"]["Row"];
 
 export type JobWithCompany = Job & {
   companies: Pick<Company, "id" | "name" | "greenhouse_slug" | "website"> | null;

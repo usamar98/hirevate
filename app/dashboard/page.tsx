@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookmarkCheck, CreditCard, Search } from "lucide-react";
+import { ArrowRight, BookmarkCheck, CreditCard, FlaskConical, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,7 +50,7 @@ export default async function DashboardPage({
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card className="p-5">
             <CreditCard className="h-5 w-5 text-brand-600" aria-hidden="true" />
             <p className="mt-4 text-sm font-semibold text-ink-500">Subscription</p>
@@ -68,6 +68,16 @@ export default async function DashboardPage({
             <Search className="h-5 w-5 text-amber-600" aria-hidden="true" />
             <p className="mt-4 text-sm font-semibold text-ink-500">Next action</p>
             <p className="mt-2 text-base font-semibold text-ink-900">Run a focused search</p>
+          </Card>
+          <Card className="p-5">
+            <FlaskConical className="h-5 w-5 text-violet-600" aria-hidden="true" />
+            <p className="mt-4 text-sm font-semibold text-ink-500">Resume testing</p>
+            <Link
+              href="/dashboard/resume-testing"
+              className="mt-2 inline-flex text-base font-semibold text-brand-600"
+            >
+              Compare versions
+            </Link>
           </Card>
         </div>
 
