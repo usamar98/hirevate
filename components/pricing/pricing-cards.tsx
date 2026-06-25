@@ -9,34 +9,64 @@ import { Card } from "@/components/ui/card";
 const plans = [
   {
     key: "free",
-    name: "Free",
+    name: "Free Search",
+    service: "Hidden jobs",
     price: "$0",
     cadence: "",
-    features: ["View 10 jobs/day", "Save 5 jobs", "Direct apply links"],
+    description: "Start with fresh direct-apply jobs and basic tracking.",
+    features: [
+      "Public job detail pages with direct apply links",
+      "10 results per filtered search",
+      "Save up to 5 jobs",
+      "Resume export while testing mode is active"
+    ],
     cta: "Start Free"
   },
   {
     key: "resume_builder",
     name: "Resume Builder",
+    service: "Resume tools",
     price: "Free",
-    cadence: "testing",
-    features: ["ATS scoring", "Keyword targeting", "Print-ready PDF export"],
+    cadence: "testing mode",
+    description: "Build a role-targeted resume before you apply.",
+    features: [
+      "ATS keyword score and missing keyword prompts",
+      "Impact coach for stronger bullet points",
+      "Precision, modern, and compact layouts",
+      "Print-ready browser PDF export"
+    ],
     cta: "Build resume"
   },
   {
     key: "pro",
-    name: "Pro Monthly",
+    name: "Job Search Pro",
+    service: "Active search",
     price: "$12",
     cadence: "/month",
-    features: ["Unlimited job views", "Unlimited saved jobs", "Fresh job filters"],
+    description: "For serious weekly search across hidden job sources.",
+    features: [
+      "Unlimited hidden job search results",
+      "Unlimited saved jobs",
+      "Remote, London, and engineering discovery pages",
+      "Resume A/B testing metrics",
+      "Direct sources from Greenhouse, Adzuna, and SerpApi"
+    ],
     cta: "Upgrade monthly"
   },
   {
     key: "annual",
-    name: "Annual",
+    name: "All Access Annual",
+    service: "Best value",
     price: "$49",
     cadence: "/year",
-    features: ["Same as Pro", "Best value pricing", "Fresh job filters"],
+    description: "The complete Hirevate workspace at the lowest yearly cost.",
+    features: [
+      "Everything in Job Search Pro",
+      "Lowest cost for year-round job searching",
+      "Unlimited saved jobs and direct-apply tracking",
+      "Resume builder plus A/B testing workflow",
+      "Best fit for long search campaigns"
+    ],
     cta: "Upgrade annual",
     bestValue: true
   }
@@ -100,7 +130,9 @@ export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
                 Best value
               </Badge>
             ) : null}
-            <h2 className="text-lg font-semibold text-ink-900">{plan.name}</h2>
+            <p className="text-xs font-semibold uppercase tracking-normal text-brand-600">{plan.service}</p>
+            <h2 className="mt-2 text-lg font-semibold text-ink-900">{plan.name}</h2>
+            <p className="mt-3 min-h-[48px] text-sm leading-6 text-ink-500">{plan.description}</p>
             <div className="mt-5 flex items-end gap-1">
               <span className="text-4xl font-semibold text-ink-900">{plan.price}</span>
               <span className="pb-1 text-sm font-medium text-ink-500">{plan.cadence}</span>

@@ -15,13 +15,13 @@ export function getStripe() {
 
 export const stripePlans = {
   pro: {
-    name: "Pro Monthly",
+    name: "Job Search Pro",
     amount: 1200,
     interval: "month" as const,
     subscriptionStatus: "pro"
   },
   annual: {
-    name: "Annual",
+    name: "All Access Annual",
     amount: 4900,
     interval: "year" as const,
     subscriptionStatus: "annual"

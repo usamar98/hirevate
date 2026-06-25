@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { absoluteUrl } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate plans for hidden job discovery, unlimited job views, saved jobs, and the advanced resume builder.";
+  "Compare Hirevate services for hidden job discovery, resume building, resume A/B testing, saved jobs, and unlimited direct-apply search.";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -43,21 +43,28 @@ export default async function PricingPage() {
           offers: [
             {
               "@type": "Offer",
-              name: "Free",
+              name: "Free Search",
               price: "0",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
             },
             {
               "@type": "Offer",
-              name: "Pro Monthly",
+              name: "Resume Builder",
+              price: "0",
+              priceCurrency: "USD",
+              availability: "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              name: "Job Search Pro",
               price: "12",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
             },
             {
               "@type": "Offer",
-              name: "Annual",
+              name: "All Access Annual",
               price: "49",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
@@ -70,8 +77,8 @@ export default async function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Upgrade for unlimited hidden jobs, or build a role-targeted resume with testing-mode
-              export while the resume builder is being validated.
+              Choose the service level that matches your search: hidden jobs, resume building,
+              resume A/B testing, saved roles, and unlimited direct-apply discovery.
             </p>
           </div>
           <div className="mt-8">

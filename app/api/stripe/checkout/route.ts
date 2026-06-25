@@ -119,7 +119,7 @@ export async function POST(request: Request) {
             interval: plan.interval
           },
           product_data: {
-            name: `Hirevate Hidden Jobs ${plan.name}`
+            name: `Hirevate ${plan.name}`
           }
         }
       }
