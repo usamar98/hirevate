@@ -21,8 +21,16 @@ const optionalDate = z
   .transform((value) => (value ? value : null))
   .pipe(z.string().date().nullable());
 
+const optionalEmail = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => (value ? value : null))
+  .pipe(z.string().email().nullable());
+
 export const resumeVariantSchema = z.enum(["A", "B"]);
 export const applicationStatusSchema = z.enum(["applied", "interview", "offer", "rejected"]);
+export const applicationChannelSchema = z.enum(["direct", "referral", "recruiter", "job_board", "other"]);
 
 export const createResumeAbTestSchema = z.object({
   name: z.string().trim().min(2, "Name the test.").max(120),
@@ -37,10 +45,15 @@ export const createResumeAbApplicationSchema = z.object({
   resumeVariant: resumeVariantSchema,
   jobTitle: z.string().trim().min(2, "Enter a job title.").max(160),
   company: optionalText,
+  contactName: optionalText,
+  contactEmail: optionalEmail,
   status: applicationStatusSchema,
+  applicationChannel: applicationChannelSchema,
   appliedAt: z.string().date(),
   interviewAt: optionalDate,
+  nextFollowUpAt: optionalDate,
   sourceUrl: optionalUrl,
+  resumeSnapshotUrl: optionalUrl,
   notes: optionalText
 });
 

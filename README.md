@@ -166,8 +166,13 @@ Resume export is currently free for testing.
 
 Users can open `/dashboard/resume-testing` to create two resume versions, log applications against
 version A or B, update outcomes as interviews arrive, and compare application-to-interview rates by
-resume version and job title. Run `supabase/migrations/004_resume_ab_testing.sql` before using this
-dashboard in production.
+resume version and job title. The dashboard also tracks follow-up timing, application channel,
+contacts, per-test recommendations, and a funnel from applied to interview to offer.
+
+Run these SQL files in Supabase SQL Editor before using this dashboard in production:
+
+- `supabase/migrations/004_resume_ab_testing.sql`
+- `supabase/migrations/005_resume_ab_testing_enhancements.sql`
 
 ## Admin User Analytics
 

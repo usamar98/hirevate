@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -13,6 +14,18 @@ import type { Database } from "@/types/database";
 
 const dashboardPath = "/dashboard/resume-testing";
 
+type ActionErrorCode =
+  | "setup"
+  | "not-configured"
+  | "invalid-test"
+  | "invalid-application"
+  | "missing-test"
+  | "save-failed"
+  | "update-failed"
+  | "delete-failed";
+
+type ActionSuccessCode = "test-created" | "application-created" | "application-updated" | "application-deleted";
+
 function readFormValue(formData: FormData, key: string) {
   return formData.get(key)?.toString() ?? "";
 }
@@ -21,12 +34,43 @@ function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function redirectWithError(code: ActionErrorCode): never {
+  redirect(`${dashboardPath}?resumeTestError=${code}`);
+}
+
+function redirectWithSuccess(code: ActionSuccessCode): never {
+  redirect(`${dashboardPath}?resumeTestSuccess=${code}`);
+}
+
+function isMissingResumeTestingSchema(error: { code?: string; message?: string } | null) {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    message.includes("schema cache") ||
+    message.includes("does not exist") ||
+    message.includes("could not find the table")
+  );
+}
+
+function redirectForSupabaseError(
+  error: { code?: string; message?: string } | null,
+  fallback: ActionErrorCode
+): never {
+  console.error("Resume A/B action failed", error);
+  if (isMissingResumeTestingSchema(error)) {
+    redirectWithError("setup");
+  }
+
+  redirectWithError(fallback);
+}
+
 async function getAuthedSupabase() {
   const user = await requireUser(dashboardPath);
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    throw new Error("Supabase is not configured.");
+    redirectWithError("not-configured");
   }
 
   return { supabase, user };
@@ -42,7 +86,7 @@ export async function createResumeAbTestAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Invalid resume test.");
+    redirectWithError("invalid-test");
   }
 
   const { supabase, user } = await getAuthedSupabase();
@@ -58,10 +102,11 @@ export async function createResumeAbTestAction(formData: FormData) {
   const { error } = await supabase.from("resume_ab_tests").insert(insert);
 
   if (error) {
-    throw new Error(error.message);
+    redirectForSupabaseError(error, "save-failed");
   }
 
   revalidatePath(dashboardPath);
+  redirectWithSuccess("test-created");
 }
 
 export async function createResumeAbApplicationAction(formData: FormData) {
@@ -70,15 +115,20 @@ export async function createResumeAbApplicationAction(formData: FormData) {
     resumeVariant: readFormValue(formData, "resumeVariant"),
     jobTitle: readFormValue(formData, "jobTitle"),
     company: readFormValue(formData, "company"),
+    contactName: readFormValue(formData, "contactName"),
+    contactEmail: readFormValue(formData, "contactEmail"),
     status: readFormValue(formData, "status") || "applied",
+    applicationChannel: readFormValue(formData, "applicationChannel") || "direct",
     appliedAt: readFormValue(formData, "appliedAt") || todayIsoDate(),
     interviewAt: readFormValue(formData, "interviewAt"),
+    nextFollowUpAt: readFormValue(formData, "nextFollowUpAt"),
     sourceUrl: readFormValue(formData, "sourceUrl"),
+    resumeSnapshotUrl: readFormValue(formData, "resumeSnapshotUrl"),
     notes: readFormValue(formData, "notes")
   });
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Invalid application.");
+    redirectWithError("invalid-application");
   }
 
   const { supabase, user } = await getAuthedSupabase();
@@ -90,11 +140,11 @@ export async function createResumeAbApplicationAction(formData: FormData) {
     .maybeSingle();
 
   if (testError) {
-    throw new Error(testError.message);
+    redirectForSupabaseError(testError, "save-failed");
   }
 
   if (!test) {
-    throw new Error("Resume test not found.");
+    redirectWithError("missing-test");
   }
 
   const interviewAt =
@@ -107,20 +157,26 @@ export async function createResumeAbApplicationAction(formData: FormData) {
     resume_variant: parsed.data.resumeVariant,
     job_title: parsed.data.jobTitle,
     company: parsed.data.company,
+    contact_name: parsed.data.contactName,
+    contact_email: parsed.data.contactEmail,
     status: parsed.data.status,
+    application_channel: parsed.data.applicationChannel,
     applied_at: parsed.data.appliedAt,
     interview_at: interviewAt,
+    next_follow_up_at: parsed.data.nextFollowUpAt,
     source_url: parsed.data.sourceUrl,
+    resume_snapshot_url: parsed.data.resumeSnapshotUrl,
     notes: parsed.data.notes
   };
 
   const { error } = await supabase.from("resume_ab_applications").insert(insert);
 
   if (error) {
-    throw new Error(error.message);
+    redirectForSupabaseError(error, "save-failed");
   }
 
   revalidatePath(dashboardPath);
+  redirectWithSuccess("application-created");
 }
 
 export async function updateResumeAbApplicationStatusAction(formData: FormData) {
@@ -131,7 +187,7 @@ export async function updateResumeAbApplicationStatusAction(formData: FormData) 
   });
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Invalid application status.");
+    redirectWithError("invalid-application");
   }
 
   const { supabase, user } = await getAuthedSupabase();
@@ -150,10 +206,11 @@ export async function updateResumeAbApplicationStatusAction(formData: FormData) 
     .eq("user_id", user.id);
 
   if (error) {
-    throw new Error(error.message);
+    redirectForSupabaseError(error, "update-failed");
   }
 
   revalidatePath(dashboardPath);
+  redirectWithSuccess("application-updated");
 }
 
 export async function deleteResumeAbApplicationAction(formData: FormData) {
@@ -162,7 +219,7 @@ export async function deleteResumeAbApplicationAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    throw new Error("Invalid application.");
+    redirectWithError("invalid-application");
   }
 
   const { supabase, user } = await getAuthedSupabase();
@@ -173,8 +230,9 @@ export async function deleteResumeAbApplicationAction(formData: FormData) {
     .eq("user_id", user.id);
 
   if (error) {
-    throw new Error(error.message);
+    redirectForSupabaseError(error, "delete-failed");
   }
 
   revalidatePath(dashboardPath);
+  redirectWithSuccess("application-deleted");
 }
