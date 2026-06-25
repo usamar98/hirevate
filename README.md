@@ -53,6 +53,9 @@ SERPAPI_HL=en
 SERPAPI_MONTHLY_LIMIT=220
 SERPAPI_MAX_SEARCHES_PER_SYNC=5
 GOOGLE_SITE_VERIFICATION=
+SUPER_LOGIN_USERNAME=usamariaz
+SUPER_LOGIN_EMAIL=usamariaz@hirevate.test
+SUPER_LOGIN_PASSWORD=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -221,6 +224,32 @@ last-seen data on profiles. Country data is captured from production request hea
 
 If `/admin/users` shows the admin access page, run `supabase/admin_set_admin.sql` in Supabase SQL
 Editor after replacing `you@example.com` with your login email.
+
+## Super Login Test Account
+
+The app supports one username-based super login for testing free and paid behavior without storing a
+test password in the repository.
+
+Set these environment variables in the environment where you run the setup script:
+
+```bash
+SUPER_LOGIN_USERNAME=usamariaz
+SUPER_LOGIN_EMAIL=usamariaz@hirevate.test
+SUPER_LOGIN_PASSWORD=<set a private test password>
+```
+
+Then run:
+
+```bash
+npm run setup:super-login
+```
+
+The script creates or updates the Supabase auth user, confirms the email, upserts the matching
+profile as `role = 'admin'`, and starts the account with `subscription_status = 'active'`.
+
+On `/login`, enter the username instead of the mapped email. After login, the dashboard shows a
+`Super login test mode` panel where this account can switch between free limits and paid access
+without touching Stripe.
 
 ## Vercel Deployment
 

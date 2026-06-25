@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { signInAction, signUpAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { authSchema, type AuthFormValues } from "@/lib/validators/auth";
+import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validators/auth";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -24,7 +24,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     handleSubmit,
     register
   } = useForm<AuthFormValues>({
-    resolver: zodResolver(authSchema),
+    resolver: zodResolver(mode === "signup" ? signUpSchema : signInSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -75,8 +75,15 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </label>
       ) : null}
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink-700">Email</span>
-        <Input autoComplete="email" placeholder="you@example.com" type="email" {...register("email")} />
+        <span className="text-sm font-semibold text-ink-700">
+          {mode === "signup" ? "Email" : "Email or username"}
+        </span>
+        <Input
+          autoComplete={mode === "signup" ? "email" : "username"}
+          placeholder={mode === "signup" ? "you@example.com" : "you@example.com or usamariaz"}
+          type={mode === "signup" ? "email" : "text"}
+          {...register("email")}
+        />
         {errors.email ? <span className="text-sm text-red-600">{errors.email.message}</span> : null}
       </label>
       <label className="block space-y-1.5">

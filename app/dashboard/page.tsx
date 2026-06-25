@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookmarkCheck, CreditCard, FlaskConical, Search } from "lucide-react";
+import { updateSuperLoginPlanAction } from "@/app/actions/super-login";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JobCard } from "@/components/jobs/job-card";
+import { isSuperLoginProfile } from "@/lib/auth/super-login";
 import { getProfile, requireUser } from "@/lib/auth/session";
 import { countSavedJobs, getSavedJobs } from "@/lib/jobs/queries";
 
@@ -31,6 +33,9 @@ export default async function DashboardPage({
   const recentSavedJobs = savedJobs.slice(0, 3).filter((item) => item.jobs);
   const status = profile?.subscription_status ?? "free";
   const checkoutSuccess = resolvedSearchParams?.checkout === "success";
+  const superLoginPlan = resolvedSearchParams?.superLoginPlan;
+  const superLoginError = resolvedSearchParams?.superLoginError;
+  const isSuperLogin = isSuperLoginProfile(profile);
 
   return (
     <section className="bg-gray-50 py-10">
@@ -39,6 +44,16 @@ export default async function DashboardPage({
           <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
             Checkout complete. Your subscription status will update as soon as Stripe confirms the
             payment.
+          </div>
+        ) : null}
+        {superLoginPlan === "free" || superLoginPlan === "active" ? (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+            Super login is now testing {superLoginPlan === "active" ? "paid" : "free"} access.
+          </div>
+        ) : null}
+        {superLoginError === "not-configured" ? (
+          <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            Supabase service role is not configured, so the super login plan could not be changed.
           </div>
         ) : null}
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -84,6 +99,33 @@ export default async function DashboardPage({
             </Link>
           </Card>
         </div>
+
+        {isSuperLogin ? (
+          <Card className="border-amber-200 bg-amber-50 p-5">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-lg font-semibold text-ink-900">Super login test mode</h2>
+                <p className="mt-1 text-sm leading-6 text-ink-600">
+                  Switch this account between free limits and paid access without touching Stripe.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <form action={updateSuperLoginPlanAction}>
+                  <input name="subscriptionStatus" type="hidden" value="free" />
+                  <Button disabled={status === "free"} type="submit" variant="outline">
+                    Test free
+                  </Button>
+                </form>
+                <form action={updateSuperLoginPlanAction}>
+                  <input name="subscriptionStatus" type="hidden" value="active" />
+                  <Button disabled={status !== "free"} type="submit">
+                    Test paid
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </Card>
+        ) : null}
 
         {status === "free" ? (
           <Card className="flex flex-col justify-between gap-4 border-brand-100 bg-brand-50 p-5 md:flex-row md:items-center">

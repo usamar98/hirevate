@@ -2,10 +2,11 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { resolveLoginEmail } from "@/lib/auth/super-login";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { authSchema, type AuthFormValues } from "@/lib/validators/auth";
+import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validators/auth";
 
 type AuthResult =
   | { ok: true; needsConfirmation?: boolean; message?: string }
@@ -65,9 +66,14 @@ async function updateProfilePresence(userId: string, geo: Awaited<ReturnType<typ
 }
 
 export async function signInAction(values: AuthFormValues): Promise<AuthResult> {
-  const parsed = authSchema.safeParse(values);
+  const parsed = signInSchema.safeParse(values);
   if (!parsed.success) {
-    return { ok: false, error: "Enter a valid email and password." };
+    return { ok: false, error: "Enter a valid email or username and password." };
+  }
+
+  const loginEmail = resolveLoginEmail(parsed.data.email);
+  if (!loginEmail) {
+    return { ok: false, error: "Use a valid email address or the configured test username." };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -76,7 +82,7 @@ export async function signInAction(values: AuthFormValues): Promise<AuthResult> 
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
+    email: loginEmail,
     password: parsed.data.password
   });
 
@@ -95,7 +101,7 @@ export async function signUpAction(
   values: AuthFormValues,
   redirectTo: string
 ): Promise<AuthResult> {
-  const parsed = authSchema.safeParse(values);
+  const parsed = signUpSchema.safeParse(values);
   if (!parsed.success) {
     return { ok: false, error: "Enter a valid name, email, and password." };
   }

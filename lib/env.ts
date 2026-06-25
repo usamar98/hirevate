@@ -46,6 +46,8 @@ export const env = {
   serpApiMonthlyLimit: readEnv("SERPAPI_MONTHLY_LIMIT"),
   serpApiMaxSearchesPerSync: readEnv("SERPAPI_MAX_SEARCHES_PER_SYNC"),
   googleSiteVerification: readEnv("GOOGLE_SITE_VERIFICATION"),
+  superLoginUsername: readEnv("SUPER_LOGIN_USERNAME") || "usamariaz",
+  superLoginEmail: readEnv("SUPER_LOGIN_EMAIL") || "usamariaz@hirevate.test",
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 
