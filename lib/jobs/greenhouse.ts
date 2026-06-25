@@ -2,6 +2,7 @@ import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Company, Database, Json } from "@/types/database";
+import type { JobSyncError, JobSyncSourceResult } from "@/lib/jobs/sync-types";
 
 type GreenhouseLocation = {
   name?: string | null;
@@ -22,14 +23,12 @@ type GreenhouseResponse = {
   jobs?: GreenhouseJob[];
 };
 
-export type SyncError = {
-  company: string;
-  slug: string;
-  message: string;
-};
+export type SyncError = JobSyncError;
 
 export type SyncResult = {
+  sourceResult: JobSyncSourceResult;
   totalCompaniesChecked: number;
+  totalJobsFetched: number;
   totalJobsInserted: number;
   totalJobsUpdated: number;
   errors: SyncError[];
@@ -89,7 +88,8 @@ async function ensureDefaultCompanies(
   const { count, error: countError } = await supabase
     .from("companies")
     .select("id", { count: "exact", head: true })
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .not("greenhouse_slug", "like", "adzuna-%");
 
   if (countError) {
     throw countError;
@@ -121,6 +121,7 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
     .from("companies")
     .select("*")
     .eq("is_active", true)
+    .not("greenhouse_slug", "like", "adzuna-%")
     .order("name", { ascending: true });
 
   if (companiesError) {
@@ -128,7 +129,16 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
   }
 
   const result: SyncResult = {
+    sourceResult: {
+      configured: true,
+      source: "greenhouse",
+      totalJobsFetched: 0,
+      totalJobsInserted: 0,
+      totalJobsUpdated: 0,
+      totalRequests: 0
+    },
     totalCompaniesChecked: 0,
+    totalJobsFetched: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
     errors: []
@@ -138,7 +148,10 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
     result.totalCompaniesChecked += 1;
 
     try {
+      result.sourceResult.totalRequests += 1;
       const greenhouseJobs = await fetchGreenhouseJobs(company.greenhouse_slug);
+      result.totalJobsFetched += greenhouseJobs.length;
+      result.sourceResult.totalJobsFetched += greenhouseJobs.length;
       const normalizedJobs = greenhouseJobs.map((job) => normalizeJob(company, job));
 
       if (normalizedJobs.length > 0) {
@@ -162,8 +175,10 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
         for (const job of normalizedJobs) {
           if (existingIds.has(job.external_id)) {
             result.totalJobsUpdated += 1;
+            result.sourceResult.totalJobsUpdated += 1;
           } else {
             result.totalJobsInserted += 1;
+            result.sourceResult.totalJobsInserted += 1;
           }
         }
       }
@@ -174,6 +189,7 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
         .eq("id", company.id);
     } catch (error) {
       result.errors.push({
+        source: "greenhouse",
         company: company.name,
         slug: company.greenhouse_slug,
         message: error instanceof Error ? error.message : "Unknown sync error"

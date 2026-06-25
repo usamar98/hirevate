@@ -3,11 +3,11 @@
 import { Loader2, RefreshCcw } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { SyncResult } from "@/lib/jobs/greenhouse";
+import type { JobSyncResult } from "@/lib/jobs/sync";
 
 export function SyncButton() {
   const [isSyncing, setIsSyncing] = useState(false);
-  const [result, setResult] = useState<SyncResult | null>(null);
+  const [result, setResult] = useState<JobSyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function syncJobs() {
@@ -26,7 +26,7 @@ export function SyncButton() {
         return;
       }
 
-      setResult(payload as SyncResult);
+      setResult(payload as JobSyncResult);
     } catch (syncError) {
       setError(syncError instanceof Error ? syncError.message : "Unable to sync jobs.");
     } finally {
@@ -42,7 +42,7 @@ export function SyncButton() {
         ) : (
           <RefreshCcw className="h-4 w-4" aria-hidden="true" />
         )}
-        Sync Greenhouse Jobs
+        Sync job sources
       </Button>
       {error ? (
         <div className="rounded-md border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -56,13 +56,36 @@ export function SyncButton() {
             <Metric label="Jobs inserted" value={result.totalJobsInserted} />
             <Metric label="Jobs updated" value={result.totalJobsUpdated} />
           </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {result.sourceResults.map((source) => (
+              <div className="rounded-md border border-gray-100 bg-gray-50 p-4" key={source.source}>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold capitalize text-ink-900">{source.source}</p>
+                  <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-ink-500">
+                    {source.configured ? "Ready" : "Missing env"}
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                  <MiniMetric label="Fetched" value={source.totalJobsFetched} />
+                  <MiniMetric label="Inserted" value={source.totalJobsInserted} />
+                  <MiniMetric label="Updated" value={source.totalJobsUpdated} />
+                </div>
+              </div>
+            ))}
+          </div>
           {result.errors.length > 0 ? (
             <div className="mt-5">
               <h2 className="text-sm font-semibold text-ink-900">Errors</h2>
               <ul className="mt-3 space-y-2 text-sm text-ink-500">
                 {result.errors.map((item) => (
-                  <li className="rounded-md bg-gray-50 px-3 py-2" key={`${item.slug}-${item.message}`}>
-                    {item.company} ({item.slug}): {item.message}
+                  <li
+                    className="rounded-md bg-gray-50 px-3 py-2"
+                    key={`${item.source}-${item.slug ?? item.query ?? item.message}`}
+                  >
+                    <span className="font-semibold capitalize text-ink-700">{item.source}</span>
+                    {item.company ? ` - ${item.company}` : null}
+                    {item.slug ? ` (${item.slug})` : null}
+                    {item.query ? ` - ${item.query}` : null}: {item.message}
                   </li>
                 ))}
               </ul>
@@ -79,6 +102,15 @@ function Metric({ label, value }: { label: string; value: number }) {
     <div className="rounded-md border border-gray-100 bg-gray-50 p-4">
       <p className="text-2xl font-semibold text-ink-900">{value}</p>
       <p className="mt-1 text-sm text-ink-500">{label}</p>
+    </div>
+  );
+}
+
+function MiniMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <p className="font-semibold text-ink-900">{value}</p>
+      <p className="text-xs text-ink-500">{label}</p>
     </div>
   );
 }

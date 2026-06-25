@@ -201,7 +201,9 @@ function HeroProductPreview() {
                   {company} · {location}
                 </p>
               </div>
-              <Badge tone="blue">Greenhouse</Badge>
+              <Badge tone={company === "Notion" ? "green" : "blue"}>
+                {company === "Notion" ? "Adzuna" : "Greenhouse"}
+              </Badge>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
               <Badge tone="green">Score {score}</Badge>

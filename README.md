@@ -38,6 +38,12 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 JOB_SYNC_SECRET=
+ADZUNA_APP_ID=
+ADZUNA_APP_KEY=
+ADZUNA_COUNTRY=us
+ADZUNA_SEARCH_QUERIES=
+ADZUNA_DEFAULT_WHERE=
+ADZUNA_RESULTS_PER_QUERY=30
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -67,7 +73,7 @@ set role = 'admin'
 where email = 'you@example.com';
 ```
 
-7. Visit `/admin/jobs-sync` and click `Sync Greenhouse Jobs`.
+7. Visit `/admin/jobs-sync` and click `Sync job sources`.
 
 ## Stripe Setup
 
@@ -122,9 +128,9 @@ not block new-account checkout sessions.
 - Users can read their own profile and can only edit `full_name`; billing and role fields remain backend-owned.
 - Saved jobs and job views are scoped to `auth.uid()`.
 
-## Greenhouse Sync
+## Job Source Sync
 
-The admin sync page and protected sync endpoint import jobs from Greenhouse. Set
+The admin sync page and protected sync endpoint import jobs from Greenhouse and Adzuna. Set
 `JOB_SYNC_SECRET` in production if you want to trigger sync without a browser admin session:
 
 ```bash
@@ -132,7 +138,7 @@ curl -X POST https://www.hirevate.com/api/jobs/sync \
   -H "x-job-sync-secret: $JOB_SYNC_SECRET"
 ```
 
-The sync route:
+The Greenhouse sync:
 
 1. Reads active companies from `public.companies`.
 2. Calls `https://boards-api.greenhouse.io/v1/boards/{greenhouse_slug}/jobs?content=true`.
@@ -141,6 +147,16 @@ The sync route:
 5. Stores title, content, location, absolute URL, updated timestamp, and raw JSON.
 6. Calculates a freshness score.
 7. Logs invalid company slugs and continues syncing the rest.
+
+The Adzuna sync:
+
+1. Requires `ADZUNA_APP_ID` and `ADZUNA_APP_KEY`.
+2. Calls `https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1`.
+3. Uses `ADZUNA_SEARCH_QUERIES` as a comma-separated query list, or sensible defaults across software, data, product, business, marketing, sales, customer success, operations, and design roles.
+4. Uses `ADZUNA_DEFAULT_WHERE` when you want to narrow the import to one country, region, or city.
+5. Uses `ADZUNA_RESULTS_PER_QUERY`, default `30`, capped at `50`.
+6. Upserts Adzuna companies with an `adzuna-` slug and keeps Greenhouse sync from calling those rows as Greenhouse boards.
+7. Stores Adzuna `redirect_url` as the apply/source URL and marks the job source as `adzuna`.
 
 Freshness scoring starts at 50:
 

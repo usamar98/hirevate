@@ -85,7 +85,7 @@ export default async function JobsPage({
           <div className="mt-8">
             <EmptyState
               title="No jobs match these filters"
-              description="Try a broader title or location, or run a fresh Greenhouse sync from the admin page."
+              description="Try a broader title or location, or run a fresh job source sync from the admin page."
               action={
                 <Button asChild href="/jobs" variant="outline">
                   Clear filters

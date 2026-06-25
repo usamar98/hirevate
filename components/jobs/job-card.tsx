@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
+import { getJobSourceLabel } from "@/lib/jobs/sources";
 import { formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
 
@@ -19,13 +20,14 @@ export function JobCard({
 }) {
   const companyName = job.companies?.name ?? "Unknown company";
   const remoteTone = job.remote_type === "remote" ? "green" : job.remote_type === "hybrid" ? "blue" : "gray";
+  const sourceLabel = getJobSourceLabel(job.source);
 
   return (
     <Card className="p-5 transition hover:border-brand-100 hover:shadow-soft">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="blue">Greenhouse</Badge>
+            <Badge tone={job.source === "adzuna" ? "green" : "blue"}>{sourceLabel}</Badge>
             <Badge tone={remoteTone}>{job.remote_type ?? "onsite"}</Badge>
             <FreshnessBadge score={job.freshness_score} />
           </div>

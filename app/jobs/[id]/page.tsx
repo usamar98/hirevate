@@ -9,6 +9,7 @@ import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getJobById, getSavedJobIds } from "@/lib/jobs/queries";
+import { getJobSourceDescription, getJobSourceLabel } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
 import { sanitizeJobDescription } from "@/lib/jobs/sanitize";
 import { formatDate } from "@/lib/utils";
@@ -64,13 +65,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
   const cleanDescription = sanitizeJobDescription(job.description);
   const companyName = job.companies?.name ?? "Unknown company";
+  const sourceLabel = getJobSourceLabel(job.source);
 
   return (
     <section className="bg-gray-50 py-10">
       <div className="container-shell grid gap-6 lg:grid-cols-[1fr_320px]">
         <article className="min-w-0 rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
           <div className="flex flex-wrap gap-2">
-            <Badge tone="blue">Greenhouse</Badge>
+            <Badge tone={job.source === "adzuna" ? "green" : "blue"}>{sourceLabel}</Badge>
             <Badge>{job.remote_type ?? "onsite"}</Badge>
             <FreshnessBadge score={job.freshness_score} />
           </div>
@@ -92,7 +94,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <div
             className="mt-8 max-w-none space-y-4 text-base leading-7 text-ink-700 [&_a]:font-semibold [&_a]:text-brand-600 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:leading-7 [&_ul]:space-y-2"
             dangerouslySetInnerHTML={{
-              __html: cleanDescription || "<p>No description was provided by this Greenhouse board.</p>"
+              __html: cleanDescription || "<p>No description was provided by this hiring source.</p>"
             }}
           />
         </article>
@@ -100,7 +102,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <Card className="p-5">
             <h2 className="text-lg font-semibold text-ink-900">Apply directly</h2>
             <p className="mt-2 text-sm leading-6 text-ink-500">
-              Open the official company application page from the Greenhouse source.
+              {getJobSourceDescription(job.source)}
             </p>
             <div className="mt-5 space-y-2">
               {job.apply_url ? (

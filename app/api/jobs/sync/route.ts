@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
-import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
+import { syncAllJobs } from "@/lib/jobs/sync";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS = 3;
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await syncGreenhouseJobs();
+    const result = await syncAllJobs();
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(

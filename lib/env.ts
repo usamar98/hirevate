@@ -31,6 +31,12 @@ export const env = {
   stripeWebhookSecret: readEnv("STRIPE_WEBHOOK_SECRET"),
   stripePublishableKey: readEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
   jobSyncSecret: readEnv("JOB_SYNC_SECRET"),
+  adzunaAppId: readEnv("ADZUNA_APP_ID"),
+  adzunaAppKey: readEnv("ADZUNA_APP_KEY"),
+  adzunaCountry: readEnv("ADZUNA_COUNTRY") || "us",
+  adzunaSearchQueries: readEnv("ADZUNA_SEARCH_QUERIES"),
+  adzunaDefaultWhere: readEnv("ADZUNA_DEFAULT_WHERE"),
+  adzunaResultsPerQuery: readEnv("ADZUNA_RESULTS_PER_QUERY"),
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 
@@ -44,4 +50,8 @@ export function hasSupabaseAdminConfig() {
 
 export function hasStripeConfig() {
   return Boolean(env.stripeSecretKey);
+}
+
+export function hasAdzunaConfig() {
+  return Boolean(env.adzunaAppId && env.adzunaAppKey);
 }
