@@ -78,7 +78,7 @@ export default function LandingPage() {
         }}
       />
       <section className="border-b border-gray-100 bg-white">
-        <div className="container-shell grid min-h-[calc(100vh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
+        <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
             <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
               Find hidden career opportunities before they get crowded
@@ -101,7 +101,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-gray-50 py-16">
+      <section className="below-fold-section bg-gray-50 py-16">
         <div className="container-shell grid gap-8 lg:grid-cols-2">
           <Card className="p-7">
             <h2 className="text-2xl font-semibold text-ink-900">
@@ -124,7 +124,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-white py-16">
+      <section className="below-fold-section bg-white py-16">
         <div className="container-shell">
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold text-ink-900">Built for focused job discovery</h2>
@@ -145,7 +145,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-gray-100 bg-gray-50 py-16">
+      <section className="below-fold-section border-y border-gray-100 bg-gray-50 py-16">
         <div className="container-shell grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
             <h2 className="text-3xl font-semibold text-ink-900">Simple pricing for serious search</h2>
@@ -172,7 +172,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-white py-16">
+      <section className="below-fold-section bg-white py-16">
         <div className="container-shell max-w-3xl">
           <h2 className="text-3xl font-semibold text-ink-900">FAQ</h2>
           <div className="mt-6 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">

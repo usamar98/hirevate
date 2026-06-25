@@ -106,7 +106,7 @@ export default function RootLayout({
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
         <SiteHeader />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
         <SiteFooter />
       </body>
     </html>
