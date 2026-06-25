@@ -23,6 +23,16 @@ type GreenhouseResponse = {
   jobs?: GreenhouseJob[];
 };
 
+class GreenhouseHttpError extends Error {
+  constructor(
+    message: string,
+    public status: number
+  ) {
+    super(message);
+    this.name = "GreenhouseHttpError";
+  }
+}
+
 export type SyncError = JobSyncError;
 
 export type SyncResult = {
@@ -75,11 +85,15 @@ async function fetchGreenhouseJobs(slug: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Greenhouse returned ${response.status}`);
+    throw new GreenhouseHttpError(`Greenhouse returned ${response.status}`, response.status);
   }
 
   const payload = (await response.json()) as GreenhouseResponse;
   return payload.jobs ?? [];
+}
+
+function isRetiredGreenhouseBoard(error: unknown) {
+  return error instanceof GreenhouseHttpError && (error.status === 404 || error.status === 410);
 }
 
 async function ensureDefaultCompanies(
@@ -137,7 +151,8 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
       totalJobsFetched: 0,
       totalJobsInserted: 0,
       totalJobsUpdated: 0,
-      totalRequests: 0
+      totalRequests: 0,
+      totalSkipped: 0
     },
     totalCompaniesChecked: 0,
     totalJobsFetched: 0,
@@ -190,6 +205,15 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
         .update({ last_synced_at: new Date().toISOString() })
         .eq("id", company.id);
     } catch (error) {
+      if (isRetiredGreenhouseBoard(error)) {
+        result.sourceResult.totalSkipped = (result.sourceResult.totalSkipped ?? 0) + 1;
+        await supabase
+          .from("companies")
+          .update({ is_active: false, last_synced_at: new Date().toISOString() })
+          .eq("id", company.id);
+        continue;
+      }
+
       result.errors.push({
         source: "greenhouse",
         company: company.name,
@@ -197,6 +221,10 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
         message: error instanceof Error ? error.message : "Unknown sync error"
       });
     }
+  }
+
+  if ((result.sourceResult.totalSkipped ?? 0) > 0) {
+    result.sourceResult.skippedReason = `${result.sourceResult.totalSkipped} inactive Greenhouse boards were skipped and disabled for future syncs.`;
   }
 
   return result;

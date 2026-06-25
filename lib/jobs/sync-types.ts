@@ -11,12 +11,15 @@ export type JobSyncSourceResult = {
   monthlyLimit?: number;
   searchesRemaining?: number;
   searchesUsed?: number;
+  setupRequired?: boolean;
+  setupSqlPath?: string;
   skippedReason?: string;
   source: string;
   totalJobsFetched: number;
   totalJobsInserted: number;
   totalJobsUpdated: number;
   totalRequests: number;
+  totalSkipped?: number;
 };
 
 export type JobSyncResult = {

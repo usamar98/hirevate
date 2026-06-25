@@ -64,13 +64,14 @@ export function SyncButton() {
                     {source.source === "serpapi" ? "SerpApi" : source.source}
                   </p>
                   <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-ink-500">
-                    {source.configured ? "Ready" : "Missing env"}
+                    {source.setupRequired ? "Setup needed" : source.configured ? "Ready" : "Missing env"}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <div className="mt-3 grid grid-cols-3 gap-2 text-sm sm:grid-cols-4">
                   <MiniMetric label="Fetched" value={source.totalJobsFetched} />
                   <MiniMetric label="Inserted" value={source.totalJobsInserted} />
                   <MiniMetric label="Updated" value={source.totalJobsUpdated} />
+                  {source.totalSkipped ? <MiniMetric label="Skipped" value={source.totalSkipped} /> : null}
                 </div>
                 {typeof source.monthlyLimit === "number" ? (
                   <div className="mt-3 rounded-md border border-amber-100 bg-white px-3 py-2 text-xs text-ink-600">
@@ -80,9 +81,14 @@ export function SyncButton() {
                   </div>
                 ) : null}
                 {source.skippedReason ? (
-                  <p className="mt-3 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-                    {source.skippedReason}
-                  </p>
+                  <div className="mt-3 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+                    <p>{source.skippedReason}</p>
+                    {source.setupSqlPath ? (
+                      <p className="mt-1 font-mono text-[11px] text-amber-900">
+                        SQL file: {source.setupSqlPath}
+                      </p>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             ))}

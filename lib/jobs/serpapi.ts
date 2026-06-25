@@ -7,6 +7,7 @@ import type { Company, Database, Json } from "@/types/database";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
 const sourceName = "serpapi";
+const quotaSetupSqlPath = "supabase/migrations/006_job_source_usage.sql";
 const defaultQueries = [
   "remote jobs",
   "project manager jobs",
@@ -265,6 +266,8 @@ export async function syncSerpApiJobs(): Promise<JobSyncResult> {
     monthlyLimit,
     searchesRemaining: initialUsage.searchesRemaining,
     searchesUsed: initialUsage.searchesUsed,
+    setupRequired: initialUsage.setupRequired,
+    setupSqlPath: initialUsage.setupRequired ? quotaSetupSqlPath : undefined,
     skippedReason: initialUsage.setupRequired ? "Run migration 006 to enable SerpApi quota tracking." : undefined,
     source: sourceName,
     totalJobsFetched: 0,
@@ -283,10 +286,10 @@ export async function syncSerpApiJobs(): Promise<JobSyncResult> {
 
   if (!hasSerpApiConfig()) {
     sourceResult.skippedReason = "SerpApi API key is not configured.";
-    result.errors.push({
-      source: sourceName,
-      message: "SerpApi API key is not configured."
-    });
+    return result;
+  }
+
+  if (initialUsage.setupRequired) {
     return result;
   }
 
@@ -298,14 +301,11 @@ export async function syncSerpApiJobs(): Promise<JobSyncResult> {
     sourceResult.searchesUsed = reservation.searchesUsed;
 
     if (!reservation.allowed) {
+      sourceResult.setupRequired = reservation.setupRequired;
+      sourceResult.setupSqlPath = reservation.setupRequired ? quotaSetupSqlPath : undefined;
       sourceResult.skippedReason = reservation.setupRequired
         ? "Run migration 006 to enable SerpApi quota tracking."
         : "Monthly SerpApi search budget reached.";
-      result.errors.push({
-        source: sourceName,
-        query,
-        message: sourceResult.skippedReason
-      });
       break;
     }
 
