@@ -15,13 +15,21 @@ export function resolveLoginEmail(identifier: string) {
     return normalizedIdentifier;
   }
 
-  if (normalizedIdentifier === normalize(env.superLoginUsername)) {
+  if (isSuperLoginIdentifier(identifier) && env.superLoginEmail) {
     return normalize(env.superLoginEmail);
   }
 
   return null;
 }
 
+export function isSuperLoginIdentifier(identifier: string) {
+  return Boolean(env.superLoginUsername) && normalize(identifier) === normalize(env.superLoginUsername);
+}
+
+export function isValidSuperLoginPassword(password: string) {
+  return Boolean(env.superLoginPassword) && password === env.superLoginPassword;
+}
+
 export function isSuperLoginProfile(profile: Profile | null | undefined) {
-  return normalize(profile?.email) === normalize(env.superLoginEmail);
+  return Boolean(env.superLoginEmail) && normalize(profile?.email) === normalize(env.superLoginEmail);
 }

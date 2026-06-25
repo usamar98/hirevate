@@ -48,6 +48,7 @@ export const env = {
   googleSiteVerification: readEnv("GOOGLE_SITE_VERIFICATION"),
   superLoginUsername: readEnv("SUPER_LOGIN_USERNAME"),
   superLoginEmail: readEnv("SUPER_LOGIN_EMAIL"),
+  superLoginPassword: readEnv("SUPER_LOGIN_PASSWORD"),
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 

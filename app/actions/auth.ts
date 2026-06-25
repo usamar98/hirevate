@@ -2,7 +2,11 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { resolveLoginEmail } from "@/lib/auth/super-login";
+import {
+  isSuperLoginIdentifier,
+  isValidSuperLoginPassword,
+  resolveLoginEmail
+} from "@/lib/auth/super-login";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -65,15 +69,94 @@ async function updateProfilePresence(userId: string, geo: Awaited<ReturnType<typ
     .eq("id", userId);
 }
 
+async function findAuthUserByEmail(email: string) {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return null;
+
+  for (let page = 1; page <= 20; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) return null;
+
+    const user = data.users.find((item) => item.email?.toLowerCase() === email.toLowerCase());
+    if (user) return user;
+    if (data.users.length < 1000) return null;
+  }
+
+  return null;
+}
+
+async function ensureSuperLoginAccount(password: string): Promise<AuthResult> {
+  if (!env.superLoginEmail || !env.superLoginUsername || !env.superLoginPassword) {
+    return { ok: false, error: "Test login is not configured yet." };
+  }
+
+  if (!isValidSuperLoginPassword(password)) {
+    return { ok: false, error: "Invalid login credentials." };
+  }
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return { ok: false, error: "Supabase admin is not configured." };
+  }
+
+  const userMetadata = {
+    full_name: "Super Test User",
+    super_login_username: env.superLoginUsername
+  };
+  const existingUser = await findAuthUserByEmail(env.superLoginEmail);
+  const userResult = existingUser
+    ? await admin.auth.admin.updateUserById(existingUser.id, {
+        email: env.superLoginEmail,
+        password,
+        email_confirm: true,
+        user_metadata: userMetadata
+      })
+    : await admin.auth.admin.createUser({
+        email: env.superLoginEmail,
+        password,
+        email_confirm: true,
+        user_metadata: userMetadata
+      });
+
+  if (userResult.error) {
+    return { ok: false, error: userResult.error.message };
+  }
+
+  const { error } = await admin.from("profiles").upsert(
+    {
+      id: userResult.data.user.id,
+      email: env.superLoginEmail,
+      full_name: "Super Test User",
+      role: "admin",
+      subscription_status: "active",
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      last_seen_at: new Date().toISOString()
+    },
+    { onConflict: "id" }
+  );
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: true };
+}
+
 export async function signInAction(values: AuthFormValues): Promise<AuthResult> {
   const parsed = signInSchema.safeParse(values);
   if (!parsed.success) {
     return { ok: false, error: "Enter a valid email or username and password." };
   }
 
+  if (isSuperLoginIdentifier(parsed.data.email)) {
+    const ensured = await ensureSuperLoginAccount(parsed.data.password);
+    if (!ensured.ok) return ensured;
+  }
+
   const loginEmail = resolveLoginEmail(parsed.data.email);
   if (!loginEmail) {
-    return { ok: false, error: "Use a valid email address or the configured test username." };
+    return { ok: false, error: "Enter a valid email address or username." };
   }
 
   const supabase = await createSupabaseServerClient();

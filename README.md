@@ -251,6 +251,10 @@ On `/login`, enter the username instead of the mapped email. After login, the da
 `Super login test mode` panel where this account can switch between free limits and paid access
 without touching Stripe.
 
+In production, the server can also create/update the super login automatically during login when
+all three private env vars are set. Keep those values in Vercel Production environment variables,
+not in committed files.
+
 ## Vercel Deployment
 
 1. Create a Vercel project from this repository.
