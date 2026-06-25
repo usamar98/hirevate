@@ -31,6 +31,7 @@ export const env = {
   stripeWebhookSecret: readEnv("STRIPE_WEBHOOK_SECRET"),
   stripePublishableKey: readEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
   jobSyncSecret: readEnv("JOB_SYNC_SECRET"),
+  cronSecret: readEnv("CRON_SECRET") || readEnv("JOB_SYNC_SECRET"),
   adzunaAppId: readEnv("ADZUNA_APP_ID"),
   adzunaAppKey: readEnv("ADZUNA_APP_KEY"),
   adzunaCountry: readEnv("ADZUNA_COUNTRY") || "us",

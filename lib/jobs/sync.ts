@@ -1,5 +1,6 @@
 import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
+import { expireStaleJobs } from "@/lib/jobs/maintenance";
 import { syncSerpApiJobs } from "@/lib/jobs/serpapi";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
@@ -8,6 +9,7 @@ function emptyResult(): JobSyncResult {
     errors: [],
     sourceResults: [],
     totalCompaniesChecked: 0,
+    totalJobsExpired: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0
   };
@@ -17,8 +19,41 @@ function mergeResult(target: JobSyncResult, source: JobSyncResult) {
   target.errors.push(...source.errors);
   target.sourceResults.push(...source.sourceResults);
   target.totalCompaniesChecked += source.totalCompaniesChecked;
+  target.totalJobsExpired = (target.totalJobsExpired ?? 0) + (source.totalJobsExpired ?? 0);
   target.totalJobsInserted += source.totalJobsInserted;
   target.totalJobsUpdated += source.totalJobsUpdated;
+}
+
+function getSyncErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error) return error;
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return fallback;
+  }
+}
+
+function failedSourceResult(source: string, message: string): JobSyncResult {
+  return {
+    errors: [{ source, message }],
+    sourceResults: [
+      {
+        configured: true,
+        skippedReason: message,
+        source,
+        totalJobsFetched: 0,
+        totalJobsInserted: 0,
+        totalJobsUpdated: 0,
+        totalRequests: 0
+      }
+    ],
+    totalCompaniesChecked: 0,
+    totalJobsExpired: 0,
+    totalJobsInserted: 0,
+    totalJobsUpdated: 0
+  };
 }
 
 export async function syncAllJobs(): Promise<JobSyncResult> {
@@ -34,28 +69,25 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
       totalJobsUpdated: greenhouse.totalJobsUpdated
     });
   } catch (error) {
-    result.errors.push({
-      source: "greenhouse",
-      message: error instanceof Error ? error.message : "Greenhouse sync failed."
-    });
+    mergeResult(result, failedSourceResult("greenhouse", getSyncErrorMessage(error, "Greenhouse sync failed.")));
   }
 
   try {
     mergeResult(result, await syncAdzunaJobs());
   } catch (error) {
-    result.errors.push({
-      source: "adzuna",
-      message: error instanceof Error ? error.message : "Adzuna sync failed."
-    });
+    mergeResult(result, failedSourceResult("adzuna", getSyncErrorMessage(error, "Adzuna sync failed.")));
   }
 
   try {
     mergeResult(result, await syncSerpApiJobs());
   } catch (error) {
-    result.errors.push({
-      source: "serpapi",
-      message: error instanceof Error ? error.message : "SerpApi sync failed."
-    });
+    mergeResult(result, failedSourceResult("serpapi", getSyncErrorMessage(error, "SerpApi sync failed.")));
+  }
+
+  try {
+    mergeResult(result, await expireStaleJobs());
+  } catch (error) {
+    mergeResult(result, failedSourceResult("maintenance", getSyncErrorMessage(error, "Job maintenance failed.")));
   }
 
   return result;

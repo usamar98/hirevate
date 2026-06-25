@@ -53,6 +53,24 @@ type SerpApiFetchBatch = {
   query: string;
 };
 
+function sanitizeSerpApiMessage(message: string) {
+  return env.serpApiKey ? message.replaceAll(env.serpApiKey, "[redacted]") : message;
+}
+
+async function readSerpApiError(response: Response) {
+  const body = await response.text().catch(() => "");
+
+  if (!body) return `SerpApi returned ${response.status}`;
+
+  try {
+    const payload = JSON.parse(body) as { error?: unknown };
+    const detail = typeof payload.error === "string" ? payload.error : body.slice(0, 240);
+    return sanitizeSerpApiMessage(`SerpApi returned ${response.status}: ${detail}`);
+  } catch {
+    return sanitizeSerpApiMessage(`SerpApi returned ${response.status}: ${body.slice(0, 240)}`);
+  }
+}
+
 function parsePositiveInt(value: string, fallback: number, max: number) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return fallback;
@@ -165,12 +183,12 @@ async function fetchSerpApiJobs(query: string): Promise<SerpApiFetchBatch> {
   });
 
   if (!response.ok) {
-    throw new Error(`SerpApi returned ${response.status}`);
+    throw new Error(await readSerpApiError(response));
   }
 
   const payload = (await response.json()) as SerpApiSearchResponse;
   if (payload.error) {
-    throw new Error(payload.error);
+    throw new Error(sanitizeSerpApiMessage(payload.error));
   }
 
   return {
@@ -293,84 +311,98 @@ export async function syncSerpApiJobs(): Promise<JobSyncResult> {
     return result;
   }
 
-  const batches: SerpApiFetchBatch[] = [];
+  try {
+    const batches: SerpApiFetchBatch[] = [];
 
-  for (const query of getSearchQueries()) {
-    const reservation = await reserveSourceSearch(sourceName, monthlyLimit);
-    sourceResult.searchesRemaining = reservation.searchesRemaining;
-    sourceResult.searchesUsed = reservation.searchesUsed;
+    for (const query of getSearchQueries()) {
+      const reservation = await reserveSourceSearch(sourceName, monthlyLimit);
+      sourceResult.searchesRemaining = reservation.searchesRemaining;
+      sourceResult.searchesUsed = reservation.searchesUsed;
 
-    if (!reservation.allowed) {
-      sourceResult.setupRequired = reservation.setupRequired;
-      sourceResult.setupSqlPath = reservation.setupRequired ? quotaSetupSqlPath : undefined;
-      sourceResult.skippedReason = reservation.setupRequired
-        ? "Run migration 006 to enable SerpApi quota tracking."
-        : "Monthly SerpApi search budget reached.";
-      break;
+      if (!reservation.allowed) {
+        sourceResult.setupRequired = reservation.setupRequired;
+        sourceResult.setupSqlPath = reservation.setupRequired ? quotaSetupSqlPath : undefined;
+        sourceResult.skippedReason = reservation.setupRequired
+          ? "Run migration 006 to enable SerpApi quota tracking."
+          : "Monthly SerpApi search budget reached.";
+        break;
+      }
+
+      sourceResult.totalRequests += 1;
+
+      try {
+        const batch = await fetchSerpApiJobs(query);
+        sourceResult.totalJobsFetched += batch.jobs.length;
+        batches.push(batch);
+      } catch (error) {
+        result.errors.push({
+          source: sourceName,
+          query,
+          message: error instanceof Error ? error.message : "Unknown SerpApi sync error"
+        });
+      }
     }
 
-    sourceResult.totalRequests += 1;
-
-    try {
-      const batch = await fetchSerpApiJobs(query);
-      sourceResult.totalJobsFetched += batch.jobs.length;
-      batches.push(batch);
-    } catch (error) {
-      result.errors.push({
-        source: sourceName,
-        query,
-        message: error instanceof Error ? error.message : "Unknown SerpApi sync error"
-      });
+    if (result.errors.some((error) => error.source === sourceName)) {
+      sourceResult.skippedReason = "Some SerpApi searches failed. Review the errors below.";
     }
-  }
 
-  const jobs = batches.flatMap((batch) => batch.jobs);
-  const companies = await ensureSerpApiCompanies(supabase, jobs);
-  const normalizedJobs = jobs
-    .map((job) => {
-      const company = companies.get(getCompanySlug(job));
-      return company ? normalizeJob(job, company.id) : null;
-    })
-    .filter(Boolean) as Database["public"]["Tables"]["jobs"]["Insert"][];
-  const uniqueJobs = Array.from(
-    new Map(normalizedJobs.map((job) => [`${job.company_id}:${job.external_id}`, job])).values()
-  );
+    const jobs = batches.flatMap((batch) => batch.jobs);
+    const companies = await ensureSerpApiCompanies(supabase, jobs);
+    const normalizedJobs = jobs
+      .map((job) => {
+        const company = companies.get(getCompanySlug(job));
+        return company ? normalizeJob(job, company.id) : null;
+      })
+      .filter(Boolean) as Database["public"]["Tables"]["jobs"]["Insert"][];
+    const uniqueJobs = Array.from(
+      new Map(normalizedJobs.map((job) => [`${job.company_id}:${job.external_id}`, job])).values()
+    );
 
-  if (uniqueJobs.length === 0) {
-    return result;
-  }
-
-  const companyIds = Array.from(new Set(uniqueJobs.map((job) => job.company_id).filter(Boolean))) as string[];
-  const externalIds = uniqueJobs.map((job) => job.external_id);
-  const { data: existingJobs, error: existingError } = await supabase
-    .from("jobs")
-    .select("company_id, external_id")
-    .in("company_id", companyIds)
-    .in("external_id", externalIds);
-
-  if (existingError) {
-    throw existingError;
-  }
-
-  const existingKeys = new Set((existingJobs ?? []).map((job) => `${job.company_id}:${job.external_id}`));
-  const { error: upsertError } = await supabase.from("jobs").upsert(uniqueJobs, {
-    onConflict: "company_id,external_id"
-  });
-
-  if (upsertError) {
-    throw upsertError;
-  }
-
-  for (const job of uniqueJobs) {
-    if (existingKeys.has(`${job.company_id}:${job.external_id}`)) {
-      sourceResult.totalJobsUpdated += 1;
-      result.totalJobsUpdated += 1;
-    } else {
-      sourceResult.totalJobsInserted += 1;
-      result.totalJobsInserted += 1;
+    if (uniqueJobs.length === 0) {
+      return result;
     }
+
+    const companyIds = Array.from(new Set(uniqueJobs.map((job) => job.company_id).filter(Boolean))) as string[];
+    const externalIds = uniqueJobs.map((job) => job.external_id);
+    const { data: existingJobs, error: existingError } = await supabase
+      .from("jobs")
+      .select("company_id, external_id")
+      .in("company_id", companyIds)
+      .in("external_id", externalIds);
+
+    if (existingError) {
+      throw existingError;
+    }
+
+    const existingKeys = new Set((existingJobs ?? []).map((job) => `${job.company_id}:${job.external_id}`));
+    const { error: upsertError } = await supabase.from("jobs").upsert(uniqueJobs, {
+      onConflict: "company_id,external_id"
+    });
+
+    if (upsertError) {
+      throw upsertError;
+    }
+
+    for (const job of uniqueJobs) {
+      if (existingKeys.has(`${job.company_id}:${job.external_id}`)) {
+        sourceResult.totalJobsUpdated += 1;
+        result.totalJobsUpdated += 1;
+      } else {
+        sourceResult.totalJobsInserted += 1;
+        result.totalJobsInserted += 1;
+      }
+    }
+
+    result.totalCompaniesChecked = companies.size;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown SerpApi sync error";
+    sourceResult.skippedReason = `SerpApi sync failed: ${message}`;
+    result.errors.push({
+      source: sourceName,
+      message
+    });
   }
 
-  result.totalCompaniesChecked = companies.size;
   return result;
 }

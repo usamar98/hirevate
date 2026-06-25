@@ -183,6 +183,10 @@ The SerpApi sync:
 7. Tracks monthly usage in `public.job_source_usage`; run `supabase/migrations/006_job_source_usage.sql` before enabling SerpApi in production.
 8. Leaves `no_cache=false` so identical SerpApi searches can use SerpApi cache when available.
 
+Greenhouse company boards that return `404` or `410` are treated as inactive career boards. The
+sync disables those company records so future runs do not keep retrying dead boards or filling the
+admin screen with expected provider noise.
+
 Freshness scoring starts at 50:
 
 - +25 when `updated_at` is within 7 days
@@ -262,7 +266,13 @@ not in committed files.
 3. Set `NEXT_PUBLIC_APP_URL` to `https://www.hirevate.com`.
 4. Apply Supabase migrations and seed data.
 5. Configure the Stripe webhook to point to `https://www.hirevate.com/api/stripe/webhook`.
-6. Deploy.
+6. Set `CRON_SECRET` to a strong random value. Vercel Cron uses it as
+   `Authorization: Bearer <CRON_SECRET>` for scheduled sync calls.
+7. Deploy.
+
+`vercel.json` runs `/api/jobs/sync` daily at `04:00 UTC` (09:00 Pakistan time). The same endpoint
+can still be triggered manually from `/admin/jobs-sync` by an admin. Each daily run refreshes active
+job sources, respects the SerpApi monthly quota, and expires stale active jobs older than 45 days.
 
 ## Search Console and SEO
 

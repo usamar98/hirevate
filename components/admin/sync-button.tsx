@@ -51,17 +51,22 @@ export function SyncButton() {
       ) : null}
       {result ? (
         <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-4">
             <Metric label="Companies checked" value={result.totalCompaniesChecked} />
             <Metric label="Jobs inserted" value={result.totalJobsInserted} />
             <Metric label="Jobs updated" value={result.totalJobsUpdated} />
+            <Metric label="Stale jobs expired" value={result.totalJobsExpired ?? 0} />
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {result.sourceResults.map((source) => (
               <div className="rounded-md border border-gray-100 bg-gray-50 p-4" key={source.source}>
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold capitalize text-ink-900">
-                    {source.source === "serpapi" ? "SerpApi" : source.source}
+                    {source.source === "serpapi"
+                      ? "SerpApi"
+                      : source.source === "maintenance"
+                        ? "Maintenance"
+                        : source.source}
                   </p>
                   <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-ink-500">
                     {source.setupRequired ? "Setup needed" : source.configured ? "Ready" : "Missing env"}
@@ -71,6 +76,7 @@ export function SyncButton() {
                   <MiniMetric label="Fetched" value={source.totalJobsFetched} />
                   <MiniMetric label="Inserted" value={source.totalJobsInserted} />
                   <MiniMetric label="Updated" value={source.totalJobsUpdated} />
+                  {source.totalJobsExpired ? <MiniMetric label="Expired" value={source.totalJobsExpired} /> : null}
                   {source.totalSkipped ? <MiniMetric label="Skipped" value={source.totalSkipped} /> : null}
                 </div>
                 {typeof source.monthlyLimit === "number" ? (

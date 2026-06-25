@@ -35,6 +35,31 @@ function hasValidSyncSecret(request: NextRequest) {
   return Boolean(env.jobSyncSecret && providedSecret && providedSecret === env.jobSyncSecret);
 }
 
+function hasValidCronSecret(request: NextRequest) {
+  const authorization = request.headers.get("authorization");
+  return Boolean(env.cronSecret && authorization === `Bearer ${env.cronSecret}`);
+}
+
+async function runSync() {
+  try {
+    const result = await syncAllJobs();
+    return NextResponse.json(result);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to sync jobs." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  if (!hasValidCronSecret(request)) {
+    return NextResponse.json({ error: "Unauthorized cron request." }, { status: 401 });
+  }
+
+  return runSync();
+}
+
 export async function POST(request: NextRequest) {
   const isSecretAuthorized = hasValidSyncSecret(request);
   let actorId = "sync-secret";
@@ -59,13 +84,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Too many sync requests. Try again later." }, { status: 429 });
   }
 
-  try {
-    const result = await syncAllJobs();
-    return NextResponse.json(result);
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to sync jobs." },
-      { status: 500 }
-    );
-  }
+  return runSync();
 }
