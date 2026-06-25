@@ -1,9 +1,27 @@
 import { jobSearchSchema, type JobSearchInput } from "@/lib/validators/jobs";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { env, hasSupabaseBrowserConfig } from "@/lib/env";
+import { getJobSlug, getJobSlugToken, isUuidLike, jobMatchesSlug } from "@/lib/jobs/seo";
 import type { JobWithCompany, SavedJobWithJob } from "@/types/database";
+import type { Database } from "@/types/database";
 
 type RawSearchParams = Record<string, string | string[] | undefined> | undefined;
+type PublicJobsReadClient = SupabaseClient<Database>;
+
+const jobWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
+
+function createAnonPublicJobsClient() {
+  if (!hasSupabaseBrowserConfig()) return null;
+
+  return createClient<Database>(env.supabaseUrl, env.supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
 
 function readParam(searchParams: RawSearchParams, key: string) {
   const value = searchParams?.[key];
@@ -20,19 +38,19 @@ export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchIn
   });
 }
 
-async function createPublicJobsReadClient() {
+function createPublicJobsReadClient(): PublicJobsReadClient | null {
   const admin = createSupabaseAdminClient();
 
   if (admin) {
     return admin;
   }
 
-  return createSupabaseServerClient();
+  return createAnonPublicJobsClient();
 }
 
 export async function getJobs(searchParams: RawSearchParams) {
   const filters = parseJobSearchParams(searchParams);
-  const supabase = await createPublicJobsReadClient();
+  const supabase = createPublicJobsReadClient();
 
   if (!supabase) {
     return { jobs: [] as JobWithCompany[], filters, configured: false };
@@ -40,9 +58,7 @@ export async function getJobs(searchParams: RawSearchParams) {
 
   let query = supabase
     .from("jobs")
-    .select(
-      "*, companies:company_id(id, name, greenhouse_slug, website)"
-    )
+    .select(jobWithCompanySelect)
     .eq("status", "active")
     .limit(80);
 
@@ -84,12 +100,12 @@ export async function getJobs(searchParams: RawSearchParams) {
 }
 
 export async function getJobById(id: string) {
-  const supabase = await createPublicJobsReadClient();
+  const supabase = createPublicJobsReadClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from("jobs")
-    .select("*, companies:company_id(id, name, greenhouse_slug, website)")
+    .select(jobWithCompanySelect)
     .eq("id", id)
     .eq("status", "active")
     .maybeSingle();
@@ -100,6 +116,144 @@ export async function getJobById(id: string) {
   }
 
   return data as JobWithCompany | null;
+}
+
+export async function getJobBySlugOrId(slugOrId: string) {
+  const decodedSlug = decodeURIComponent(slugOrId).toLowerCase();
+
+  if (isUuidLike(decodedSlug)) {
+    return getJobById(decodedSlug);
+  }
+
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return null;
+
+  const token = getJobSlugToken(decodedSlug);
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .order("freshness_score", { ascending: false })
+    .order("discovered_at", { ascending: false })
+    .limit(3000);
+
+  if (error) {
+    console.error("Failed to resolve job slug", error);
+    return null;
+  }
+
+  const jobs = (data ?? []) as JobWithCompany[];
+
+  return (
+    jobs.find((job) => getJobSlug(job) === decodedSlug) ??
+    jobs.find((job) => Boolean(token) && jobMatchesSlug(job, decodedSlug)) ??
+    null
+  );
+}
+
+export async function getFeaturedJobs(limit = 3) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return [] as JobWithCompany[];
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .order("freshness_score", { ascending: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load featured jobs", error);
+    return [] as JobWithCompany[];
+  }
+
+  return (data ?? []) as JobWithCompany[];
+}
+
+export async function getSitemapJobs(limit = 5000) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return [] as JobWithCompany[];
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false, nullsFirst: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load sitemap jobs", error);
+    return [] as JobWithCompany[];
+  }
+
+  return (data ?? []) as JobWithCompany[];
+}
+
+export async function getRemoteJobs(limit = 40) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .eq("remote_type", "remote")
+    .order("freshness_score", { ascending: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load remote jobs", error);
+    return { jobs: [] as JobWithCompany[], configured: true };
+  }
+
+  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+}
+
+export async function getLocationJobs(location: string, limit = 40) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .ilike("location", `%${location}%`)
+    .order("freshness_score", { ascending: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load location jobs", error);
+    return { jobs: [] as JobWithCompany[], configured: true };
+  }
+
+  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+}
+
+export async function getEngineeringJobs(limit = 40) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .or(
+      "title.ilike.%engineer%,title.ilike.%engineering%,title.ilike.%developer%,title.ilike.%software%"
+    )
+    .order("freshness_score", { ascending: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load engineering jobs", error);
+    return { jobs: [] as JobWithCompany[], configured: true };
+  }
+
+  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
 }
 
 export async function getSavedJobIds(userId: string) {

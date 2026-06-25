@@ -13,7 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
+import { getFeaturedJobs } from "@/lib/jobs/queries";
+import { getJobPath } from "@/lib/jobs/seo";
+import { getJobSourceLabel } from "@/lib/jobs/sources";
 import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
+import type { JobWithCompany } from "@/types/database";
 
 const landingDescription =
   "Hirevate helps job seekers find fresh direct-apply jobs from official hiring sources, build targeted resumes, and measure which applications convert.";
@@ -57,7 +61,41 @@ const features = [
   }
 ];
 
-export default function LandingPage() {
+const fallbackPreviewJobs = [
+  {
+    title: "Senior Frontend Engineer",
+    company: "Figma",
+    location: "Remote",
+    score: 96,
+    sourceLabel: "Greenhouse",
+    tone: "blue" as const,
+    href: "/jobs"
+  },
+  {
+    title: "AI Product Engineer",
+    company: "Notion",
+    location: "San Francisco",
+    score: 91,
+    sourceLabel: "Adzuna",
+    tone: "green" as const,
+    href: "/jobs"
+  },
+  {
+    title: "Data Platform Engineer",
+    company: "Ramp",
+    location: "New York",
+    score: 84,
+    sourceLabel: "Greenhouse",
+    tone: "blue" as const,
+    href: "/jobs"
+  }
+];
+
+export const dynamic = "force-dynamic";
+
+export default async function LandingPage() {
+  const featuredJobs = await getFeaturedJobs(3);
+
   return (
     <>
       <JsonLd
@@ -97,7 +135,7 @@ export default function LandingPage() {
               </Button>
             </div>
           </div>
-          <HeroProductPreview />
+          <HeroProductPreview jobs={featuredJobs} />
         </div>
       </section>
 
@@ -202,7 +240,20 @@ export default function LandingPage() {
   );
 }
 
-function HeroProductPreview() {
+function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
+  const previewJobs =
+    jobs.length > 0
+      ? jobs.map((job) => ({
+          title: job.title,
+          company: job.companies?.name ?? "Company",
+          location: job.location ?? "Location not listed",
+          score: job.freshness_score,
+          sourceLabel: getJobSourceLabel(job.source),
+          tone: job.source === "adzuna" ? ("green" as const) : job.source === "serpapi" ? ("amber" as const) : ("blue" as const),
+          href: getJobPath(job)
+        }))
+      : fallbackPreviewJobs;
+
   return (
     <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] overflow-hidden rounded-lg border border-gray-200 bg-white p-3 shadow-soft sm:w-full sm:max-w-full">
       <div className="rounded-md border border-gray-100 bg-gray-50 p-4">
@@ -224,32 +275,28 @@ function HeroProductPreview() {
         </div>
       </div>
       <div className="mt-3 space-y-3">
-        {[
-          ["Senior Frontend Engineer", "Figma", "Remote", "96"],
-          ["AI Product Engineer", "Notion", "San Francisco", "91"],
-          ["Data Platform Engineer", "Ramp", "New York", "84"]
-        ].map(([title, company, location, score]) => (
+        {previewJobs.map((job) => (
           <div
             className="rounded-md border border-gray-100 bg-white p-4 shadow-sm"
-            key={`${company}-${title}`}
+            key={`${job.company}-${job.title}`}
           >
             <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:justify-between">
               <div className="min-w-0">
-                <h3 className="font-semibold text-ink-900">{title}</h3>
+                <Link href={job.href} className="font-semibold text-ink-900 hover:text-brand-600">
+                  {job.title}
+                </Link>
                 <p className="mt-1 text-sm text-ink-500">
-                  {company} - {location}
+                  {job.company} - {job.location}
                 </p>
               </div>
-              <Badge tone={company === "Notion" ? "green" : "blue"}>
-                {company === "Notion" ? "Adzuna" : "Greenhouse"}
-              </Badge>
+              <Badge tone={job.tone}>{job.sourceLabel}</Badge>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
-              <Badge tone="green">Score {score}</Badge>
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
+              <Badge tone="green">Score {job.score}</Badge>
+              <Link href={job.href} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
                 <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
                 Direct apply
-              </span>
+              </Link>
             </div>
           </div>
         ))}

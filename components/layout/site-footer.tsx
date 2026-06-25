@@ -16,6 +16,15 @@ export function SiteFooter() {
           <Link href="/jobs" className="hover:text-ink-900">
             Jobs
           </Link>
+          <Link href="/jobs/remote" className="hover:text-ink-900">
+            Remote Jobs
+          </Link>
+          <Link href="/jobs/london" className="hover:text-ink-900">
+            London Jobs
+          </Link>
+          <Link href="/jobs/engineering" className="hover:text-ink-900">
+            Engineering Jobs
+          </Link>
           <Link href="/pricing" className="hover:text-ink-900">
             Pricing
           </Link>

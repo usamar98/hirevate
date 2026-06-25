@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
+import { getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceLabel } from "@/lib/jobs/sources";
 import { formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
@@ -21,6 +22,7 @@ export function JobCard({
   const companyName = job.companies?.name ?? "Unknown company";
   const remoteTone = job.remote_type === "remote" ? "green" : job.remote_type === "hybrid" ? "blue" : "gray";
   const sourceLabel = getJobSourceLabel(job.source);
+  const jobPath = getJobPath(job);
 
   return (
     <Card className="p-5 transition hover:border-brand-100 hover:shadow-soft">
@@ -33,7 +35,7 @@ export function JobCard({
             <Badge tone={remoteTone}>{job.remote_type ?? "onsite"}</Badge>
             <FreshnessBadge score={job.freshness_score} />
           </div>
-          <Link href={`/jobs/${job.id}`} className="group mt-4 block">
+          <Link href={jobPath} className="group mt-4 block">
             <h2 className="text-xl font-semibold leading-7 text-ink-900 group-hover:text-brand-600">
               {job.title}
             </h2>
@@ -61,7 +63,7 @@ export function JobCard({
             </Button>
           ) : null}
           {showSave ? <SaveJobButton isSaved={isSaved} jobId={job.id} /> : null}
-          <Button asChild href={`/jobs/${job.id}`} variant="outline">
+          <Button asChild href={jobPath} variant="outline">
             View details
           </Button>
         </div>

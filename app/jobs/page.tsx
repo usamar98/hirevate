@@ -7,28 +7,56 @@ import { JobCard } from "@/components/jobs/job-card";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
-import { getJobs, getSavedJobIds } from "@/lib/jobs/queries";
+import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
 import { absoluteUrl } from "@/lib/seo";
 
 const jobsDescription =
   "Search fresh direct-apply jobs from official company career pages and hiring sources, with filters for title, location, remote work, and freshness.";
 
-export const metadata: Metadata = {
-  title: "Hidden Jobs",
-  description: jobsDescription,
-  alternates: {
-    canonical: "/jobs"
-  },
-  openGraph: {
-    title: "Hidden jobs",
-    description: jobsDescription,
-    url: "/jobs"
-  },
-  twitter: {
-    title: "Hidden jobs",
-    description: jobsDescription
-  }
-};
+const popularJobPages = [
+  { href: "/jobs/remote", label: "Remote jobs" },
+  { href: "/jobs/london", label: "London jobs" },
+  { href: "/jobs/engineering", label: "Engineering jobs" }
+];
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  searchParams
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams;
+  const filters = parseJobSearchParams(resolvedSearchParams);
+  const titleParts = [
+    filters.remote ? "Remote" : null,
+    filters.keyword || "Hidden",
+    "Jobs",
+    filters.location ? `in ${filters.location}` : null
+  ].filter(Boolean);
+  const title = titleParts.join(" ");
+  const description =
+    filters.keyword || filters.location || filters.remote
+      ? `Search fresh direct-apply ${title.toLowerCase()} from official hiring sources. No middlemen, no noisy boards.`
+      : jobsDescription;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: "/jobs"
+    },
+    openGraph: {
+      title,
+      description,
+      url: "/jobs"
+    },
+    twitter: {
+      title,
+      description
+    }
+  };
+}
 
 export default async function JobsPage({
   searchParams
@@ -95,6 +123,19 @@ export default async function JobsPage({
 
           <div className="mt-8">
             <JobFilters filters={filters} />
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-ink-700">Popular searches:</span>
+            {popularJobPages.map((page) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-medium text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={page.href}
+                key={page.href}
+              >
+                {page.label}
+              </Link>
+            ))}
           </div>
 
           {!configured ? (

@@ -13,6 +13,9 @@ export const defaultOgImagePath = "/opengraph-image";
 export const publicSeoRoutes = [
   { path: "/", changeFrequency: "daily", priority: 1 },
   { path: "/jobs", changeFrequency: "hourly", priority: 0.95 },
+  { path: "/jobs/remote", changeFrequency: "hourly", priority: 0.9 },
+  { path: "/jobs/london", changeFrequency: "hourly", priority: 0.88 },
+  { path: "/jobs/engineering", changeFrequency: "hourly", priority: 0.88 },
   { path: "/resume-builder", changeFrequency: "weekly", priority: 0.8 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 }
 ] as const;
