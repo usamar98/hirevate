@@ -27,7 +27,9 @@ export function JobCard({
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={job.source === "adzuna" ? "green" : "blue"}>{sourceLabel}</Badge>
+            <Badge tone={job.source === "adzuna" ? "green" : job.source === "serpapi" ? "amber" : "blue"}>
+              {sourceLabel}
+            </Badge>
             <Badge tone={remoteTone}>{job.remote_type ?? "onsite"}</Badge>
             <FreshnessBadge score={job.freshness_score} />
           </div>

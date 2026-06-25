@@ -199,6 +199,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_source_usage: {
+        Row: {
+          source: string;
+          period_month: string;
+          searches_used: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          source: string;
+          period_month: string;
+          searches_used?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          source?: string;
+          period_month?: string;
+          searches_used?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       resume_ab_tests: {
         Row: {
           id: string;
@@ -311,7 +335,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      reserve_job_source_searches: {
+        Args: {
+          source_name: string;
+          monthly_limit: number;
+          reserve_count?: number;
+        };
+        Returns: {
+          allowed: boolean;
+          searches_used: number;
+          searches_remaining: number;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
@@ -326,6 +361,7 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Company = Database["public"]["Tables"]["companies"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type SavedJob = Database["public"]["Tables"]["saved_jobs"]["Row"];
+export type JobSourceUsage = Database["public"]["Tables"]["job_source_usage"]["Row"];
 export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applications"]["Row"];
 export type ResumeAbTest = Database["public"]["Tables"]["resume_ab_tests"]["Row"];
 

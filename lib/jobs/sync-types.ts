@@ -8,6 +8,10 @@ export type JobSyncError = {
 
 export type JobSyncSourceResult = {
   configured: boolean;
+  monthlyLimit?: number;
+  searchesRemaining?: number;
+  searchesUsed?: number;
+  skippedReason?: string;
   source: string;
   totalJobsFetched: number;
   totalJobsInserted: number;

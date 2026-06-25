@@ -60,7 +60,9 @@ export function SyncButton() {
             {result.sourceResults.map((source) => (
               <div className="rounded-md border border-gray-100 bg-gray-50 p-4" key={source.source}>
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold capitalize text-ink-900">{source.source}</p>
+                  <p className="text-sm font-semibold capitalize text-ink-900">
+                    {source.source === "serpapi" ? "SerpApi" : source.source}
+                  </p>
                   <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-ink-500">
                     {source.configured ? "Ready" : "Missing env"}
                   </span>
@@ -70,6 +72,18 @@ export function SyncButton() {
                   <MiniMetric label="Inserted" value={source.totalJobsInserted} />
                   <MiniMetric label="Updated" value={source.totalJobsUpdated} />
                 </div>
+                {typeof source.monthlyLimit === "number" ? (
+                  <div className="mt-3 rounded-md border border-amber-100 bg-white px-3 py-2 text-xs text-ink-600">
+                    <span className="font-semibold text-ink-900">Quota:</span>{" "}
+                    {source.searchesUsed ?? 0}/{source.monthlyLimit} used,{" "}
+                    {source.searchesRemaining ?? source.monthlyLimit} remaining this month.
+                  </div>
+                ) : null}
+                {source.skippedReason ? (
+                  <p className="mt-3 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+                    {source.skippedReason}
+                  </p>
+                ) : null}
               </div>
             ))}
           </div>

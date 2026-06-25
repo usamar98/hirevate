@@ -89,7 +89,8 @@ async function ensureDefaultCompanies(
     .from("companies")
     .select("id", { count: "exact", head: true })
     .eq("is_active", true)
-    .not("greenhouse_slug", "like", "adzuna-%");
+    .not("greenhouse_slug", "like", "adzuna-%")
+    .not("greenhouse_slug", "like", "serpapi-%");
 
   if (countError) {
     throw countError;
@@ -122,6 +123,7 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
     .select("*")
     .eq("is_active", true)
     .not("greenhouse_slug", "like", "adzuna-%")
+    .not("greenhouse_slug", "like", "serpapi-%")
     .order("name", { ascending: true });
 
   if (companiesError) {

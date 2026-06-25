@@ -72,7 +72,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       <div className="container-shell grid gap-6 lg:grid-cols-[1fr_320px]">
         <article className="min-w-0 rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
           <div className="flex flex-wrap gap-2">
-            <Badge tone={job.source === "adzuna" ? "green" : "blue"}>{sourceLabel}</Badge>
+            <Badge tone={job.source === "adzuna" ? "green" : job.source === "serpapi" ? "amber" : "blue"}>
+              {sourceLabel}
+            </Badge>
             <Badge>{job.remote_type ?? "onsite"}</Badge>
             <FreshnessBadge score={job.freshness_score} />
           </div>

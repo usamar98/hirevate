@@ -1,5 +1,6 @@
 import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
+import { syncSerpApiJobs } from "@/lib/jobs/serpapi";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
 function emptyResult(): JobSyncResult {
@@ -45,6 +46,15 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
     result.errors.push({
       source: "adzuna",
       message: error instanceof Error ? error.message : "Adzuna sync failed."
+    });
+  }
+
+  try {
+    mergeResult(result, await syncSerpApiJobs());
+  } catch (error) {
+    result.errors.push({
+      source: "serpapi",
+      message: error instanceof Error ? error.message : "SerpApi sync failed."
     });
   }
 

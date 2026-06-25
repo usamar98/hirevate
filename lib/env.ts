@@ -37,6 +37,14 @@ export const env = {
   adzunaSearchQueries: readEnv("ADZUNA_SEARCH_QUERIES"),
   adzunaDefaultWhere: readEnv("ADZUNA_DEFAULT_WHERE"),
   adzunaResultsPerQuery: readEnv("ADZUNA_RESULTS_PER_QUERY"),
+  serpApiKey: readEnv("SERPAPI_API_KEY"),
+  serpApiSearchQueries: readEnv("SERPAPI_SEARCH_QUERIES"),
+  serpApiDefaultLocation: readEnv("SERPAPI_DEFAULT_LOCATION") || "United States",
+  serpApiGoogleDomain: readEnv("SERPAPI_GOOGLE_DOMAIN") || "google.com",
+  serpApiGl: readEnv("SERPAPI_GL") || "us",
+  serpApiHl: readEnv("SERPAPI_HL") || "en",
+  serpApiMonthlyLimit: readEnv("SERPAPI_MONTHLY_LIMIT"),
+  serpApiMaxSearchesPerSync: readEnv("SERPAPI_MAX_SEARCHES_PER_SYNC"),
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 
@@ -54,4 +62,8 @@ export function hasStripeConfig() {
 
 export function hasAdzunaConfig() {
   return Boolean(env.adzunaAppId && env.adzunaAppKey);
+}
+
+export function hasSerpApiConfig() {
+  return Boolean(env.serpApiKey);
 }

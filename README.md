@@ -44,6 +44,14 @@ ADZUNA_COUNTRY=us
 ADZUNA_SEARCH_QUERIES=
 ADZUNA_DEFAULT_WHERE=
 ADZUNA_RESULTS_PER_QUERY=30
+SERPAPI_API_KEY=
+SERPAPI_SEARCH_QUERIES=
+SERPAPI_DEFAULT_LOCATION=United States
+SERPAPI_GOOGLE_DOMAIN=google.com
+SERPAPI_GL=us
+SERPAPI_HL=en
+SERPAPI_MONTHLY_LIMIT=220
+SERPAPI_MAX_SEARCHES_PER_SYNC=5
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -130,8 +138,10 @@ not block new-account checkout sessions.
 
 ## Job Source Sync
 
-The admin sync page and protected sync endpoint import jobs from Greenhouse and Adzuna. Set
-`JOB_SYNC_SECRET` in production if you want to trigger sync without a browser admin session:
+The admin sync page and protected sync endpoint import jobs from Greenhouse, Adzuna, and SerpApi
+Google Jobs. Public `/jobs` searches read from Supabase only, so user traffic does not spend
+SerpApi credits. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without a browser
+admin session:
 
 ```bash
 curl -X POST https://www.hirevate.com/api/jobs/sync \
@@ -157,6 +167,17 @@ The Adzuna sync:
 5. Uses `ADZUNA_RESULTS_PER_QUERY`, default `30`, capped at `50`.
 6. Upserts Adzuna companies with an `adzuna-` slug and keeps Greenhouse sync from calling those rows as Greenhouse boards.
 7. Stores Adzuna `redirect_url` as the apply/source URL and marks the job source as `adzuna`.
+
+The SerpApi sync:
+
+1. Requires `SERPAPI_API_KEY`.
+2. Calls `https://serpapi.com/search?engine=google_jobs`.
+3. Uses `SERPAPI_SEARCH_QUERIES` as a comma-separated query list, or 5 broad default queries.
+4. Does not paginate by default because each Google Jobs page can cost another search.
+5. Uses `SERPAPI_MAX_SEARCHES_PER_SYNC`, default `5`, capped at `10`.
+6. Uses `SERPAPI_MONTHLY_LIMIT`, default `220`, capped at `250` to leave safety room on a 250-search plan.
+7. Tracks monthly usage in `public.job_source_usage`; run `supabase/migrations/006_job_source_usage.sql` before enabling SerpApi in production.
+8. Leaves `no_cache=false` so identical SerpApi searches can use SerpApi cache when available.
 
 Freshness scoring starts at 50:
 
