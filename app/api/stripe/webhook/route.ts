@@ -13,7 +13,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function isPlanKey(value: unknown): value is StripePlanKey {
-  return value === "pro" || value === "annual";
+  return (
+    value === "silver_weekly" ||
+    value === "gold_weekly" ||
+    value === "gold_monthly" ||
+    value === "platinum_weekly" ||
+    value === "platinum_monthly"
+  );
 }
 
 async function updateProfileFromSubscription(subscription: Stripe.Subscription) {

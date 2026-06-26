@@ -4,11 +4,22 @@ import { z } from "zod";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getStripe, resumeBuilderProduct, stripePlans } from "@/lib/stripe/server";
+import {
+  getStripe,
+  resumeBuilderProduct,
+  stripePlans,
+  type StripePlanKey
+} from "@/lib/stripe/server";
 
 const checkoutSchema = z.union([
   z.object({
-    plan: z.enum(["pro", "annual"])
+    plan: z.enum([
+      "silver_weekly",
+      "gold_weekly",
+      "gold_monthly",
+      "platinum_weekly",
+      "platinum_monthly"
+    ] satisfies [StripePlanKey, ...StripePlanKey[]])
   }),
   z.object({
     product: z.literal("resume_builder")

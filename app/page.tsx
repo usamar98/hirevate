@@ -189,9 +189,9 @@ export default async function LandingPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              ["Free Search", "Jobs + resume tools", "$0"],
-              ["Job Search Pro", "Unlimited search workspace", "$12"],
-              ["All Access Annual", "Best value for full service", "$49"]
+              ["Silver", "Focused weekly search", "$4.99/wk"],
+              ["Gold", "Tracker plus monthly savings", "$8.99/wk"],
+              ["Platinum", "Full search system", "$14.99/wk"]
             ].map(([name, detail, price]) => (
               <Card className="p-5" key={name}>
                 <h3 className="font-semibold text-ink-900">{name}</h3>

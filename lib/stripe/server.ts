@@ -14,17 +14,35 @@ export function getStripe() {
 }
 
 export const stripePlans = {
-  pro: {
-    name: "Job Search Pro",
-    amount: 1200,
-    interval: "month" as const,
-    subscriptionStatus: "pro"
+  silver_weekly: {
+    name: "Silver Weekly",
+    amount: 499,
+    interval: "week" as const,
+    subscriptionStatus: "silver"
   },
-  annual: {
-    name: "All Access Annual",
-    amount: 4900,
-    interval: "year" as const,
-    subscriptionStatus: "annual"
+  gold_weekly: {
+    name: "Gold Weekly",
+    amount: 899,
+    interval: "week" as const,
+    subscriptionStatus: "gold"
+  },
+  gold_monthly: {
+    name: "Gold Monthly",
+    amount: 2517,
+    interval: "month" as const,
+    subscriptionStatus: "gold"
+  },
+  platinum_weekly: {
+    name: "Platinum Weekly",
+    amount: 1499,
+    interval: "week" as const,
+    subscriptionStatus: "platinum"
+  },
+  platinum_monthly: {
+    name: "Platinum Monthly",
+    amount: 4197,
+    interval: "month" as const,
+    subscriptionStatus: "platinum"
   }
 };
 

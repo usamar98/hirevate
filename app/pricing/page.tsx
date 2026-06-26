@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { absoluteUrl } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate services for hidden job discovery, resume building, cover letters, job tracking, saved jobs, and unlimited direct-apply search.";
+  "Compare Hirevate Silver, Gold, and Platinum subscriptions for hidden job discovery, cover letters, job tracking, and direct-apply search.";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -43,29 +43,36 @@ export default async function PricingPage() {
           offers: [
             {
               "@type": "Offer",
-              name: "Free Search",
-              price: "0",
+              name: "Silver Weekly",
+              price: "4.99",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
             },
             {
               "@type": "Offer",
-              name: "Resume Builder",
-              price: "0",
+              name: "Gold Weekly",
+              price: "8.99",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
             },
             {
               "@type": "Offer",
-              name: "Job Search Pro",
-              price: "12",
+              name: "Gold Monthly",
+              price: "25.17",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
             },
             {
               "@type": "Offer",
-              name: "All Access Annual",
-              price: "49",
+              name: "Platinum Weekly",
+              price: "14.99",
+              priceCurrency: "USD",
+              availability: "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              name: "Platinum Monthly",
+              price: "41.97",
               priceCurrency: "USD",
               availability: "https://schema.org/InStock"
             }
@@ -77,8 +84,8 @@ export default async function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Choose the service level that matches your search: hidden jobs, resume building,
-              cover letters, job tracking, saved roles, and unlimited direct-apply discovery.
+              Choose Silver, Gold, or Platinum. Gold and Platinum include monthly options with
+              30% off compared with weekly billing.
             </p>
           </div>
           <div className="mt-8">
