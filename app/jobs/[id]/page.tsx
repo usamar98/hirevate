@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowUpRight, Building2, CalendarDays, MapPin } from "lucide-react";
+import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
+import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobBySlugOrId, getSavedJobIds } from "@/lib/jobs/queries";
 import {
   buildJobBreadcrumbJsonLd,
@@ -19,7 +21,6 @@ import {
   getJobPath,
   getJobSlug
 } from "@/lib/jobs/seo";
-import { getJobSourceDescription, getJobSourceLabel } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
 import { sanitizeJobDescription } from "@/lib/jobs/sanitize";
 import { formatDate } from "@/lib/utils";
@@ -73,8 +74,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function JobDetailPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const [job, user] = await Promise.all([getJobBySlugOrId(id), getCurrentUser()]);
 
   if (!job) notFound();
@@ -97,7 +105,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
   const cleanDescription = sanitizeJobDescription(job.description);
   const companyName = getJobCompanyName(job);
-  const sourceLabel = getJobSourceLabel(job.source);
+  const compensationLabel = getJobCompensationLabel(job);
+  const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
 
   return (
     <>
@@ -106,9 +115,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         <div className="container-shell grid gap-6 lg:grid-cols-[1fr_320px]">
           <article className="min-w-0 rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
             <div className="flex flex-wrap gap-2">
-              <Badge tone={job.source === "adzuna" ? "green" : job.source === "serpapi" ? "amber" : "blue"}>
-                {sourceLabel}
-              </Badge>
               <Badge>{job.remote_type ?? "onsite"}</Badge>
               <FreshnessBadge score={job.freshness_score} />
             </div>
@@ -126,6 +132,10 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
                 Discovered {formatDate(job.discovered_at)}
               </span>
+              <span className="inline-flex items-center gap-1.5">
+                <BadgeDollarSign className="h-4 w-4" aria-hidden="true" />
+                {compensationLabel ?? "Pay not listed"}
+              </span>
             </div>
             <div
               className="mt-8 max-w-none space-y-4 text-base leading-7 text-ink-700 [&_a]:font-semibold [&_a]:text-brand-600 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:leading-7 [&_ul]:space-y-2"
@@ -138,8 +148,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             <Card className="p-5">
               <h2 className="text-lg font-semibold text-ink-900">Apply directly</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
-                {getJobSourceDescription(job.source)}
+                Open the original application page for this role.
               </p>
+              {saveJobError ? (
+                <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                  {saveJobError}
+                </div>
+              ) : null}
               <div className="mt-5 space-y-2">
                 {job.apply_url ? (
                   <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -179,10 +194,10 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
               </Card>
             ) : null}
             <Card className="p-5">
-              <h2 className="text-lg font-semibold text-ink-900">Source details</h2>
+              <h2 className="text-lg font-semibold text-ink-900">Listing details</h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <div>
-                  <dt className="font-semibold text-ink-700">Source URL</dt>
+                  <dt className="font-semibold text-ink-700">Original URL</dt>
                   <dd className="mt-1 truncate text-ink-500">
                     {job.source_url ? (
                       <Link href={job.source_url} target="_blank" rel="noopener noreferrer" className="text-brand-600">

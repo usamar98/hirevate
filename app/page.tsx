@@ -15,7 +15,6 @@ import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
-import { getJobSourceLabel } from "@/lib/jobs/sources";
 import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
 import type { JobWithCompany } from "@/types/database";
 
@@ -67,8 +66,6 @@ const fallbackPreviewJobs = [
     company: "Figma",
     location: "Remote",
     score: 96,
-    sourceLabel: "Greenhouse",
-    tone: "blue" as const,
     href: "/jobs"
   },
   {
@@ -76,8 +73,6 @@ const fallbackPreviewJobs = [
     company: "Notion",
     location: "San Francisco",
     score: 91,
-    sourceLabel: "Adzuna",
-    tone: "green" as const,
     href: "/jobs"
   },
   {
@@ -85,8 +80,6 @@ const fallbackPreviewJobs = [
     company: "Ramp",
     location: "New York",
     score: 84,
-    sourceLabel: "Greenhouse",
-    tone: "blue" as const,
     href: "/jobs"
   }
 ];
@@ -248,8 +241,6 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
           company: job.companies?.name ?? "Company",
           location: job.location ?? "Location not listed",
           score: job.freshness_score,
-          sourceLabel: getJobSourceLabel(job.source),
-          tone: job.source === "adzuna" ? ("green" as const) : job.source === "serpapi" ? ("amber" as const) : ("blue" as const),
           href: getJobPath(job)
         }))
       : fallbackPreviewJobs;
@@ -289,10 +280,10 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
                   {job.company} - {job.location}
                 </p>
               </div>
-              <Badge tone={job.tone}>{job.sourceLabel}</Badge>
+              <Badge tone="green">Score {job.score}</Badge>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
-              <Badge tone="green">Score {job.score}</Badge>
+              <Badge tone="blue">Direct apply</Badge>
               <Link href={job.href} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
                 <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
                 Direct apply

@@ -7,6 +7,7 @@ import { JobCard } from "@/components/jobs/job-card";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
 import { absoluteUrl } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
@@ -22,18 +23,93 @@ const popularJobPages = [
 
 export const dynamic = "force-dynamic";
 
-function buildJobsPageHref(filters: JobSearchInput, page: number) {
+const workModeLabels: Record<Exclude<JobSearchInput["workMode"], "any">, string> = {
+  hybrid: "Hybrid",
+  onsite: "On-site",
+  remote: "Remote"
+};
+
+const postedWithinLabels: Record<Exclude<JobSearchInput["postedWithin"], "all">, string> = {
+  "24h": "Past 24 hours",
+  "7d": "Past 7 days",
+  "14d": "Past 14 days",
+  "30d": "Past 30 days"
+};
+
+const freshnessLabels: Record<Exclude<JobSearchInput["freshness"], "all">, string> = {
+  fresh: "90+ fresh",
+  good: "70+ good"
+};
+
+function buildJobsPageHref(
+  filters: JobSearchInput,
+  page: number,
+  overrides: Partial<JobSearchInput> = {}
+) {
+  const nextFilters = { ...filters, ...overrides };
   const params = new URLSearchParams();
 
-  if (filters.keyword) params.set("keyword", filters.keyword);
-  if (filters.location) params.set("location", filters.location);
-  if (filters.remote) params.set("remote", "on");
-  if (filters.freshness !== "all") params.set("freshness", filters.freshness);
-  if (filters.sort !== "newest") params.set("sort", filters.sort);
+  if (nextFilters.keyword) params.set("keyword", nextFilters.keyword);
+  if (nextFilters.company) params.set("company", nextFilters.company);
+  if (nextFilters.location) params.set("location", nextFilters.location);
+  if (nextFilters.workMode !== "any") params.set("workMode", nextFilters.workMode);
+  if (nextFilters.postedWithin !== "all") {
+    params.set("postedWithin", nextFilters.postedWithin);
+  }
+  if (nextFilters.directOnly) params.set("directOnly", "on");
+  if (nextFilters.freshness !== "all") params.set("freshness", nextFilters.freshness);
+  if (nextFilters.sort !== "newest") params.set("sort", nextFilters.sort);
   if (page > 1) params.set("page", String(page));
 
   const query = params.toString();
   return query ? `/jobs?${query}` : "/jobs";
+}
+
+function getActiveFilterChips(filters: JobSearchInput) {
+  return [
+    filters.keyword
+      ? { label: `Role: ${filters.keyword}`, href: buildJobsPageHref(filters, 1, { keyword: "" }) }
+      : null,
+    filters.company
+      ? { label: `Company: ${filters.company}`, href: buildJobsPageHref(filters, 1, { company: "" }) }
+      : null,
+    filters.location
+      ? {
+          label: `Location: ${filters.location}`,
+          href: buildJobsPageHref(filters, 1, { location: "" })
+        }
+      : null,
+    filters.workMode !== "any"
+      ? {
+          label: workModeLabels[filters.workMode],
+          href: buildJobsPageHref(filters, 1, { workMode: "any" })
+        }
+      : null,
+    filters.postedWithin !== "all"
+      ? {
+          label: postedWithinLabels[filters.postedWithin],
+          href: buildJobsPageHref(filters, 1, { postedWithin: "all" })
+        }
+      : null,
+    filters.directOnly
+      ? {
+          label: "Direct apply",
+          href: buildJobsPageHref(filters, 1, { directOnly: undefined })
+        }
+      : null,
+    filters.freshness !== "all"
+      ? {
+          label: freshnessLabels[filters.freshness],
+          href: buildJobsPageHref(filters, 1, { freshness: "all" })
+        }
+      : null,
+    filters.sort !== "newest"
+      ? {
+          label: filters.sort === "freshness" ? "Freshest first" : "Recently updated",
+          href: buildJobsPageHref(filters, 1, { sort: "newest" })
+        }
+      : null
+  ].filter(Boolean) as Array<{ label: string; href: string }>;
 }
 
 export async function generateMetadata({
@@ -44,14 +120,15 @@ export async function generateMetadata({
   const resolvedSearchParams = await searchParams;
   const filters = parseJobSearchParams(resolvedSearchParams);
   const titleParts = [
-    filters.remote ? "Remote" : null,
+    filters.workMode !== "any" ? workModeLabels[filters.workMode] : null,
     filters.keyword || "Hidden",
     "Jobs",
+    filters.company ? `at ${filters.company}` : null,
     filters.location ? `in ${filters.location}` : null
   ].filter(Boolean);
   const title = titleParts.join(" ");
   const description =
-    filters.keyword || filters.location || filters.remote
+    filters.keyword || filters.location || filters.company || filters.workMode !== "any" || filters.directOnly
       ? `Search fresh direct-apply ${title.toLowerCase()} from official hiring sources. No middlemen, no noisy boards.`
       : jobsDescription;
 
@@ -100,6 +177,8 @@ export default async function JobsPage({
     : 0;
   const hasPreviousPage = page > 1;
   const hasNextPage = totalPages > page;
+  const activeFilterChips = getActiveFilterChips(filters);
+  const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
 
   return (
     <>
@@ -150,6 +229,12 @@ export default async function JobsPage({
             <JobFilters filters={filters} />
           </div>
 
+          {saveJobError ? (
+            <div className="mt-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
+              {saveJobError}
+            </div>
+          ) : null}
+
           <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
             <span className="font-semibold text-ink-700">Popular searches:</span>
             {popularJobPages.map((page) => (
@@ -162,6 +247,24 @@ export default async function JobsPage({
               </Link>
             ))}
           </div>
+
+          {activeFilterChips.length > 0 ? (
+            <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-semibold text-ink-700">Active filters:</span>
+              {activeFilterChips.map((chip) => (
+                <Link
+                  className="rounded-md border border-brand-100 bg-brand-50 px-3 py-1.5 font-semibold text-brand-700 transition hover:border-brand-200 hover:bg-white"
+                  href={chip.href}
+                  key={chip.label}
+                >
+                  {chip.label}
+                </Link>
+              ))}
+              <Link className="font-semibold text-ink-500 transition hover:text-brand-700" href="/jobs">
+                Clear all
+              </Link>
+            </div>
+          ) : null}
 
           {!configured ? (
             <div className="mt-8">

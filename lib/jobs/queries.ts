@@ -30,14 +30,34 @@ function readParam(searchParams: RawSearchParams, key: string) {
 }
 
 export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchInput {
+  const remote = readParam(searchParams, "remote");
+
   return jobSearchSchema.parse({
     keyword: readParam(searchParams, "keyword") ?? "",
+    company: readParam(searchParams, "company") ?? "",
     location: readParam(searchParams, "location") ?? "",
-    remote: readParam(searchParams, "remote"),
+    workMode: readParam(searchParams, "workMode") ?? (remote ? "remote" : "any"),
+    postedWithin: readParam(searchParams, "postedWithin") ?? "all",
+    directOnly: readParam(searchParams, "directOnly"),
+    remote,
     freshness: readParam(searchParams, "freshness") ?? "all",
     sort: readParam(searchParams, "sort") ?? "newest",
     page: readParam(searchParams, "page")
   });
+}
+
+function getPostedWithinStart(value: JobSearchInput["postedWithin"]) {
+  const daysByValue: Record<Exclude<JobSearchInput["postedWithin"], "all">, number> = {
+    "24h": 1,
+    "7d": 7,
+    "14d": 14,
+    "30d": 30
+  };
+  const days = value === "all" ? null : daysByValue[value];
+
+  if (!days) return null;
+
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
 function createPublicJobsReadClient(): PublicJobsReadClient | null {
@@ -70,6 +90,43 @@ export async function getJobs(searchParams: RawSearchParams) {
     };
   }
 
+  let matchingCompanyIds: string[] | null = null;
+
+  if (filters.company) {
+    const { data: companies, error: companiesError } = await supabase
+      .from("companies")
+      .select("id")
+      .ilike("name", `%${filters.company}%`)
+      .limit(1000);
+
+    if (companiesError) {
+      console.error("Failed to filter companies", companiesError);
+      return {
+        jobs: [] as JobWithCompany[],
+        filters,
+        configured: true,
+        page,
+        pageSize,
+        totalCount: 0,
+        totalPages: 0
+      };
+    }
+
+    matchingCompanyIds = (companies ?? []).map((company) => company.id);
+
+    if (matchingCompanyIds.length === 0) {
+      return {
+        jobs: [] as JobWithCompany[],
+        filters,
+        configured: true,
+        page,
+        pageSize,
+        totalCount: 0,
+        totalPages: 0
+      };
+    }
+  }
+
   let query = supabase
     .from("jobs")
     .select(jobWithCompanySelect, { count: "exact" })
@@ -84,8 +141,22 @@ export async function getJobs(searchParams: RawSearchParams) {
     query = query.ilike("location", `%${filters.location}%`);
   }
 
-  if (filters.remote) {
-    query = query.eq("remote_type", "remote");
+  if (matchingCompanyIds) {
+    query = query.in("company_id", matchingCompanyIds);
+  }
+
+  if (filters.workMode !== "any") {
+    query = query.eq("remote_type", filters.workMode);
+  }
+
+  if (filters.directOnly) {
+    query = query.not("apply_url", "is", null);
+  }
+
+  const postedWithinStart = getPostedWithinStart(filters.postedWithin);
+
+  if (postedWithinStart) {
+    query = query.gte("discovered_at", postedWithinStart);
   }
 
   if (filters.freshness === "fresh") {
@@ -100,6 +171,10 @@ export async function getJobs(searchParams: RawSearchParams) {
     query = query.order("freshness_score", { ascending: false }).order("discovered_at", {
       ascending: false
     });
+  } else if (filters.sort === "updated") {
+    query = query
+      .order("updated_at", { ascending: false, nullsFirst: false })
+      .order("discovered_at", { ascending: false });
   } else {
     query = query.order("discovered_at", { ascending: false });
   }

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ArrowUpRight, Building2, CalendarDays, MapPin } from "lucide-react";
+import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
+import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobPath } from "@/lib/jobs/seo";
-import { getJobSourceLabel } from "@/lib/jobs/sources";
 import { formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
 
@@ -21,17 +21,14 @@ export function JobCard({
 }) {
   const companyName = job.companies?.name ?? "Unknown company";
   const remoteTone = job.remote_type === "remote" ? "green" : job.remote_type === "hybrid" ? "blue" : "gray";
-  const sourceLabel = getJobSourceLabel(job.source);
   const jobPath = getJobPath(job);
+  const compensationLabel = getJobCompensationLabel(job);
 
   return (
     <Card className="p-5 transition hover:border-brand-100 hover:shadow-soft">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={job.source === "adzuna" ? "green" : job.source === "serpapi" ? "amber" : "blue"}>
-              {sourceLabel}
-            </Badge>
             <Badge tone={remoteTone}>{job.remote_type ?? "onsite"}</Badge>
             <FreshnessBadge score={job.freshness_score} />
           </div>
@@ -52,6 +49,10 @@ export function JobCard({
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4" aria-hidden="true" />
               Discovered {formatRelativeDate(job.discovered_at)}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <BadgeDollarSign className="h-4 w-4" aria-hidden="true" />
+              {compensationLabel ?? "Pay not listed"}
             </span>
           </div>
         </div>

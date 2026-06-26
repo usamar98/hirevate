@@ -49,7 +49,7 @@ const plans = [
       "Unlimited saved jobs",
       "Remote, London, and engineering discovery pages",
       "Resume A/B testing metrics",
-      "Direct sources from Greenhouse, Adzuna, and SerpApi"
+      "Direct company and public hiring sources"
     ],
     cta: "Upgrade monthly"
   },
