@@ -38,6 +38,9 @@ export const env = {
   adzunaSearchQueries: readEnv("ADZUNA_SEARCH_QUERIES"),
   adzunaDefaultWhere: readEnv("ADZUNA_DEFAULT_WHERE"),
   adzunaResultsPerQuery: readEnv("ADZUNA_RESULTS_PER_QUERY"),
+  leverCompanySlugs: readEnv("LEVER_COMPANY_SLUGS"),
+  leverEuCompanySlugs: readEnv("LEVER_EU_COMPANY_SLUGS"),
+  leverMaxCompaniesPerSync: readEnv("LEVER_MAX_COMPANIES_PER_SYNC"),
   serpApiKey: readEnv("SERPAPI_API_KEY"),
   serpApiSearchQueries: readEnv("SERPAPI_SEARCH_QUERIES"),
   serpApiDefaultLocation: readEnv("SERPAPI_DEFAULT_LOCATION") || "United States",
@@ -67,6 +70,10 @@ export function hasStripeConfig() {
 
 export function hasAdzunaConfig() {
   return Boolean(env.adzunaAppId && env.adzunaAppKey);
+}
+
+export function hasLeverConfig() {
+  return Boolean(env.leverCompanySlugs || env.leverEuCompanySlugs);
 }
 
 export function hasSerpApiConfig() {

@@ -22,8 +22,8 @@ export default async function AdminJobsSyncPage() {
         <div>
           <h1 className="text-4xl font-semibold text-ink-900">Admin job sync</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-            Pull active roles from Greenhouse, Adzuna, and a quota-controlled SerpApi Google Jobs
-            sync, then upsert them into Supabase.
+            Pull active roles from Greenhouse, Adzuna, Lever, and a quota-controlled SerpApi Google
+            Jobs sync, then upsert them into Supabase.
           </p>
         </div>
         <Card className="mt-8 p-6">

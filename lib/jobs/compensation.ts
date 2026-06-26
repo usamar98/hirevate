@@ -106,12 +106,28 @@ function extractCompensationFromExtensions(raw: JsonRecord) {
   return null;
 }
 
+function extractLeverCompensation(raw: JsonRecord) {
+  const salaryDescription = asString(raw.salary_description);
+  if (salaryDescription) return cleanCompensationText(salaryDescription);
+
+  const salaryRange = asRecord(raw.salaryRange);
+  const currency = asString(salaryRange?.currency) ?? asString(raw.salary_currency) ?? "USD";
+  const symbol = currency === "USD" ? "$" : `${currency} `;
+  return formatSalaryRange(asNumber(salaryRange?.min), asNumber(salaryRange?.max), symbol);
+}
+
 export function getJobCompensationLabel(job: CompensationJob) {
   const raw = asRecord(job.raw_data);
   const symbol = inferCurrencySymbol(job.location);
+  const sourceSpecificSalary = raw ? extractLeverCompensation(raw) : null;
   const salaryRange = raw
     ? formatSalaryRange(asNumber(raw.salary_min), asNumber(raw.salary_max), symbol)
     : null;
 
-  return salaryRange ?? (raw ? extractCompensationFromExtensions(raw) : null) ?? extractCompensationFromText(job.description);
+  return (
+    sourceSpecificSalary ??
+    salaryRange ??
+    (raw ? extractCompensationFromExtensions(raw) : null) ??
+    extractCompensationFromText(job.description)
+  );
 }

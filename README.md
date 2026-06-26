@@ -4,10 +4,12 @@ Production-ready MVP SaaS for discovering fresh direct-apply roles from official
 
 ## Scope
 
-This MVP started with hidden job discovery from Greenhouse public boards and is designed to expand
-into additional job APIs and hiring sources.
+This MVP started with hidden job discovery from Greenhouse public boards and now supports multiple
+job APIs and hiring sources.
 
-It does not include cover letter generation, interview prep, application tracking, LinkedIn scraping, Indeed scraping, protected-site scraping, or auto-apply flows.
+It includes hidden job discovery, resume building, cover letters, application tracking, admin
+analytics, and Stripe subscriptions. It does not use LinkedIn scraping, Indeed scraping,
+protected-site scraping, or auto-apply flows.
 
 ## Stack
 
@@ -44,6 +46,9 @@ ADZUNA_COUNTRY=us
 ADZUNA_SEARCH_QUERIES=
 ADZUNA_DEFAULT_WHERE=
 ADZUNA_RESULTS_PER_QUERY=30
+LEVER_COMPANY_SLUGS=
+LEVER_EU_COMPANY_SLUGS=
+LEVER_MAX_COMPANIES_PER_SYNC=100
 SERPAPI_API_KEY=
 SERPAPI_SEARCH_QUERIES=
 SERPAPI_DEFAULT_LOCATION=United States
@@ -142,10 +147,10 @@ not block new-account checkout sessions.
 
 ## Job Source Sync
 
-The admin sync page and protected sync endpoint import jobs from Greenhouse, Adzuna, and SerpApi
-Google Jobs. Public `/jobs` searches read from Supabase only, so user traffic does not spend
-SerpApi credits. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without a browser
-admin session:
+The admin sync page and protected sync endpoint import jobs from Greenhouse, Adzuna, Lever, and
+SerpApi Google Jobs. Public `/jobs` searches read from Supabase only, so user traffic does not
+spend external API credits. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without
+a browser admin session:
 
 ```bash
 curl -X POST https://www.hirevate.com/api/jobs/sync \
@@ -171,6 +176,23 @@ The Adzuna sync:
 5. Uses `ADZUNA_RESULTS_PER_QUERY`, default `30`, capped at `50`.
 6. Upserts Adzuna companies with an `adzuna-` slug and keeps Greenhouse sync from calling those rows as Greenhouse boards.
 7. Stores Adzuna `redirect_url` as the apply/source URL and marks the job source as `adzuna`.
+
+The Lever sync:
+
+1. Requires only company slugs, not an API key.
+2. Add slugs to Vercel as `LEVER_COMPANY_SLUGS`, for example
+   `linear=Linear,netlify=Netlify,posthog=PostHog`.
+3. Add EU-hosted Lever boards to `LEVER_EU_COMPANY_SLUGS`, or prefix a single entry with `eu:`.
+4. Accepts raw slugs like `linear`, named slugs like `linear=Linear`, or Lever career URLs like
+   `https://jobs.lever.co/linear`.
+5. Calls `https://api.lever.co/v0/postings/{site}?mode=json` for global boards and
+   `https://api.eu.lever.co/v0/postings/{site}?mode=json` for EU boards.
+6. Uses `LEVER_MAX_COMPANIES_PER_SYNC`, default `100`, capped at `500`, to keep scheduled syncs
+   inside serverless runtime limits.
+7. Upserts Lever companies with a `lever-` slug so Greenhouse sync never tries to crawl them as
+   Greenhouse boards.
+8. Stores Lever hosted/apply URLs, workplace type, salary range metadata, descriptions, lists, and
+   raw JSON.
 
 The SerpApi sync:
 
@@ -199,7 +221,7 @@ Freshness scoring starts at 50:
 
 - Free users can view 10 job detail pages per UTC day.
 - Free users can save 5 jobs.
-- Pro and Annual users have unlimited job views and saved jobs.
+- Paid Silver, Gold, and Platinum users have unlimited job views and saved jobs.
 
 ## Resume Builder
 

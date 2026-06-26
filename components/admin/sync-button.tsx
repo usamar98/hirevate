@@ -5,6 +5,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { JobSyncResult } from "@/lib/jobs/sync";
 
+function getSourceLabel(source: string) {
+  if (source === "serpapi") return "SerpApi";
+  if (source === "lever") return "Lever";
+  if (source === "maintenance") return "Maintenance";
+  return source;
+}
+
 export function SyncButton() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [result, setResult] = useState<JobSyncResult | null>(null);
@@ -62,11 +69,7 @@ export function SyncButton() {
               <div className="rounded-md border border-gray-100 bg-gray-50 p-4" key={source.source}>
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold capitalize text-ink-900">
-                    {source.source === "serpapi"
-                      ? "SerpApi"
-                      : source.source === "maintenance"
-                        ? "Maintenance"
-                        : source.source}
+                    {getSourceLabel(source.source)}
                   </p>
                   <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-ink-500">
                     {source.setupRequired ? "Setup needed" : source.configured ? "Ready" : "Missing env"}
