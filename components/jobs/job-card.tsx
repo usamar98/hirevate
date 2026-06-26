@@ -4,18 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
-import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobPath } from "@/lib/jobs/seo";
 import { formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
 
 export function JobCard({
-  isSaved,
-  job,
-  showSave = true
+  job
 }: {
-  isSaved: boolean;
+  isSaved?: boolean;
   job: JobWithCompany;
   showSave?: boolean;
 }) {
@@ -50,21 +47,20 @@ export function JobCard({
               <CalendarDays className="h-4 w-4" aria-hidden="true" />
               Discovered {formatRelativeDate(job.discovered_at)}
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <BadgeDollarSign className="h-4 w-4" aria-hidden="true" />
-              {compensationLabel ?? "Pay not listed"}
-            </span>
+            {compensationLabel ? (
+              <span className="inline-flex items-center gap-1.5">
+                <BadgeDollarSign className="h-4 w-4" aria-hidden="true" />
+                {compensationLabel}
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
           {job.apply_url ? (
             <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer">
-              Direct apply
+              Apply now
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Button>
-          ) : null}
-          {showSave ? (
-            <SaveJobButton isSaved={isSaved} jobId={job.id} redirectPath={jobPath} />
           ) : null}
           <Button asChild href={jobPath} variant="outline">
             View details

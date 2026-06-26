@@ -21,6 +21,9 @@ export async function SiteHeader() {
           <Link className="transition hover:text-ink-900" href="/resume-builder">
             Resume Builder
           </Link>
+          <Link className="transition hover:text-ink-900" href="/cover-letter">
+            Cover Letter
+          </Link>
           <Link className="transition hover:text-ink-900" href="/pricing">
             Pricing
           </Link>
@@ -29,8 +32,8 @@ export async function SiteHeader() {
               <Link className="transition hover:text-ink-900" href="/dashboard">
                 Dashboard
               </Link>
-              <Link className="transition hover:text-ink-900" href="/dashboard/resume-testing">
-                Resume Tests
+              <Link className="transition hover:text-ink-900" href="/dashboard/job-tracker">
+                Tracker
               </Link>
             </>
           ) : null}

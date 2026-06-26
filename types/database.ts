@@ -223,6 +223,71 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_applications: {
+        Row: {
+          id: string;
+          user_id: string;
+          job_id: string | null;
+          job_title: string;
+          company: string;
+          location: string | null;
+          job_url: string | null;
+          status: "interested" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+          contact_name: string | null;
+          contact_email: string | null;
+          salary_range: string | null;
+          applied_at: string | null;
+          next_follow_up_at: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          job_id?: string | null;
+          job_title: string;
+          company: string;
+          location?: string | null;
+          job_url?: string | null;
+          status?: "interested" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+          contact_name?: string | null;
+          contact_email?: string | null;
+          salary_range?: string | null;
+          applied_at?: string | null;
+          next_follow_up_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          job_id?: string | null;
+          job_title?: string;
+          company?: string;
+          location?: string | null;
+          job_url?: string | null;
+          status?: "interested" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+          contact_name?: string | null;
+          contact_email?: string | null;
+          salary_range?: string | null;
+          applied_at?: string | null;
+          next_follow_up_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       resume_ab_tests: {
         Row: {
           id: string;
@@ -361,6 +426,7 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Company = Database["public"]["Tables"]["companies"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type SavedJob = Database["public"]["Tables"]["saved_jobs"]["Row"];
+export type JobApplication = Database["public"]["Tables"]["job_applications"]["Row"];
 export type JobSourceUsage = Database["public"]["Tables"]["job_source_usage"]["Row"];
 export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applications"]["Row"];
 export type ResumeAbTest = Database["public"]["Tables"]["resume_ab_tests"]["Row"];

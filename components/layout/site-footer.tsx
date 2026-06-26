@@ -25,6 +25,9 @@ export function SiteFooter() {
           <Link href="/jobs/engineering" className="hover:text-ink-900">
             Engineering Jobs
           </Link>
+          <Link href="/cover-letter" className="hover:text-ink-900">
+            Cover Letter
+          </Link>
           <Link href="/pricing" className="hover:text-ink-900">
             Pricing
           </Link>

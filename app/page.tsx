@@ -189,7 +189,7 @@ export default async function LandingPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              ["Free Search", "Jobs + resume testing mode", "$0"],
+              ["Free Search", "Jobs + resume tools", "$0"],
               ["Job Search Pro", "Unlimited search workspace", "$12"],
               ["All Access Annual", "Best value for full service", "$49"]
             ].map(([name, detail, price]) => (

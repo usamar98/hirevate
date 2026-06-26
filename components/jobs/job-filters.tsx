@@ -65,27 +65,15 @@ export function JobFilters({ filters }: { filters: JobSearchInput }) {
             <option value="updated">Recently updated</option>
           </select>
         </label>
-        <div className="flex flex-col justify-end gap-3 sm:flex-row xl:flex-col">
-          <label className="flex h-11 items-center justify-center gap-2 rounded-md border border-gray-200 px-3 text-sm font-semibold text-ink-700">
-            <input
-              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-              defaultChecked={Boolean(filters.directOnly)}
-              name="directOnly"
-              type="checkbox"
-              value="on"
-            />
-            Direct apply
-          </label>
-          <div className="flex gap-2">
-            <Button type="submit" className="h-11">
-              <Search className="h-4 w-4" aria-hidden="true" />
-              Search
-            </Button>
-            <Button asChild href="/jobs" className="h-11" variant="outline">
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Reset
-            </Button>
-          </div>
+        <div className="flex items-end gap-2">
+          <Button type="submit" className="h-11">
+            <Search className="h-4 w-4" aria-hidden="true" />
+            Search
+          </Button>
+          <Button asChild href="/jobs" className="h-11" variant="outline">
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            Reset
+          </Button>
         </div>
       </div>
     </form>

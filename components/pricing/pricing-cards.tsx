@@ -18,7 +18,7 @@ const plans = [
       "Public job detail pages with direct apply links",
       "10 results per filtered search",
       "Save up to 5 jobs",
-      "Resume export while testing mode is active"
+      "Resume and cover letter tools"
     ],
     cta: "Start Free"
   },
@@ -48,7 +48,8 @@ const plans = [
       "Unlimited hidden job search results",
       "Unlimited saved jobs",
       "Remote, London, and engineering discovery pages",
-      "Resume A/B testing metrics",
+      "Application tracker with follow-up dates",
+      "Cover letter builder",
       "Direct company and public hiring sources"
     ],
     cta: "Upgrade monthly"
@@ -64,7 +65,7 @@ const plans = [
       "Everything in Job Search Pro",
       "Lowest cost for year-round job searching",
       "Unlimited saved jobs and direct-apply tracking",
-      "Resume builder plus A/B testing workflow",
+      "Resume builder, cover letters, and job tracker",
       "Best fit for long search campaigns"
     ],
     cta: "Upgrade annual",

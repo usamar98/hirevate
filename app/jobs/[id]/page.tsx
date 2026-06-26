@@ -107,6 +107,15 @@ export default async function JobDetailPage({
   const companyName = getJobCompanyName(job);
   const compensationLabel = getJobCompensationLabel(job);
   const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
+  const trackerParams = new URLSearchParams({
+    jobId: job.id,
+    jobTitle: job.title,
+    company: companyName
+  });
+
+  if (job.location) trackerParams.set("location", job.location);
+  if (job.apply_url ?? job.source_url) trackerParams.set("jobUrl", job.apply_url ?? job.source_url ?? "");
+  if (compensationLabel) trackerParams.set("salaryRange", compensationLabel);
 
   return (
     <>
@@ -132,10 +141,12 @@ export default async function JobDetailPage({
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
                 Discovered {formatDate(job.discovered_at)}
               </span>
-              <span className="inline-flex items-center gap-1.5">
-                <BadgeDollarSign className="h-4 w-4" aria-hidden="true" />
-                {compensationLabel ?? "Pay not listed"}
-              </span>
+              {compensationLabel ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <BadgeDollarSign className="h-4 w-4" aria-hidden="true" />
+                  {compensationLabel}
+                </span>
+              ) : null}
             </div>
             <div
               className="mt-8 max-w-none space-y-4 text-base leading-7 text-ink-700 [&_a]:font-semibold [&_a]:text-brand-600 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:leading-7 [&_ul]:space-y-2"
@@ -158,7 +169,7 @@ export default async function JobDetailPage({
               <div className="mt-5 space-y-2">
                 {job.apply_url ? (
                   <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer" className="w-full">
-                    Direct apply
+                    Apply now
                     <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 ) : null}
@@ -167,6 +178,9 @@ export default async function JobDetailPage({
                   jobId={job.id}
                   redirectPath={canonicalPath}
                 />
+                <Button asChild href={`/dashboard/job-tracker?${trackerParams.toString()}`} variant="outline" className="w-full">
+                  Track job
+                </Button>
               </div>
             </Card>
             {!access.allowed ? (

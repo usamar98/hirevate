@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookmarkCheck, CreditCard, FlaskConical, Search } from "lucide-react";
+import { ArrowRight, BookmarkCheck, ClipboardList, CreditCard, FileText } from "lucide-react";
 import { updateSuperLoginPlanAction } from "@/app/actions/super-login";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { JobCard } from "@/components/jobs/job-card";
 import { isSuperLoginProfile } from "@/lib/auth/super-login";
 import { getProfile, requireUser } from "@/lib/auth/session";
+import { getJobTrackerDashboard } from "@/lib/job-tracker/queries";
 import { countSavedJobs, getSavedJobs } from "@/lib/jobs/queries";
 
 export const metadata: Metadata = {
@@ -25,10 +26,11 @@ export default async function DashboardPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const user = await requireUser();
-  const [profile, savedCount, savedJobs] = await Promise.all([
+  const [profile, savedCount, savedJobs, trackerDashboard] = await Promise.all([
     getProfile(user.id),
     countSavedJobs(user.id),
-    getSavedJobs(user.id)
+    getSavedJobs(user.id),
+    getJobTrackerDashboard(user.id)
   ]);
   const recentSavedJobs = savedJobs.slice(0, 3).filter((item) => item.jobs);
   const status = profile?.subscription_status ?? "free";
@@ -60,7 +62,7 @@ export default async function DashboardPage({
           <div>
             <h1 className="text-4xl font-semibold text-ink-900">Dashboard</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Track subscription status and quickly return to saved direct-apply roles.
+              Track subscription status, applications, saved roles, and job-search documents.
             </p>
           </div>
           <Button asChild href="/jobs">
@@ -84,18 +86,23 @@ export default async function DashboardPage({
             <p className="mt-2 text-2xl font-semibold text-ink-900">{savedCount}</p>
           </Card>
           <Card className="p-5">
-            <Search className="h-5 w-5 text-amber-600" aria-hidden="true" />
-            <p className="mt-4 text-sm font-semibold text-ink-500">Next action</p>
-            <p className="mt-2 text-base font-semibold text-ink-900">Run a focused search</p>
-          </Card>
-          <Card className="p-5">
-            <FlaskConical className="h-5 w-5 text-violet-600" aria-hidden="true" />
-            <p className="mt-4 text-sm font-semibold text-ink-500">Resume testing</p>
+            <ClipboardList className="h-5 w-5 text-amber-600" aria-hidden="true" />
+            <p className="mt-4 text-sm font-semibold text-ink-500">Job tracker</p>
             <Link
-              href="/dashboard/resume-testing"
+              href="/dashboard/job-tracker"
               className="mt-2 inline-flex text-base font-semibold text-brand-600"
             >
-              Compare versions
+              {trackerDashboard.configured ? `${trackerDashboard.openCount} open roles` : "Set up tracker"}
+            </Link>
+          </Card>
+          <Card className="p-5">
+            <FileText className="h-5 w-5 text-violet-600" aria-hidden="true" />
+            <p className="mt-4 text-sm font-semibold text-ink-500">Cover letters</p>
+            <Link
+              href="/cover-letter"
+              className="mt-2 inline-flex text-base font-semibold text-brand-600"
+            >
+              Build one
             </Link>
           </Card>
         </div>

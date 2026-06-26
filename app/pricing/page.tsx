@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { absoluteUrl } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate services for hidden job discovery, resume building, resume A/B testing, saved jobs, and unlimited direct-apply search.";
+  "Compare Hirevate services for hidden job discovery, resume building, cover letters, job tracking, saved jobs, and unlimited direct-apply search.";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -78,7 +78,7 @@ export default async function PricingPage() {
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
               Choose the service level that matches your search: hidden jobs, resume building,
-              resume A/B testing, saved roles, and unlimited direct-apply discovery.
+              cover letters, job tracking, saved roles, and unlimited direct-apply discovery.
             </p>
           </div>
           <div className="mt-8">

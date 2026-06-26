@@ -38,7 +38,6 @@ export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchIn
     location: readParam(searchParams, "location") ?? "",
     workMode: readParam(searchParams, "workMode") ?? (remote ? "remote" : "any"),
     postedWithin: readParam(searchParams, "postedWithin") ?? "all",
-    directOnly: readParam(searchParams, "directOnly"),
     remote,
     freshness: readParam(searchParams, "freshness") ?? "all",
     sort: readParam(searchParams, "sort") ?? "newest",
@@ -147,10 +146,6 @@ export async function getJobs(searchParams: RawSearchParams) {
 
   if (filters.workMode !== "any") {
     query = query.eq("remote_type", filters.workMode);
-  }
-
-  if (filters.directOnly) {
-    query = query.not("apply_url", "is", null);
   }
 
   const postedWithinStart = getPostedWithinStart(filters.postedWithin);

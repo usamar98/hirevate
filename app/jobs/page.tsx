@@ -56,7 +56,6 @@ function buildJobsPageHref(
   if (nextFilters.postedWithin !== "all") {
     params.set("postedWithin", nextFilters.postedWithin);
   }
-  if (nextFilters.directOnly) params.set("directOnly", "on");
   if (nextFilters.freshness !== "all") params.set("freshness", nextFilters.freshness);
   if (nextFilters.sort !== "newest") params.set("sort", nextFilters.sort);
   if (page > 1) params.set("page", String(page));
@@ -91,12 +90,6 @@ function getActiveFilterChips(filters: JobSearchInput) {
           href: buildJobsPageHref(filters, 1, { postedWithin: "all" })
         }
       : null,
-    filters.directOnly
-      ? {
-          label: "Direct apply",
-          href: buildJobsPageHref(filters, 1, { directOnly: undefined })
-        }
-      : null,
     filters.freshness !== "all"
       ? {
           label: freshnessLabels[filters.freshness],
@@ -128,7 +121,7 @@ export async function generateMetadata({
   ].filter(Boolean);
   const title = titleParts.join(" ");
   const description =
-    filters.keyword || filters.location || filters.company || filters.workMode !== "any" || filters.directOnly
+    filters.keyword || filters.location || filters.company || filters.workMode !== "any"
       ? `Search fresh direct-apply ${title.toLowerCase()} from official hiring sources. No middlemen, no noisy boards.`
       : jobsDescription;
 
