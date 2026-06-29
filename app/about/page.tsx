@@ -20,7 +20,7 @@ const sourceCards = [
   {
     title: "Official hiring sources",
     description:
-      "Hirevate prioritizes public company career pages, ATS job boards, and trusted job APIs close to the employer source.",
+      "Hirevate prioritizes public company career pages, ATS job boards, and trusted hiring sources close to the employer source.",
     icon: DatabaseZap
   },
   {
@@ -36,9 +36,9 @@ const sourceCards = [
     icon: FileText
   },
   {
-    title: "Direct apply model",
+    title: "Apply model",
     description:
-      "Users apply on the available employer, ATS, or partner source. Hirevate does not auto-apply or represent itself as a recruiter.",
+      "Users apply on the available employer, ATS, or verified hiring source. Hirevate does not auto-apply or represent itself as a recruiter.",
     icon: BadgeCheck
   }
 ];

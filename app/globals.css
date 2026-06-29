@@ -72,3 +72,35 @@ a {
   content-visibility: auto;
   contain-intrinsic-size: auto 420px;
 }
+
+.source-slider-mask {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.source-slider-track {
+  width: max-content;
+  animation: source-slider-scroll 28s linear infinite;
+}
+
+.source-slider-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes source-slider-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .source-slider-track {
+    width: 100%;
+    flex-wrap: wrap;
+    animation: none;
+  }
+}

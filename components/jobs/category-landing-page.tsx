@@ -220,7 +220,7 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
               <h2 className="text-lg font-semibold text-ink-900">Source policy</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 Listings come from official/public hiring sources such as company career pages, ATS
-                job boards, and trusted job APIs. Hirevate does not scrape LinkedIn or Indeed.
+                job boards, and trusted hiring sources. Hirevate does not scrape LinkedIn or Indeed.
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-5">

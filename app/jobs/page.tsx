@@ -14,7 +14,7 @@ import { absoluteUrl } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const jobsDescription =
-  "Search fresh jobs from company career pages, public ATS boards, and trusted job APIs, with filters for title, location, remote work, and freshness.";
+  "Search fresh jobs from company career pages, public ATS boards, and trusted hiring sources, with filters for title, location, remote work, and freshness.";
 
 const popularJobPages = [
   { href: "/jobs/latest", label: "Latest jobs" },
@@ -42,7 +42,7 @@ const jobsFaqItems = [
   {
     question: "Where does Hirevate get jobs from?",
     answer:
-      "Hirevate imports jobs from company career pages, public ATS job boards, and trusted APIs including Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi."
+      "Hirevate imports jobs from company career pages, public ATS job boards, public job discovery sources, and trusted hiring partners."
   },
   {
     question: "What is Hirevate's freshness score?",
@@ -170,7 +170,7 @@ export async function generateMetadata({
   const title = titleParts.join(" ");
   const description =
     filters.keyword || filters.location || filters.company || filters.workMode !== "any"
-      ? `Search fresh ${title.toLowerCase()} from company career pages, public ATS boards, and trusted job APIs. No middlemen, no noisy boards.`
+      ? `Search fresh ${title.toLowerCase()} from company career pages, public ATS boards, and trusted hiring sources. No middlemen, no noisy boards.`
       : jobsDescription;
 
   return {
@@ -293,7 +293,7 @@ export default async function JobsPage({
             <div>
               <h1 className="text-4xl font-semibold text-ink-900">Hidden jobs</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-                Search company career pages, public ATS boards, and trusted job APIs by keyword,
+                Search company career pages, public ATS boards, and trusted hiring sources by keyword,
                 location, remote preference, and freshness.
               </p>
             </div>
@@ -471,7 +471,7 @@ export default async function JobsPage({
               <h2 className="text-lg font-semibold text-ink-900">What hidden jobs means</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 Hirevate looks for roles from company career pages, public ATS boards, and trusted
-                job APIs before they become crowded elsewhere.
+                hiring sources before they become crowded elsewhere.
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-5">
@@ -482,10 +482,10 @@ export default async function JobsPage({
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-5">
-              <h2 className="text-lg font-semibold text-ink-900">Direct apply workflow</h2>
+              <h2 className="text-lg font-semibold text-ink-900">Apply workflow</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 Hirevate helps users find, save, prepare, and track roles, then sends them to the
-                available employer, ATS, or partner source. It does not auto-apply.
+                available employer, ATS, or verified hiring source. It does not auto-apply.
               </p>
             </div>
           </section>

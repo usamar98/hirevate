@@ -56,6 +56,10 @@ function isSameOrganizationHost(applyHostname: string | null, website: string | 
   return applyHostname === companyHostname || applyHostname.endsWith(`.${companyHostname}`);
 }
 
+function getApplyCta(job: Pick<JobWithCompany, "apply_url">) {
+  return job.apply_url ? "Apply now" : "View details";
+}
+
 export function isEmployerOrAtsApplyUrl(job: Pick<JobWithCompany, "apply_url" | "source" | "companies">) {
   const source = job.source?.toLowerCase() ?? "";
   const applyHostname = getHostname(job.apply_url);
@@ -74,51 +78,51 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
 
   if (source === "greenhouse") {
     return {
-      applyCta: "Apply now",
-      applyDescription: "Open the employer application page hosted on Greenhouse.",
+      applyCta: getApplyCta(job),
+      applyDescription: "Open the employer or ATS application page for this role.",
       isEmployerOrAtsApply,
-      label: "Greenhouse",
+      label: "Employer ATS",
       sourceType: "Greenhouse"
     };
   }
 
   if (source === "lever") {
     return {
-      applyCta: "Apply now",
-      applyDescription: "Open the employer application page hosted on Lever.",
+      applyCta: getApplyCta(job),
+      applyDescription: "Open the employer or ATS application page for this role.",
       isEmployerOrAtsApply,
-      label: "Lever",
+      label: "Employer ATS",
       sourceType: "Lever"
     };
   }
 
   if (source === "adzuna") {
     return {
-      applyCta: isEmployerOrAtsApply ? "Apply now" : "Open Adzuna listing",
+      applyCta: getApplyCta(job),
       applyDescription: isEmployerOrAtsApply
-        ? "Open the employer or ATS application page found through Adzuna."
-        : "Open the partner listing from Adzuna. Hirevate does not label this as direct company apply unless it resolves to an employer or ATS page.",
+        ? "Open the employer or ATS application page for this role."
+        : "Open the verified hiring source for this role.",
       isEmployerOrAtsApply,
-      label: "Adzuna",
+      label: isEmployerOrAtsApply ? "Employer ATS" : "Verified hiring source",
       sourceType: "Adzuna"
     };
   }
 
   if (source === "serpapi") {
     return {
-      applyCta: isEmployerOrAtsApply ? "Apply now" : "Open Google Jobs listing",
+      applyCta: getApplyCta(job),
       applyDescription: isEmployerOrAtsApply
-        ? "Open the employer or ATS application page found through Google Jobs."
-        : "Open the Google Jobs result collected through SerpApi. Hirevate does not label this as direct company apply unless it resolves to an employer or ATS page.",
+        ? "Open the employer or ATS application page for this role."
+        : "Open the verified hiring source for this role.",
       isEmployerOrAtsApply,
-      label: "Google Jobs via SerpApi",
+      label: isEmployerOrAtsApply ? "Employer ATS" : "Verified hiring source",
       sourceType: "Google Jobs"
     };
   }
 
   if (isEmployerOrAtsApply) {
     return {
-      applyCta: "Apply now",
+      applyCta: getApplyCta(job),
       applyDescription: "Open the employer or public ATS application page.",
       isEmployerOrAtsApply,
       label: "Company Career Page",
@@ -127,7 +131,7 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
   }
 
   return {
-    applyCta: job.apply_url ? "Open listing" : "View details",
+    applyCta: getApplyCta(job),
     applyDescription: "Review the public hiring source for this role.",
     isEmployerOrAtsApply,
     label: "Public ATS",
@@ -136,29 +140,14 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
 }
 
 export function getJobSourceLabel(source: string | null | undefined) {
-  if (source === "lever") return "Lever";
-  if (source === "serpapi") return "Google Jobs via SerpApi";
-  if (source === "adzuna") return "Adzuna";
-  if (source === "greenhouse") return "Greenhouse";
+  if (source === "lever" || source === "greenhouse") return "Employer ATS";
+  if (source === "serpapi" || source === "adzuna") return "Verified hiring source";
   return "Public ATS";
 }
 
 export function getJobSourceDescription(source: string | null | undefined) {
-  if (source === "serpapi") {
-    return "Google Jobs result collected through SerpApi.";
-  }
-
-  if (source === "adzuna") {
-    return "Partner listing collected through Adzuna.";
-  }
-
-  if (source === "lever") {
-    return "Public ATS posting hosted on Lever.";
-  }
-
-  if (source === "greenhouse") {
-    return "Public ATS posting hosted on Greenhouse.";
-  }
+  if (source === "serpapi" || source === "adzuna") return "Verified public hiring source.";
+  if (source === "lever" || source === "greenhouse") return "Employer ATS posting.";
 
   return "Public hiring source.";
 }

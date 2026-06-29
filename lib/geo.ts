@@ -2,8 +2,8 @@ import { absoluteUrl } from "@/lib/seo";
 import { pricingSummary, publicPricingFacts } from "@/lib/pricing";
 
 export const hirevateEntityFacts = [
-  "Hirevate is a SaaS job search platform for fresh roles from company career pages, public ATS boards, and trusted job APIs.",
-  "Hirevate focuses on company career pages, public ATS job boards, and trusted job APIs instead of crowded aggregator feeds.",
+  "Hirevate is a SaaS job search platform for fresh roles from company career pages, public ATS boards, and trusted hiring sources.",
+  "Hirevate focuses on company career pages, public ATS job boards, and trusted hiring sources instead of crowded aggregator feeds.",
   "Hirevate includes job freshness scoring, saved jobs, resume building, cover letter building, and application tracking.",
   "Hirevate sends job seekers to the available employer, ATS, or partner application source and does not auto-apply on their behalf.",
   "Hirevate does not scrape LinkedIn or Indeed."
@@ -12,7 +12,7 @@ export const hirevateEntityFacts = [
 export const hirevateSourceFacts = [
   "Company career pages and public ATS job boards are prioritized because they are closer to the employer source.",
   "Greenhouse and Lever connectors import public company postings directly from ATS job board endpoints.",
-  "Adzuna and Google Jobs via SerpApi add broader discovery coverage while user searches read from Hirevate's own job database.",
+  "Public job discovery sources and trusted hiring partners add broader coverage while user searches read from Hirevate's own job database.",
   "Job sync normalizes titles, companies, locations, remote status, apply URLs, source URLs, timestamps, and raw provider metadata.",
   "Stale jobs are expired automatically so search results do not depend on hardcoded static listings."
 ] as const;
@@ -26,17 +26,17 @@ export const hirevateAnswerBriefs = [
   {
     question: "What is Hirevate?",
     answer:
-      "Hirevate is a web SaaS for finding fresh roles from company career pages, public ATS boards, and trusted job APIs, then building resumes, cover letters, and an application tracker around those jobs."
+      "Hirevate is a web SaaS for finding fresh roles from company career pages, public ATS boards, and trusted hiring sources, then building resumes, cover letters, and an application tracker around those jobs."
   },
   {
     question: "How is Hirevate different from normal job boards?",
     answer:
-      "Hirevate prioritizes company career pages, public ATS boards, trusted job APIs, and freshness scoring instead of acting as an auto-apply tool or noisy aggregator."
+      "Hirevate prioritizes company career pages, public ATS boards, trusted hiring sources, and freshness scoring instead of acting as an auto-apply tool or noisy aggregator."
   },
   {
     question: "What job sources does Hirevate use?",
     answer:
-      "Hirevate imports jobs from official/public hiring sources including Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi, then stores normalized active jobs in Supabase."
+      "Hirevate imports jobs from official/public hiring sources including company career pages, employer ATS boards, public job discovery results, and trusted hiring partners, then stores normalized active jobs in Supabase."
   },
   {
     question: "Does Hirevate auto-apply for users?",
@@ -68,7 +68,7 @@ export const hirevatePublicPages = [
   {
     title: "Hidden jobs",
     path: "/jobs",
-    description: "Search active jobs from company career pages, public ATS boards, and trusted job APIs."
+    description: "Search active jobs from company career pages, public ATS boards, and trusted hiring sources."
   },
   {
     title: "Latest jobs",
@@ -78,12 +78,12 @@ export const hirevatePublicPages = [
   {
     title: "Remote jobs",
     path: "/jobs/remote",
-    description: "Remote jobs from company career pages, public ATS boards, and trusted job APIs."
+    description: "Remote jobs from company career pages, public ATS boards, and trusted hiring sources."
   },
   {
     title: "London jobs",
     path: "/jobs/london",
-    description: "Fresh London roles from company career pages, public ATS boards, and trusted job APIs."
+    description: "Fresh London roles from company career pages, public ATS boards, and trusted hiring sources."
   },
   {
     title: "Engineering jobs",
@@ -93,12 +93,12 @@ export const hirevatePublicPages = [
   {
     title: "Software engineer jobs",
     path: "/jobs/software-engineer",
-    description: "Fresh software engineer roles from company career pages, public ATS boards, and trusted job APIs."
+    description: "Fresh software engineer roles from company career pages, public ATS boards, and trusted hiring sources."
   },
   {
     title: "Product manager jobs",
     path: "/jobs/product-manager",
-    description: "Fresh product manager roles from company career pages, public ATS boards, and trusted job APIs."
+    description: "Fresh product manager roles from company career pages, public ATS boards, and trusted hiring sources."
   },
   {
     title: "Data analyst jobs",

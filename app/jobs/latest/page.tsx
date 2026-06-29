@@ -13,7 +13,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { formatRelativeDate } from "@/lib/utils";
 
 const latestJobsDescription =
-  "Browse the latest public job detail pages indexed by Hirevate from company career pages, public ATS boards, and trusted job APIs.";
+  "Browse the latest public job detail pages indexed by Hirevate from company career pages, public ATS boards, and trusted hiring sources.";
 
 const latestJobsInternalLinks = [
   { href: "/jobs/remote", label: "Remote jobs" },

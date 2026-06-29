@@ -5,7 +5,7 @@ Production-ready MVP SaaS for discovering fresh direct-apply roles from official
 ## Scope
 
 This MVP started with hidden job discovery from Greenhouse public boards and now supports multiple
-job APIs and hiring sources.
+hiring sources.
 
 It includes hidden job discovery, resume building, cover letters, application tracking, admin
 analytics, and Stripe subscriptions. It does not use LinkedIn scraping, Indeed scraping,

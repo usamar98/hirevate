@@ -36,7 +36,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "Remote jobs",
     title: "Remote Jobs | Hirevate",
     description:
-      "Find fresh remote jobs from company career pages, public ATS boards, and trusted job APIs before crowded job boards catch up.",
+      "Find fresh remote jobs from company career pages, public ATS boards, and trusted hiring sources before crowded job boards catch up.",
     heading: "Remote jobs from public hiring sources",
     eyebrow: "Remote job search",
     emptyTitle: "No remote jobs found",
@@ -46,7 +46,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       helpsWith:
         "This page helps remote-first job seekers find fresh roles with clear source labels, work-mode signals, and links to the available employer, ATS, or partner apply source.",
       bestSources:
-        "The strongest remote coverage usually comes from Greenhouse and Lever public ATS boards, company career pages, Adzuna, and Google Jobs results collected through SerpApi.",
+        "The strongest remote coverage usually comes from employer ATS boards, company career pages, public job discovery results, and trusted hiring partners.",
       freshness:
         "Remote freshness score favors recently updated roles with a usable apply URL, clear remote location text, and complete source metadata.",
       faqs: [
@@ -58,7 +58,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for remote jobs?",
           answer:
-            "Greenhouse, Lever, company career pages, Adzuna, and Google Jobs via SerpApi are useful because remote roles often appear on several public hiring surfaces."
+            "Employer ATS boards, company career pages, public job discovery results, and hiring partners are useful because remote roles often appear on several public hiring surfaces."
         },
         {
           question: "How is freshness scored for remote jobs?",
@@ -84,7 +84,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "London jobs",
     title: "London Jobs | Hirevate",
     description:
-      "Find fresh London jobs from company career pages, public ATS boards, and trusted job APIs, with clear source and freshness signals.",
+      "Find fresh London jobs from company career pages, public ATS boards, and trusted hiring sources, with clear source and freshness signals.",
     heading: "London jobs with clear apply sources",
     eyebrow: "London job search",
     emptyTitle: "No London jobs found",
@@ -92,9 +92,9 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       "Try all jobs or run a fresh sync to collect more roles from London hiring sources.",
     answerReady: {
       helpsWith:
-        "This page helps job seekers monitor London-based roles across company career pages, public ATS boards, and trusted job APIs.",
+        "This page helps job seekers monitor London-based roles across company career pages, public ATS boards, and trusted hiring sources.",
       bestSources:
-        "London coverage is strongest when Greenhouse, Lever, company career pages, Adzuna, and Google Jobs results all contribute location-tagged roles.",
+        "London coverage is strongest when employer ATS boards, company career pages, public job discovery results, and hiring partners all contribute location-tagged roles.",
       freshness:
         "London freshness score favors roles with recent updates, clear London or UK location text, valid apply links, and strong title relevance.",
       faqs: [
@@ -106,7 +106,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for London jobs?",
           answer:
-            "Company career pages, Greenhouse, Lever, Adzuna UK data, and Google Jobs via SerpApi can all contribute useful London listings."
+            "Company career pages, employer ATS boards, public job discovery results, and hiring partners can all contribute useful London listings."
         },
         {
           question: "How is freshness scored for London jobs?",
@@ -132,7 +132,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "Engineering jobs",
     title: "Engineering Jobs | Hirevate",
     description:
-      "Find fresh engineering, software, and developer jobs from company career pages, public ATS boards, and trusted job APIs before they get crowded.",
+      "Find fresh engineering, software, and developer jobs from company career pages, public ATS boards, and trusted hiring sources before they get crowded.",
     heading: "Engineering jobs before they get crowded",
     eyebrow: "Engineering job search",
     emptyTitle: "No engineering jobs found",
@@ -142,7 +142,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       helpsWith:
         "This page helps engineers scan fresh software, developer, data, infrastructure, and AI roles from public hiring sources.",
       bestSources:
-        "Engineering roles are often strongest on Greenhouse, Lever, company career pages, and Google Jobs results collected through SerpApi.",
+        "Engineering roles are often strongest on employer ATS boards, company career pages, and public job discovery results.",
       freshness:
         "Engineering freshness score rewards recent updates, apply link quality, location completeness, and engineering title relevance.",
       faqs: [
@@ -154,7 +154,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for engineering jobs?",
           answer:
-            "Greenhouse, Lever, company career pages, and Google Jobs via SerpApi are useful because many technical teams publish there first."
+            "Employer ATS boards, company career pages, and public job discovery results are useful because many technical teams publish there first."
         },
         {
           question: "How is freshness scored for engineering jobs?",
@@ -169,7 +169,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Does Hirevate scrape LinkedIn or Indeed for engineering jobs?",
           answer:
-            "No. Hirevate uses company career pages, public ATS boards, and trusted job APIs."
+            "No. Hirevate uses company career pages, public ATS boards, and trusted hiring sources."
         }
       ]
     }
@@ -180,7 +180,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "Software engineer jobs",
     title: "Software Engineer Jobs | Hirevate",
     description:
-      "Find fresh software engineer jobs from company career pages, public ATS boards, and trusted job APIs with clear source and freshness signals.",
+      "Find fresh software engineer jobs from company career pages, public ATS boards, and trusted hiring sources with clear source and freshness signals.",
     heading: "Software engineer jobs from public hiring sources",
     eyebrow: "Software engineering job search",
     emptyTitle: "No software engineer jobs found",
@@ -190,7 +190,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       helpsWith:
         "This page helps software engineers find frontend, backend, full stack, platform, and related developer roles with clear source labels.",
       bestSources:
-        "Software engineer roles are especially common on Greenhouse, Lever, company career pages, and Google Jobs results collected through SerpApi.",
+        "Software engineer roles are especially common on employer ATS boards, company career pages, and public job discovery results.",
       freshness:
         "Software engineer freshness score rewards recent updates, valid apply URLs, clear remote or location data, and software-related title matches.",
       faqs: [
@@ -202,7 +202,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for software engineer jobs?",
           answer:
-            "Greenhouse, Lever, employer career pages, and Google Jobs via SerpApi are strong sources for software engineering listings."
+            "Employer ATS boards, employer career pages, and public job discovery results are strong sources for software engineering listings."
         },
         {
           question: "How is freshness scored for software engineer jobs?",
@@ -229,7 +229,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "Product manager jobs",
     title: "Product Manager Jobs | Hirevate",
     description:
-      "Find fresh product manager jobs from company career pages, public ATS boards, and trusted job APIs.",
+      "Find fresh product manager jobs from company career pages, public ATS boards, and trusted hiring sources.",
     heading: "Product manager jobs before they get crowded",
     eyebrow: "Product job search",
     emptyTitle: "No product manager jobs found",
@@ -239,7 +239,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       helpsWith:
         "This page helps product managers find PM, product owner, product lead, and group product manager roles from public hiring sources.",
       bestSources:
-        "Product roles are commonly surfaced through Greenhouse, Lever, company career pages, Adzuna, and Google Jobs via SerpApi.",
+        "Product roles are commonly surfaced through employer ATS boards, company career pages, public job discovery results, and hiring partners.",
       freshness:
         "Product manager freshness score rewards recent source updates, complete company and location data, valid apply links, and product title relevance.",
       faqs: [
@@ -251,7 +251,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for product manager jobs?",
           answer:
-            "Company career pages, Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi can all surface product roles."
+            "Company career pages, employer ATS boards, public job discovery results, and hiring partners can all surface product roles."
         },
         {
           question: "How is freshness scored for product manager jobs?",
@@ -278,7 +278,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "Data analyst jobs",
     title: "Data Analyst Jobs | Hirevate",
     description:
-      "Find fresh data analyst, analytics, and business intelligence jobs from company career pages, public ATS boards, and trusted job APIs.",
+      "Find fresh data analyst, analytics, and business intelligence jobs from company career pages, public ATS boards, and trusted hiring sources.",
     heading: "Data analyst jobs with clear apply sources",
     eyebrow: "Data job search",
     emptyTitle: "No data analyst jobs found",
@@ -288,7 +288,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       helpsWith:
         "This page helps analysts find analytics, BI, data analyst, and related roles from public hiring sources with freshness signals.",
       bestSources:
-        "Data analyst roles can appear across company career pages, Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi.",
+        "Data analyst roles can appear across company career pages, employer ATS boards, public job discovery results, and hiring partners.",
       freshness:
         "Data analyst freshness score rewards recent updates, apply URL availability, location completeness, and data or analytics keyword relevance.",
       faqs: [
@@ -300,7 +300,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for data analyst jobs?",
           answer:
-            "Company career pages, Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi provide useful coverage."
+            "Company career pages, employer ATS boards, public job discovery results, and hiring partners provide useful coverage."
         },
         {
           question: "How is freshness scored for data analyst jobs?",
@@ -327,7 +327,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "Customer success jobs",
     title: "Customer Success Jobs | Hirevate",
     description:
-      "Find fresh customer success and account management jobs from company career pages, public ATS boards, and trusted job APIs.",
+      "Find fresh customer success and account management jobs from company career pages, public ATS boards, and trusted hiring sources.",
     heading: "Customer success jobs from public hiring sources",
     eyebrow: "Customer success job search",
     emptyTitle: "No customer success jobs found",
@@ -337,7 +337,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
       helpsWith:
         "This page helps customer-facing candidates find customer success, account management, implementation, and support roles.",
       bestSources:
-        "Customer success roles often appear on company career pages, Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi.",
+        "Customer success roles often appear on company career pages, employer ATS boards, public job discovery results, and hiring partners.",
       freshness:
         "Customer success freshness score rewards recent updates, valid apply links, location completeness, and customer-facing title relevance.",
       faqs: [
@@ -349,7 +349,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
         {
           question: "Which sources are best for customer success jobs?",
           answer:
-            "Company career pages, Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi provide broad customer-facing role coverage."
+            "Company career pages, employer ATS boards, public job discovery results, and hiring partners provide broad customer-facing role coverage."
         },
         {
           question: "How is freshness scored for customer success jobs?",

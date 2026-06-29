@@ -22,7 +22,7 @@ const pricingFaqItems = [
   {
     question: "Does the free plan include public-source job search?",
     answer:
-      "Yes. The free plan lets job seekers browse a preview of roles from company career pages, public ATS boards, and trusted job APIs."
+      "Yes. The free plan lets job seekers browse a preview of roles from company career pages, public ATS boards, and trusted hiring sources."
   },
   {
     question: "Do paid plans include resume and cover letter tools?",

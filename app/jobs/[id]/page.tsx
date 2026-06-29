@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +21,7 @@ import {
   getJobPath,
   getJobSlug
 } from "@/lib/jobs/seo";
-import { getJobSourceDescription, getJobSourceTrust } from "@/lib/jobs/sources";
+import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
 import { sanitizeJobDescription } from "@/lib/jobs/sanitize";
 import { formatDate } from "@/lib/utils";
@@ -164,7 +163,7 @@ export default async function JobDetailPage({
           </article>
           <aside className="space-y-4">
             <Card className="p-5">
-              <h2 className="text-lg font-semibold text-ink-900">Application source</h2>
+              <h2 className="text-lg font-semibold text-ink-900">Apply to this role</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 {sourceTrust.applyDescription}
               </p>
@@ -218,24 +217,8 @@ export default async function JobDetailPage({
               <h2 className="text-lg font-semibold text-ink-900">Listing details</h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <div>
-                  <dt className="font-semibold text-ink-700">Source type</dt>
+                  <dt className="font-semibold text-ink-700">Apply source</dt>
                   <dd className="mt-1 text-ink-500">{sourceTrust.label}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-ink-700">Source detail</dt>
-                  <dd className="mt-1 text-ink-500">{getJobSourceDescription(job.source)}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-ink-700">Source URL</dt>
-                  <dd className="mt-1 truncate text-ink-500">
-                    {job.source_url ? (
-                      <Link href={job.source_url} target="_blank" rel="noopener noreferrer" className="text-brand-600">
-                        {job.source_url}
-                      </Link>
-                    ) : (
-                      "Not available"
-                    )}
-                  </dd>
                 </div>
                 <div>
                   <dt className="font-semibold text-ink-700">Updated</dt>
