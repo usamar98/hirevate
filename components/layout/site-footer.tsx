@@ -8,8 +8,8 @@ export function SiteFooter() {
         <div>
           <Logo />
           <p className="mt-3 max-w-xl text-sm leading-6 text-ink-500">
-            Direct-apply roles from official hiring sources. No LinkedIn scraping, no auto-apply,
-            no noisy boards.
+            Roles from company career pages, public ATS boards, and trusted job APIs. No LinkedIn
+            scraping, no auto-apply, no noisy boards.
           </p>
         </div>
         <div className="flex flex-wrap gap-5 text-sm font-medium text-ink-500">

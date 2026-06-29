@@ -7,7 +7,7 @@ function removeTrailingSlash(value: string) {
 export const siteName = "Hirevate";
 export const siteUrl = removeTrailingSlash(env.appUrl || "https://www.hirevate.com");
 export const defaultDescription =
-  "Find fresh direct-apply jobs from official hiring sources, build targeted resumes, and track which applications turn into interviews.";
+  "Find fresh jobs from company career pages, public ATS boards, and trusted job APIs, build targeted resumes, and track which applications turn into interviews.";
 export const defaultOgImagePath = "/opengraph-image";
 
 export const crawlDisallowPaths = ["/admin/", "/api/", "/auth/", "/dashboard/"] as const;
@@ -26,9 +26,9 @@ export const aiSearchCrawlerUserAgents = [
 ] as const;
 
 export const geoAudienceKeywords = [
-  "company career page jobs",
-  "official hiring sources",
-  "direct apply job search",
+  "company career pages",
+  "public ATS job boards",
+  "public-source job search",
   "hidden job opportunities",
   "fresh remote jobs",
   "ATS resume builder",

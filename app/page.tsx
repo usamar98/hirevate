@@ -20,7 +20,7 @@ import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
 import type { JobWithCompany } from "@/types/database";
 
 const landingDescription =
-  "Hirevate helps job seekers find fresh direct-apply jobs from official hiring sources, build targeted resumes, and measure which applications convert.";
+  "Hirevate helps job seekers find fresh jobs from company career pages, public ATS boards, and trusted job APIs, then build targeted resumes and track applications.";
 
 export const metadata: Metadata = {
   description: landingDescription,
@@ -41,12 +41,12 @@ export const metadata: Metadata = {
 const features = [
   {
     title: "Fresh jobs",
-    description: "Scan active company career pages and surface recently updated professional roles.",
+    description: "Scan company career pages, public ATS boards, and trusted job APIs for recently updated professional roles.",
     icon: Clock3
   },
   {
-    title: "Direct apply links",
-    description: "Open the official company job page instead of another crowded aggregator.",
+    title: "Clear apply sources",
+    description: "See whether a role comes from a company page, public ATS, Google Jobs, SerpApi, or Adzuna.",
     icon: Link2
   },
   {
@@ -89,7 +89,7 @@ const homeFaqItems = [
   {
     question: "What is Hirevate?",
     answer:
-      "Hirevate is a web SaaS for finding fresh direct-apply jobs from official hiring sources, then using resume, cover letter, saved job, and tracker tools around those roles."
+      "Hirevate is a web SaaS for finding fresh roles from company career pages, public ATS boards, and trusted job APIs, then using resume, cover letter, saved job, and tracker tools around those roles."
   },
   {
     question: "Who is Hirevate for?",
@@ -104,11 +104,11 @@ const homeFaqItems = [
   {
     question: "Does Hirevate scrape LinkedIn or Indeed?",
     answer:
-      "No. Hirevate uses official and public hiring sources, then sends you to the original apply page."
+      "No. Hirevate uses company career pages, public ATS boards, and trusted job APIs, then sends you to the available apply source."
   },
   {
     question: "Can Hirevate auto-apply for me?",
-    answer: "No. Hirevate helps you find direct-apply roles and sends you to the official apply page."
+    answer: "No. Hirevate helps you find roles and sends you to the available employer, ATS, or partner apply source."
   },
   {
     question: "What does freshness score mean?",
@@ -121,17 +121,17 @@ const discoveryLinks = [
   {
     href: "/jobs/latest",
     label: "Latest jobs",
-    description: "Recently indexed direct-apply roles from the public job database."
+    description: "Recently indexed roles from the public job database."
   },
   {
     href: "/jobs/remote",
     label: "Remote jobs",
-    description: "Remote roles from official hiring sources and public ATS boards."
+    description: "Remote roles from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     href: "/jobs/software-engineer",
     label: "Software engineer jobs",
-    description: "Fresh engineering and software roles with direct apply links."
+    description: "Fresh engineering and software roles with clear apply-source labels."
   },
   {
     href: "/jobs/product-manager",
@@ -196,7 +196,7 @@ export default async function LandingPage() {
         data={[
           {
             "@context": "https://schema.org",
-            "@type": "WebApplication",
+            "@type": "SoftwareApplication",
             name: siteName,
             url: absoluteUrl("/"),
             applicationCategory: "BusinessApplication",
@@ -244,8 +244,8 @@ export default async function LandingPage() {
               Find hidden career opportunities before they get crowded
             </h1>
             <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
-              Hirevate scans company career pages and finds fresh direct-apply roles from official
-              hiring sources.
+              Hirevate scans company career pages, public ATS boards, and trusted job APIs for
+              fresh roles.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild href="/jobs" size="lg">
@@ -274,11 +274,11 @@ export default async function LandingPage() {
           </Card>
           <Card className="p-7">
             <h2 className="text-2xl font-semibold text-ink-900">
-              Direct company career page jobs
+              Company pages, public ATS boards, and trusted job APIs
             </h2>
             <p className="mt-4 text-base leading-7 text-ink-500">
-              Hirevate focuses on clean hiring sources, normalized into searchable direct-apply job
-              cards.
+              Hirevate focuses on clean hiring sources, normalized into searchable job cards with
+              clear source labels.
             </p>
           </Card>
         </div>
@@ -399,7 +399,7 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
         <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-900">Hidden jobs feed</p>
-            <p className="mt-1 text-xs text-ink-500">Official sources - sorted by freshness</p>
+            <p className="mt-1 text-xs text-ink-500">Public sources - sorted by freshness</p>
           </div>
           <Badge tone="green">Fresh Verified</Badge>
         </div>

@@ -7,7 +7,7 @@ import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate Silver, Gold, and Platinum subscriptions for hidden job discovery, cover letters, job tracking, and direct-apply search.";
+  "Compare Hirevate Silver, Gold, and Platinum subscriptions for hidden job discovery, cover letters, job tracking, and public-source job search.";
 
 const pricingFaqItems = [
   {
@@ -20,9 +20,9 @@ const pricingFaqItems = [
     answer: pricingSummary
   },
   {
-    question: "Does the free plan include direct-apply job search?",
+    question: "Does the free plan include public-source job search?",
     answer:
-      "Yes. The free plan lets job seekers browse a preview of direct-apply roles from official hiring sources."
+      "Yes. The free plan lets job seekers browse a preview of roles from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     question: "Do paid plans include resume and cover letter tools?",
@@ -95,6 +95,21 @@ export default async function PricingPage() {
               name: "Hirevate"
             },
             offers: pricingOffers
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "Hirevate",
+            url: absoluteUrl("/pricing"),
+            applicationCategory: "BusinessApplication",
+            applicationSubCategory: "Job search and career management",
+            operatingSystem: "Web",
+            description: pricingDescription,
+            offers: {
+              "@type": "OfferCatalog",
+              name: "Hirevate subscriptions",
+              itemListElement: pricingOffers
+            }
           },
           {
             "@context": "https://schema.org",

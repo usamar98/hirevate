@@ -1,3 +1,6 @@
+import { getJobStructuredSalary } from "@/lib/jobs/compensation";
+import { getJobLocationLabel } from "@/lib/jobs/display";
+import { isEmployerOrAtsApplyUrl } from "@/lib/jobs/sources";
 import { absoluteUrl, siteName } from "@/lib/seo";
 import type { Company, Job, JobWithCompany } from "@/types/database";
 
@@ -98,64 +101,24 @@ function buildJobLocation(job: JobWithCompany) {
     "@type": "Place",
     address: {
       "@type": "PostalAddress",
-      addressLocality: job.location ?? (job.remote_type === "remote" ? "Remote" : "Not listed")
+      addressLocality: getJobLocationLabel(job)
     }
   };
 }
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
-function asNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function asString(value: unknown) {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-function inferSalaryUnit(interval: string | null) {
-  const normalized = interval?.toLowerCase() ?? "";
-
-  if (normalized.includes("hour")) return "HOUR";
-  if (normalized.includes("month")) return "MONTH";
-  if (normalized.includes("week")) return "WEEK";
-
-  return "YEAR";
-}
-
 function buildBaseSalary(job: JobWithCompany) {
-  const raw = asRecord(job.raw_data);
-  if (!raw) return undefined;
-
-  const nestedSalary = asRecord(raw.salaryRange);
-  const min = asNumber(raw.salary_min) ?? asNumber(nestedSalary?.min);
-  const max = asNumber(raw.salary_max) ?? asNumber(nestedSalary?.max);
-
-  if (!min && !max) return undefined;
-
-  const currency = asString(raw.salary_currency) ?? asString(nestedSalary?.currency) ?? "USD";
-  const interval = asString(raw.salary_interval) ?? asString(nestedSalary?.interval);
+  const salary = getJobStructuredSalary(job);
+  if (!salary) return undefined;
 
   return {
     "@type": "MonetaryAmount",
-    currency,
-    value:
-      min && max && Math.round(min) !== Math.round(max)
-        ? {
-            "@type": "QuantitativeValue",
-            minValue: min,
-            maxValue: max,
-            unitText: inferSalaryUnit(interval)
-          }
-        : {
-            "@type": "QuantitativeValue",
-            value: min ?? max,
-            unitText: inferSalaryUnit(interval)
-          }
+    currency: salary.currency,
+    value: {
+      "@type": "QuantitativeValue",
+      minValue: salary.min,
+      maxValue: salary.max,
+      unitText: salary.interval.toUpperCase()
+    }
   };
 }
 
@@ -209,7 +172,7 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
         }
       : undefined,
     jobLocationType: job.remote_type === "remote" ? "TELECOMMUTE" : undefined,
-    directApply: Boolean(job.apply_url),
+    directApply: isEmployerOrAtsApplyUrl(job),
     url: absoluteUrl(getJobPath(job))
   };
 }

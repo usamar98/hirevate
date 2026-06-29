@@ -61,7 +61,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
       }
     ],
     features: [
-      "Fresh direct-apply job search",
+      "Fresh public-source job search",
       "Advanced role, company, location, and freshness filters",
       "Save jobs from detail pages",
       "Resume builder and cover letter builder",
@@ -107,7 +107,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
       "Everything in Silver",
       "Application tracker with follow-up dates",
       "Track interested, applied, interview, offer, and rejected roles",
-      "Saved jobs and direct apply workflow",
+      "Saved jobs and clear apply-source workflow",
       "Best for a steady weekly application routine"
     ],
     highlighted: true

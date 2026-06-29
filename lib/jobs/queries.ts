@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { env, hasSupabaseBrowserConfig } from "@/lib/env";
+import { dedupeJobs } from "@/lib/jobs/dedupe";
 import { getJobSlug, getJobSlugToken, isUuidLike, jobMatchesSlug } from "@/lib/jobs/seo";
 import type { JobWithCompany, SavedJobWithJob } from "@/types/database";
 import type { Database } from "@/types/database";
@@ -192,7 +193,7 @@ export async function getJobs(searchParams: RawSearchParams) {
   const totalCount = count ?? 0;
 
   return {
-    jobs: (data ?? []) as JobWithCompany[],
+    jobs: dedupeJobs((data ?? []) as JobWithCompany[]),
     filters,
     configured: true,
     page,
@@ -271,7 +272,7 @@ export async function getFeaturedJobs(limit = 3) {
     return [] as JobWithCompany[];
   }
 
-  return (data ?? []) as JobWithCompany[];
+  return dedupeJobs((data ?? []) as JobWithCompany[]);
 }
 
 export async function getSitemapJobs(limit = 5000) {
@@ -291,7 +292,7 @@ export async function getSitemapJobs(limit = 5000) {
     return [] as JobWithCompany[];
   }
 
-  return (data ?? []) as JobWithCompany[];
+  return dedupeJobs((data ?? []) as JobWithCompany[]);
 }
 
 export async function getRemoteJobs(limit = 40) {
@@ -312,7 +313,7 @@ export async function getRemoteJobs(limit = 40) {
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 
-  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+  return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
 export async function getLocationJobs(location: string, limit = 40) {
@@ -333,7 +334,7 @@ export async function getLocationJobs(location: string, limit = 40) {
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 
-  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+  return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
 export async function getEngineeringJobs(limit = 40) {
@@ -356,7 +357,7 @@ export async function getEngineeringJobs(limit = 40) {
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 
-  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+  return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
 export async function getKeywordJobs(keywords: string[], limit = 40) {
@@ -384,7 +385,7 @@ export async function getKeywordJobs(keywords: string[], limit = 40) {
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 
-  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+  return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
 export async function getSavedJobIds(userId: string) {

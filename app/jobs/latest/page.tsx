@@ -5,13 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
+import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getSitemapJobs } from "@/lib/jobs/queries";
 import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
+import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { absoluteUrl } from "@/lib/seo";
 import { formatRelativeDate } from "@/lib/utils";
 
 const latestJobsDescription =
-  "Browse the latest public direct-apply job detail pages indexed by Hirevate from official hiring sources.";
+  "Browse the latest public job detail pages indexed by Hirevate from company career pages, public ATS boards, and trusted job APIs.";
 
 const latestJobsInternalLinks = [
   { href: "/jobs/remote", label: "Remote jobs" },
@@ -51,7 +53,7 @@ export default async function LatestJobsPage() {
           {
             "@context": "https://schema.org",
             "@type": "CollectionPage",
-            name: "Latest direct-apply jobs",
+            name: "Latest public jobs",
             url: absoluteUrl("/jobs/latest"),
             description: latestJobsDescription
           },
@@ -102,7 +104,7 @@ export default async function LatestJobsPage() {
                 Public job index
               </p>
               <h1 className="mt-3 text-4xl font-semibold text-ink-900">
-                Latest direct-apply jobs
+                Latest public jobs
               </h1>
               <p className="mt-3 max-w-3xl text-base leading-7 text-ink-500">
                 A crawlable list of recent public job pages from the normalized Hirevate job index.
@@ -130,13 +132,18 @@ export default async function LatestJobsPage() {
           <div className="mt-8 grid gap-3">
             {jobs.map((job) => (
               <Card className="p-5" key={job.id}>
+                {(() => {
+                  const sourceTrust = getJobSourceTrust(job);
+
+                  return (
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge tone={job.remote_type === "remote" ? "green" : "blue"}>
-                        {job.remote_type ?? "onsite"}
-                      </Badge>
+                      <Badge tone={getWorkModeTone(job.remote_type)}>{getWorkModeLabel(job.remote_type)}</Badge>
                       <Badge tone="gray">Score {job.freshness_score}</Badge>
+                      <Badge tone={sourceTrust.isEmployerOrAtsApply ? "green" : "blue"}>
+                        {sourceTrust.label}
+                      </Badge>
                     </div>
                     <Link href={getJobPath(job)} className="mt-3 block text-lg font-semibold text-ink-900 hover:text-brand-600">
                       {job.title}
@@ -148,7 +155,7 @@ export default async function LatestJobsPage() {
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <MapPin className="h-4 w-4" aria-hidden="true" />
-                        {job.location ?? "Location not listed"}
+                        {getJobLocationLabel(job)}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <CalendarDays className="h-4 w-4" aria-hidden="true" />
@@ -160,6 +167,8 @@ export default async function LatestJobsPage() {
                     View role
                   </Button>
                 </div>
+                  );
+                })()}
               </Card>
             ))}
           </div>

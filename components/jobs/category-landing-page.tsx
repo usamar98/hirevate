@@ -74,6 +74,18 @@ function buildCategoryJsonLd(category: JobCategoryPage, jobs: JobWithCompany[]) 
         url: absoluteUrl(getJobPath(job)),
         name: `${job.title} at ${getJobCompanyName(job)}`
       }))
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: category.answerReady.faqs.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer
+        }
+      }))
     }
   ];
 }
@@ -132,7 +144,7 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
 
           {configured ? (
             <p className="mt-8 text-sm font-medium text-ink-500">
-              Showing {jobs.length} fresh direct-apply roles.
+              Showing {jobs.length} fresh public-source roles.
             </p>
           ) : null}
 
@@ -177,6 +189,27 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
 
           <section className="mt-10 grid gap-4 lg:grid-cols-3">
             <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">What this page helps with</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                {category.answerReady.helpsWith}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">Best sources for this role</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                {category.answerReady.bestSources}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">How freshness score works</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                {category.answerReady.freshness}
+              </p>
+            </div>
+          </section>
+
+          <section className="mt-10 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
               <h2 className="text-lg font-semibold text-ink-900">How this page works</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 Hirevate filters normalized public jobs for this category and links each result to
@@ -194,8 +227,20 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
               <h2 className="text-lg font-semibold text-ink-900">Application model</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 Hirevate helps users discover, prepare, save, and track roles. It does not
-                auto-apply; users apply on the original employer page.
+                auto-apply; users apply on the available employer, ATS, or partner source.
               </p>
+            </div>
+          </section>
+
+          <section className="mt-8 rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="text-xl font-semibold text-ink-900">{category.label} FAQ</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {category.answerReady.faqs.map((item) => (
+                <div key={item.question}>
+                  <h3 className="font-semibold text-ink-900">{item.question}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink-500">{item.answer}</p>
+                </div>
+              ))}
             </div>
           </section>
         </div>

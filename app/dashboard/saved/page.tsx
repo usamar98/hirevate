@@ -24,7 +24,7 @@ export default async function SavedJobsPage() {
         <div>
           <h1 className="text-4xl font-semibold text-ink-900">Saved jobs</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-            Return to roles you want to review or apply to from the official company page.
+            Return to roles you want to review or apply to from the available source.
           </p>
         </div>
         <div className="mt-8 space-y-4">
@@ -38,7 +38,7 @@ export default async function SavedJobsPage() {
           <div className="mt-8">
             <EmptyState
               title="No saved jobs yet"
-              description="Save direct-apply roles from the jobs feed and they will appear here."
+              description="Save roles from the jobs feed and they will appear here."
               action={
                 <Button asChild href="/jobs">
                   Browse jobs

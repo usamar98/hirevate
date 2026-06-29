@@ -11,6 +11,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
+import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getJobBySlugOrId, getSavedJobIds } from "@/lib/jobs/queries";
 import {
   buildJobBreadcrumbJsonLd,
@@ -21,6 +22,7 @@ import {
   getJobPath,
   getJobSlug
 } from "@/lib/jobs/seo";
+import { getJobSourceDescription, getJobSourceTrust } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
 import { sanitizeJobDescription } from "@/lib/jobs/sanitize";
 import { formatDate } from "@/lib/utils";
@@ -106,6 +108,8 @@ export default async function JobDetailPage({
   const cleanDescription = sanitizeJobDescription(job.description);
   const companyName = getJobCompanyName(job);
   const compensationLabel = getJobCompensationLabel(job);
+  const locationLabel = getJobLocationLabel(job);
+  const sourceTrust = getJobSourceTrust(job);
   const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
   const trackerParams = new URLSearchParams({
     jobId: job.id,
@@ -124,8 +128,11 @@ export default async function JobDetailPage({
         <div className="container-shell grid gap-6 lg:grid-cols-[1fr_320px]">
           <article className="min-w-0 rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:p-8">
             <div className="flex flex-wrap gap-2">
-              <Badge>{job.remote_type ?? "onsite"}</Badge>
+              <Badge tone={getWorkModeTone(job.remote_type)}>{getWorkModeLabel(job.remote_type)}</Badge>
               <FreshnessBadge score={job.freshness_score} />
+              <Badge tone={sourceTrust.isEmployerOrAtsApply ? "green" : "blue"}>
+                {sourceTrust.label}
+              </Badge>
             </div>
             <h1 className="mt-5 text-4xl font-semibold leading-tight text-ink-900">{job.title}</h1>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-500">
@@ -135,7 +142,7 @@ export default async function JobDetailPage({
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
-                {job.location ?? "Location not listed"}
+                {locationLabel}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
@@ -157,9 +164,9 @@ export default async function JobDetailPage({
           </article>
           <aside className="space-y-4">
             <Card className="p-5">
-              <h2 className="text-lg font-semibold text-ink-900">Apply directly</h2>
+              <h2 className="text-lg font-semibold text-ink-900">Application source</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
-                Open the original application page for this role.
+                {sourceTrust.applyDescription}
               </p>
               {saveJobError ? (
                 <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
@@ -169,7 +176,7 @@ export default async function JobDetailPage({
               <div className="mt-5 space-y-2">
                 {job.apply_url ? (
                   <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer" className="w-full">
-                    Apply now
+                    {sourceTrust.applyCta}
                     <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 ) : null}
@@ -211,7 +218,15 @@ export default async function JobDetailPage({
               <h2 className="text-lg font-semibold text-ink-900">Listing details</h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <div>
-                  <dt className="font-semibold text-ink-700">Original URL</dt>
+                  <dt className="font-semibold text-ink-700">Source type</dt>
+                  <dd className="mt-1 text-ink-500">{sourceTrust.label}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-ink-700">Source detail</dt>
+                  <dd className="mt-1 text-ink-500">{getJobSourceDescription(job.source)}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-ink-700">Source URL</dt>
                   <dd className="mt-1 truncate text-ink-500">
                     {job.source_url ? (
                       <Link href={job.source_url} target="_blank" rel="noopener noreferrer" className="text-brand-600">

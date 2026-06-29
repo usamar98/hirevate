@@ -2,10 +2,10 @@ import { absoluteUrl } from "@/lib/seo";
 import { pricingSummary, publicPricingFacts } from "@/lib/pricing";
 
 export const hirevateEntityFacts = [
-  "Hirevate is a SaaS job search platform for fresh direct-apply roles from official hiring sources.",
+  "Hirevate is a SaaS job search platform for fresh roles from company career pages, public ATS boards, and trusted job APIs.",
   "Hirevate focuses on company career pages, public ATS job boards, and trusted job APIs instead of crowded aggregator feeds.",
   "Hirevate includes job freshness scoring, saved jobs, resume building, cover letter building, and application tracking.",
-  "Hirevate sends job seekers to the original company application page and does not auto-apply on their behalf.",
+  "Hirevate sends job seekers to the available employer, ATS, or partner application source and does not auto-apply on their behalf.",
   "Hirevate does not scrape LinkedIn or Indeed."
 ] as const;
 
@@ -26,12 +26,12 @@ export const hirevateAnswerBriefs = [
   {
     question: "What is Hirevate?",
     answer:
-      "Hirevate is a web SaaS for finding fresh direct-apply jobs from official hiring sources, then building resumes, cover letters, and an application tracker around those jobs."
+      "Hirevate is a web SaaS for finding fresh roles from company career pages, public ATS boards, and trusted job APIs, then building resumes, cover letters, and an application tracker around those jobs."
   },
   {
     question: "How is Hirevate different from normal job boards?",
     answer:
-      "Hirevate prioritizes official company career pages and public ATS sources, applies freshness scoring, and links users to the original application page instead of acting as an auto-apply or noisy aggregator."
+      "Hirevate prioritizes company career pages, public ATS boards, trusted job APIs, and freshness scoring instead of acting as an auto-apply tool or noisy aggregator."
   },
   {
     question: "What job sources does Hirevate use?",
@@ -46,7 +46,7 @@ export const hirevateAnswerBriefs = [
   {
     question: "Who is Hirevate best for?",
     answer:
-      "Hirevate is best for job seekers who want fresh direct-apply professional roles, especially remote, engineering, product, operations, marketing, sales, customer success, data, and business roles."
+      "Hirevate is best for job seekers who want fresh professional roles, especially remote, engineering, product, operations, marketing, sales, customer success, data, and business roles."
   },
   {
     question: "How much does Hirevate cost?",
@@ -68,7 +68,7 @@ export const hirevatePublicPages = [
   {
     title: "Hidden jobs",
     path: "/jobs",
-    description: "Search active direct-apply jobs from official hiring sources."
+    description: "Search active jobs from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     title: "Latest jobs",
@@ -78,12 +78,12 @@ export const hirevatePublicPages = [
   {
     title: "Remote jobs",
     path: "/jobs/remote",
-    description: "Direct-apply remote jobs from company career pages and hiring sources."
+    description: "Remote jobs from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     title: "London jobs",
     path: "/jobs/london",
-    description: "Fresh direct-apply roles in London and related hiring sources."
+    description: "Fresh London roles from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     title: "Engineering jobs",
@@ -93,12 +93,12 @@ export const hirevatePublicPages = [
   {
     title: "Software engineer jobs",
     path: "/jobs/software-engineer",
-    description: "Fresh direct-apply software engineer roles from company hiring sources."
+    description: "Fresh software engineer roles from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     title: "Product manager jobs",
     path: "/jobs/product-manager",
-    description: "Fresh product manager roles from official company career pages."
+    description: "Fresh product manager roles from company career pages, public ATS boards, and trusted job APIs."
   },
   {
     title: "Data analyst jobs",

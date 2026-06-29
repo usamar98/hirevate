@@ -14,7 +14,7 @@ import {
 import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
 
 const aboutDescription =
-  "Learn what Hirevate is, how it finds fresh direct-apply jobs, and how its resume, cover letter, and job tracker tools support job seekers.";
+  "Learn what Hirevate is, how it finds fresh jobs from public hiring sources, and how its resume, cover letter, and job tracker tools support job seekers.";
 
 const sourceCards = [
   {
@@ -38,7 +38,7 @@ const sourceCards = [
   {
     title: "Direct apply model",
     description:
-      "Users apply on the original employer page. Hirevate does not auto-apply or represent itself as a recruiter.",
+      "Users apply on the available employer, ATS, or partner source. Hirevate does not auto-apply or represent itself as a recruiter.",
     icon: BadgeCheck
   }
 ];
@@ -78,7 +78,7 @@ export default function AboutPage() {
               url: absoluteUrl("/"),
               description: defaultDescription,
               knowsAbout: [
-                "direct apply jobs",
+                "public-source jobs",
                 "company career pages",
                 "hidden job discovery",
                 "resume building",
@@ -126,7 +126,7 @@ export default function AboutPage() {
               About Hirevate
             </p>
             <h1 className="mt-3 text-4xl font-semibold leading-tight text-ink-900">
-              Fresh direct-apply jobs with the tools to act on them
+              Fresh public-source jobs with the tools to act on them
             </h1>
             <p className="mt-5 text-base leading-8 text-ink-500">
               Hirevate is built for job seekers who want useful roles earlier, cleaner apply links,

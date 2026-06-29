@@ -14,7 +14,7 @@ import { absoluteUrl } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const jobsDescription =
-  "Search fresh direct-apply jobs from official company career pages and hiring sources, with filters for title, location, remote work, and freshness.";
+  "Search fresh jobs from company career pages, public ATS boards, and trusted job APIs, with filters for title, location, remote work, and freshness.";
 
 const popularJobPages = [
   { href: "/jobs/latest", label: "Latest jobs" },
@@ -52,7 +52,7 @@ const jobsFaqItems = [
   {
     question: "Can I apply directly from Hirevate?",
     answer:
-      "Yes. Hirevate links to the original employer application page so users can apply directly through the company source."
+      "Hirevate shows whether a job links to an employer, public ATS, or partner source. It does not call partner listings direct company apply unless the apply URL is an employer or ATS URL."
   }
 ];
 
@@ -170,7 +170,7 @@ export async function generateMetadata({
   const title = titleParts.join(" ");
   const description =
     filters.keyword || filters.location || filters.company || filters.workMode !== "any"
-      ? `Search fresh direct-apply ${title.toLowerCase()} from official hiring sources. No middlemen, no noisy boards.`
+      ? `Search fresh ${title.toLowerCase()} from company career pages, public ATS boards, and trusted job APIs. No middlemen, no noisy boards.`
       : jobsDescription;
 
   return {
@@ -239,26 +239,7 @@ export default async function JobsPage({
       "@type": "ListItem",
       position: Math.max(pageStart, 1) + index,
       url: absoluteUrl(getJobPath(job)),
-      item: {
-        "@type": "JobPosting",
-        title: job.title,
-        hiringOrganization: {
-          "@type": "Organization",
-          name: getJobCompanyName(job),
-          sameAs: job.companies?.website ?? undefined
-        },
-        jobLocation: {
-          "@type": "Place",
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: job.location ?? "Not listed"
-          }
-        },
-        jobLocationType: job.remote_type === "remote" ? "TELECOMMUTE" : undefined,
-        datePosted: job.posted_at ?? job.discovered_at,
-        directApply: Boolean(job.apply_url),
-        url: absoluteUrl(getJobPath(job))
-      }
+      name: `${job.title} at ${getJobCompanyName(job)}`
     }))
   };
 
@@ -312,7 +293,8 @@ export default async function JobsPage({
             <div>
               <h1 className="text-4xl font-semibold text-ink-900">Hidden jobs</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-                Search official hiring sources by keyword, location, remote preference, and freshness.
+                Search company career pages, public ATS boards, and trusted job APIs by keyword,
+                location, remote preference, and freshness.
               </p>
             </div>
             <Button asChild href="/pricing" variant="outline">
@@ -441,7 +423,7 @@ export default async function JobsPage({
               className="mt-8 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 md:flex-row md:items-center md:justify-between"
             >
               <p className="text-sm font-medium text-ink-500">
-                Browse all {totalCount.toLocaleString()} active direct-apply roles.
+                Browse all {totalCount.toLocaleString()} active roles from public hiring sources.
               </p>
               <div className="flex gap-2">
                 {hasPreviousPage ? (
@@ -488,8 +470,8 @@ export default async function JobsPage({
             <div className="rounded-lg border border-gray-200 bg-white p-5">
               <h2 className="text-lg font-semibold text-ink-900">What hidden jobs means</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
-                Hirevate looks for roles closer to the original employer source, such as company
-                career pages and public ATS job boards, before they become crowded elsewhere.
+                Hirevate looks for roles from company career pages, public ATS boards, and trusted
+                job APIs before they become crowded elsewhere.
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-5">
@@ -503,7 +485,7 @@ export default async function JobsPage({
               <h2 className="text-lg font-semibold text-ink-900">Direct apply workflow</h2>
               <p className="mt-2 text-sm leading-6 text-ink-500">
                 Hirevate helps users find, save, prepare, and track roles, then sends them to the
-                original company application page. It does not auto-apply.
+                available employer, ATS, or partner source. It does not auto-apply.
               </p>
             </div>
           </section>

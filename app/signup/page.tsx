@@ -19,7 +19,7 @@ export default function SignupPage() {
         <Card className="p-6">
           <h1 className="text-3xl font-semibold text-ink-900">Start Free</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            Browse fresh direct-apply roles and save your first five jobs.
+            Browse fresh roles from public hiring sources and save your first five jobs.
           </p>
           <div className="mt-6">
             <Suspense>

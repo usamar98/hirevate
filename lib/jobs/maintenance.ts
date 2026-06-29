@@ -1,5 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getJobDuplicateKey, isPreferredDuplicateCandidate } from "@/lib/jobs/dedupe";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
+import type { JobWithCompany } from "@/types/database";
 
 const defaultStaleDays = 45;
 
@@ -127,6 +129,139 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
     ],
     totalCompaniesChecked: 0,
     totalJobsExpired,
+    totalJobsInserted: 0,
+    totalJobsUpdated: 0
+  };
+}
+
+export async function expireDuplicateJobs(): Promise<JobSyncResult> {
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    return {
+      errors: [
+        {
+          source: "maintenance",
+          message: "Supabase service role environment variables are not configured."
+        }
+      ],
+      sourceResults: [
+        {
+          configured: false,
+          source: "maintenance",
+          totalJobsFetched: 0,
+          totalJobsInserted: 0,
+          totalJobsUpdated: 0,
+          totalRequests: 0
+        }
+      ],
+      totalCompaniesChecked: 0,
+      totalJobsExpired: 0,
+      totalJobsInserted: 0,
+      totalJobsUpdated: 0
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*, companies:company_id(id, name, greenhouse_slug, website)")
+    .eq("status", "active")
+    .not("apply_url", "is", null)
+    .limit(10000);
+
+  if (error) {
+    return {
+      errors: [{ source: "maintenance", message: error.message }],
+      sourceResults: [
+        {
+          configured: true,
+          source: "maintenance",
+          totalJobsExpired: 0,
+          totalJobsFetched: 0,
+          totalJobsInserted: 0,
+          totalJobsUpdated: 0,
+          totalRequests: 1
+        }
+      ],
+      totalCompaniesChecked: 0,
+      totalJobsExpired: 0,
+      totalJobsInserted: 0,
+      totalJobsUpdated: 0
+    };
+  }
+
+  const winners = new Map<string, JobWithCompany>();
+  const duplicateIds = new Set<string>();
+
+  for (const job of (data ?? []) as JobWithCompany[]) {
+    const key = getJobDuplicateKey(job);
+    const current = winners.get(key);
+
+    if (!current) {
+      winners.set(key, job);
+      continue;
+    }
+
+    if (isPreferredDuplicateCandidate(job, current)) {
+      duplicateIds.add(current.id);
+      winners.set(key, job);
+    } else {
+      duplicateIds.add(job.id);
+    }
+  }
+
+  const ids = Array.from(duplicateIds);
+
+  if (ids.length > 0) {
+    for (let index = 0; index < ids.length; index += 500) {
+      const batch = ids.slice(index, index + 500);
+      const { error: updateError } = await supabase
+        .from("jobs")
+        .update({ status: "expired" })
+        .in("id", batch);
+
+      if (updateError) {
+        return {
+          errors: [{ source: "maintenance", message: updateError.message }],
+          sourceResults: [
+            {
+              configured: true,
+              source: "maintenance",
+              totalJobsExpired: 0,
+              totalJobsFetched: data?.length ?? 0,
+              totalJobsInserted: 0,
+              totalJobsUpdated: 0,
+              totalRequests: 1
+            }
+          ],
+          totalCompaniesChecked: 0,
+          totalJobsExpired: 0,
+          totalJobsInserted: 0,
+          totalJobsUpdated: 0
+        };
+      }
+    }
+  }
+
+  return {
+    errors: [],
+    sourceResults: [
+      {
+        configured: true,
+        skippedReason:
+          ids.length > 0
+            ? `${ids.length} duplicate jobs were expired by title, company, location, and apply URL.`
+            : undefined,
+        source: "maintenance",
+        totalJobsExpired: ids.length,
+        totalJobsFetched: data?.length ?? 0,
+        totalJobsInserted: 0,
+        totalJobsUpdated: 0,
+        totalRequests: 1
+      }
+    ],
+    totalCompaniesChecked: 0,
+    totalJobsExpired: ids.length,
     totalJobsInserted: 0,
     totalJobsUpdated: 0
   };

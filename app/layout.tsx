@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   description: defaultDescription,
   keywords: [
     "hidden jobs",
-    "direct apply jobs",
+    "public-source jobs",
     "fresh job listings",
     "resume builder",
     "job search tracker",
