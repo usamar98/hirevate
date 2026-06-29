@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { jobCategoryList, type JobCategoryPage } from "@/lib/jobs/categories";
 import {
   getEngineeringJobs,
+  getKeywordJobs,
   getLocationJobs,
   getRemoteJobs,
   getSavedJobIds
@@ -19,6 +20,7 @@ import type { JobWithCompany } from "@/types/database";
 async function getCategoryJobs(category: JobCategoryPage) {
   if (category.slug === "remote") return getRemoteJobs();
   if (category.slug === "london") return getLocationJobs("London");
+  if (category.keywords) return getKeywordJobs(category.keywords);
   return getEngineeringJobs();
 }
 

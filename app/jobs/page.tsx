@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
+import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
 import { absoluteUrl } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
@@ -16,9 +17,33 @@ const jobsDescription =
   "Search fresh direct-apply jobs from official company career pages and hiring sources, with filters for title, location, remote work, and freshness.";
 
 const popularJobPages = [
+  { href: "/jobs/latest", label: "Latest jobs" },
   { href: "/jobs/remote", label: "Remote jobs" },
   { href: "/jobs/london", label: "London jobs" },
   { href: "/jobs/engineering", label: "Engineering jobs" }
+];
+
+const jobsFaqItems = [
+  {
+    question: "What counts as a hidden job on Hirevate?",
+    answer:
+      "A hidden job on Hirevate is a role found from an official or public hiring source before it becomes crowded on generic job boards."
+  },
+  {
+    question: "Where does Hirevate get jobs from?",
+    answer:
+      "Hirevate imports jobs from company career pages, public ATS job boards, and trusted APIs including Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi."
+  },
+  {
+    question: "What is Hirevate's freshness score?",
+    answer:
+      "Freshness score ranks jobs with signals such as recent updates, apply URL availability, location quality, and role relevance."
+  },
+  {
+    question: "Can I apply directly from Hirevate?",
+    answer:
+      "Yes. Hirevate links to the original employer application page so users can apply directly through the company source."
+  }
 ];
 
 export const dynamic = "force-dynamic";
@@ -105,6 +130,19 @@ function getActiveFilterChips(filters: JobSearchInput) {
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 }
 
+function hasFacetedSearch(filters: JobSearchInput) {
+  return Boolean(
+    filters.keyword ||
+      filters.company ||
+      filters.location ||
+      filters.workMode !== "any" ||
+      filters.postedWithin !== "all" ||
+      filters.freshness !== "all" ||
+      filters.sort !== "newest" ||
+      filters.page > 1
+  );
+}
+
 export async function generateMetadata({
   searchParams
 }: {
@@ -139,7 +177,16 @@ export async function generateMetadata({
     twitter: {
       title,
       description
-    }
+    },
+    robots: hasFacetedSearch(filters)
+      ? {
+          index: false,
+          follow: true
+        }
+      : {
+          index: true,
+          follow: true
+        }
   };
 }
 
@@ -172,6 +219,38 @@ export default async function JobsPage({
   const hasNextPage = totalPages > page;
   const activeFilterChips = getActiveFilterChips(filters);
   const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
+  const visibleJobItemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: activeFilterChips.length > 0 ? "Filtered hidden job results on Hirevate" : "Hidden job results on Hirevate",
+    itemListOrder: "https://schema.org/ItemListOrderDescending",
+    numberOfItems: visibleJobs.length,
+    itemListElement: visibleJobs.slice(0, 20).map((job, index) => ({
+      "@type": "ListItem",
+      position: Math.max(pageStart, 1) + index,
+      url: absoluteUrl(getJobPath(job)),
+      item: {
+        "@type": "JobPosting",
+        title: job.title,
+        hiringOrganization: {
+          "@type": "Organization",
+          name: getJobCompanyName(job),
+          sameAs: job.companies?.website ?? undefined
+        },
+        jobLocation: {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: job.location ?? "Not listed"
+          }
+        },
+        jobLocationType: job.remote_type === "remote" ? "TELECOMMUTE" : undefined,
+        datePosted: job.posted_at ?? job.discovered_at,
+        directApply: Boolean(job.apply_url),
+        url: absoluteUrl(getJobPath(job))
+      }
+    }))
+  };
 
   return (
     <>
@@ -201,7 +280,20 @@ export default async function JobsPage({
                 item: absoluteUrl("/jobs")
               }
             ]
-          }
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: jobsFaqItems.map((item) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.answer
+              }
+            }))
+          },
+          visibleJobItemListJsonLd
         ]}
       />
       <section className="bg-gray-50 py-10">
@@ -368,6 +460,42 @@ export default async function JobsPage({
               />
             </div>
           ) : null}
+
+          <section className="mt-12 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">What hidden jobs means</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                Hirevate looks for roles closer to the original employer source, such as company
+                career pages and public ATS job boards, before they become crowded elsewhere.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">How sources stay fresh</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                Job syncs normalize public hiring sources into one searchable index and expire old
+                listings so the feed does not rely on stale static data.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">Direct apply workflow</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                Hirevate helps users find, save, prepare, and track roles, then sends them to the
+                original company application page. It does not auto-apply.
+              </p>
+            </div>
+          </section>
+
+          <section className="mt-8 rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="text-xl font-semibold text-ink-900">Jobs FAQ</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {jobsFaqItems.map((item) => (
+                <div key={item.question}>
+                  <h3 className="font-semibold text-ink-900">{item.question}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink-500">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </section>
     </>

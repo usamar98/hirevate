@@ -12,6 +12,7 @@ type PublicJobsReadClient = SupabaseClient<Database>;
 
 const jobWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
 const JOBS_PAGE_SIZE = 50;
+const JOB_SLUG_LOOKUP_LIMIT = 5000;
 
 function createAnonPublicJobsClient() {
   if (!hasSupabaseBrowserConfig()) return null;
@@ -237,7 +238,7 @@ export async function getJobBySlugOrId(slugOrId: string) {
     .eq("status", "active")
     .order("freshness_score", { ascending: false })
     .order("discovered_at", { ascending: false })
-    .limit(3000);
+    .limit(JOB_SLUG_LOOKUP_LIMIT);
 
   if (error) {
     console.error("Failed to resolve job slug", error);
@@ -352,6 +353,34 @@ export async function getEngineeringJobs(limit = 40) {
 
   if (error) {
     console.error("Failed to load engineering jobs", error);
+    return { jobs: [] as JobWithCompany[], configured: true };
+  }
+
+  return { jobs: (data ?? []) as JobWithCompany[], configured: true };
+}
+
+export async function getKeywordJobs(keywords: string[], limit = 40) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
+
+  const cleanKeywords = keywords
+    .map((keyword) => keyword.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
+  if (cleanKeywords.length === 0) return { jobs: [] as JobWithCompany[], configured: true };
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobWithCompanySelect)
+    .eq("status", "active")
+    .or(cleanKeywords.map((keyword) => `title.ilike.%${keyword}%`).join(","))
+    .order("freshness_score", { ascending: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load keyword jobs", error);
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 

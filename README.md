@@ -229,17 +229,12 @@ The resume builder at `/resume-builder` lets users create a role-targeted resume
 keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
 Resume export is currently free for testing.
 
-## Resume A/B Testing
+## Application Tracker And Cover Letters
 
-Users can open `/dashboard/resume-testing` to create two resume versions, log applications against
-version A or B, update outcomes as interviews arrive, and compare application-to-interview rates by
-resume version and job title. The dashboard also tracks follow-up timing, application channel,
-contacts, per-test recommendations, and a funnel from applied to interview to offer.
-
-Run these SQL files in Supabase SQL Editor before using this dashboard in production:
-
-- `supabase/migrations/004_resume_ab_testing.sql`
-- `supabase/migrations/005_resume_ab_testing_enhancements.sql`
+Users can open `/dashboard/job-tracker` to track interested, applied, interview, offer, rejected,
+and withdrawn roles with notes, follow-up dates, salary range, and source URLs. The public
+`/cover-letter` tool helps users create role-targeted cover letters before they apply directly on
+the employer page.
 
 ## Admin User Analytics
 

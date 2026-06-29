@@ -24,6 +24,9 @@ export async function SiteHeader() {
           <Link className="transition hover:text-ink-900" href="/cover-letter">
             Cover Letter
           </Link>
+          <Link className="transition hover:text-ink-900" href="/about">
+            About
+          </Link>
           <Link className="transition hover:text-ink-900" href="/pricing">
             Pricing
           </Link>

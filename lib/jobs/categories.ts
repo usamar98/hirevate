@@ -1,4 +1,11 @@
-export type JobCategorySlug = "remote" | "london" | "engineering";
+export type JobCategorySlug =
+  | "remote"
+  | "london"
+  | "engineering"
+  | "software-engineer"
+  | "product-manager"
+  | "data-analyst"
+  | "customer-success";
 
 export type JobCategoryPage = {
   slug: JobCategorySlug;
@@ -10,6 +17,7 @@ export type JobCategoryPage = {
   eyebrow: string;
   emptyTitle: string;
   emptyDescription: string;
+  keywords?: string[];
 };
 
 export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
@@ -51,6 +59,62 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     emptyTitle: "No engineering jobs found",
     emptyDescription:
       "Try a broader jobs search or run a fresh sync to import more engineering roles."
+  },
+  "software-engineer": {
+    slug: "software-engineer",
+    path: "/jobs/software-engineer",
+    label: "Software engineer jobs",
+    title: "Software Engineer Jobs | Hirevate",
+    description:
+      "Find fresh software engineer jobs from official hiring sources with direct-apply links and freshness signals.",
+    heading: "Software engineer jobs from company sources",
+    eyebrow: "Software engineering job search",
+    emptyTitle: "No software engineer jobs found",
+    emptyDescription:
+      "Try engineering jobs or run a fresh sync to import more software engineering roles.",
+    keywords: ["software engineer", "software developer", "frontend", "backend", "full stack"]
+  },
+  "product-manager": {
+    slug: "product-manager",
+    path: "/jobs/product-manager",
+    label: "Product manager jobs",
+    title: "Product Manager Jobs | Hirevate",
+    description:
+      "Find fresh product manager jobs from official company career pages and public hiring sources.",
+    heading: "Product manager jobs before they get crowded",
+    eyebrow: "Product job search",
+    emptyTitle: "No product manager jobs found",
+    emptyDescription:
+      "Try all jobs or run a fresh sync to collect more product roles.",
+    keywords: ["product manager", "product owner", "product lead", "group product manager"]
+  },
+  "data-analyst": {
+    slug: "data-analyst",
+    path: "/jobs/data-analyst",
+    label: "Data analyst jobs",
+    title: "Data Analyst Jobs | Hirevate",
+    description:
+      "Find fresh data analyst, analytics, and business intelligence jobs from direct hiring sources.",
+    heading: "Data analyst jobs with direct-apply links",
+    eyebrow: "Data job search",
+    emptyTitle: "No data analyst jobs found",
+    emptyDescription:
+      "Try all jobs or run a fresh sync to collect more data and analytics roles.",
+    keywords: ["data analyst", "analytics", "business intelligence", "data scientist"]
+  },
+  "customer-success": {
+    slug: "customer-success",
+    path: "/jobs/customer-success",
+    label: "Customer success jobs",
+    title: "Customer Success Jobs | Hirevate",
+    description:
+      "Find fresh customer success and account management jobs from official hiring sources.",
+    heading: "Customer success jobs from official sources",
+    eyebrow: "Customer success job search",
+    emptyTitle: "No customer success jobs found",
+    emptyDescription:
+      "Try all jobs or run a fresh sync to collect more customer-facing roles.",
+    keywords: ["customer success", "account manager", "implementation manager", "customer support"]
   }
 };
 

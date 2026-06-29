@@ -10,13 +10,46 @@ export const defaultDescription =
   "Find fresh direct-apply jobs from official hiring sources, build targeted resumes, and track which applications turn into interviews.";
 export const defaultOgImagePath = "/opengraph-image";
 
+export const crawlDisallowPaths = ["/admin/", "/api/", "/auth/", "/dashboard/"] as const;
+
+export const aiSearchCrawlerUserAgents = [
+  "GPTBot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "PerplexityBot",
+  "ClaudeBot",
+  "Claude-SearchBot",
+  "anthropic-ai",
+  "Google-Extended",
+  "Bingbot",
+  "Applebot"
+] as const;
+
+export const geoAudienceKeywords = [
+  "company career page jobs",
+  "official hiring sources",
+  "direct apply job search",
+  "hidden job opportunities",
+  "fresh remote jobs",
+  "ATS resume builder",
+  "job application tracker",
+  "AI job search"
+] as const;
+
 export const publicSeoRoutes = [
   { path: "/", changeFrequency: "daily", priority: 1 },
+  { path: "/about", changeFrequency: "weekly", priority: 0.82 },
   { path: "/jobs", changeFrequency: "hourly", priority: 0.95 },
+  { path: "/jobs/latest", changeFrequency: "hourly", priority: 0.92 },
   { path: "/jobs/remote", changeFrequency: "hourly", priority: 0.9 },
   { path: "/jobs/london", changeFrequency: "hourly", priority: 0.88 },
   { path: "/jobs/engineering", changeFrequency: "hourly", priority: 0.88 },
+  { path: "/jobs/software-engineer", changeFrequency: "hourly", priority: 0.87 },
+  { path: "/jobs/product-manager", changeFrequency: "hourly", priority: 0.86 },
+  { path: "/jobs/data-analyst", changeFrequency: "hourly", priority: 0.85 },
+  { path: "/jobs/customer-success", changeFrequency: "hourly", priority: 0.84 },
   { path: "/resume-builder", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/cover-letter", changeFrequency: "weekly", priority: 0.78 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 }
 ] as const;
 

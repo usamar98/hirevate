@@ -82,12 +82,6 @@ function stripHtml(value: string | null | undefined) {
     .trim();
 }
 
-function addDaysIso(value: string, days: number) {
-  const date = new Date(value);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString();
-}
-
 function inferEmploymentType(job: JobWithCompany) {
   const text = `${job.title} ${stripHtml(job.description)}`.toLowerCase();
 
@@ -109,10 +103,85 @@ function buildJobLocation(job: JobWithCompany) {
   };
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function asNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function asString(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function inferSalaryUnit(interval: string | null) {
+  const normalized = interval?.toLowerCase() ?? "";
+
+  if (normalized.includes("hour")) return "HOUR";
+  if (normalized.includes("month")) return "MONTH";
+  if (normalized.includes("week")) return "WEEK";
+
+  return "YEAR";
+}
+
+function buildBaseSalary(job: JobWithCompany) {
+  const raw = asRecord(job.raw_data);
+  if (!raw) return undefined;
+
+  const nestedSalary = asRecord(raw.salaryRange);
+  const min = asNumber(raw.salary_min) ?? asNumber(nestedSalary?.min);
+  const max = asNumber(raw.salary_max) ?? asNumber(nestedSalary?.max);
+
+  if (!min && !max) return undefined;
+
+  const currency = asString(raw.salary_currency) ?? asString(nestedSalary?.currency) ?? "USD";
+  const interval = asString(raw.salary_interval) ?? asString(nestedSalary?.interval);
+
+  return {
+    "@type": "MonetaryAmount",
+    currency,
+    value:
+      min && max && Math.round(min) !== Math.round(max)
+        ? {
+            "@type": "QuantitativeValue",
+            minValue: min,
+            maxValue: max,
+            unitText: inferSalaryUnit(interval)
+          }
+        : {
+            "@type": "QuantitativeValue",
+            value: min ?? max,
+            unitText: inferSalaryUnit(interval)
+          }
+  };
+}
+
+function inferApplicantCountry(location: string | null) {
+  const text = (location ?? "").toLowerCase();
+
+  if (/\b(united states|usa|u\.s\.|us|new york|san francisco|california|texas)\b/.test(text)) {
+    return "USA";
+  }
+
+  if (/\b(united kingdom|uk|england|london|manchester|scotland|wales)\b/.test(text)) {
+    return "United Kingdom";
+  }
+
+  if (/\b(canada|toronto|vancouver|montreal)\b/.test(text)) {
+    return "Canada";
+  }
+
+  return null;
+}
+
 export function buildJobPostingJsonLd(job: JobWithCompany) {
   const companyName = getJobCompanyName(job);
   const postedAt = job.posted_at ?? job.discovered_at;
   const description = stripHtml(job.description) || getJobMetaDescription(job);
+  const applicantCountry = job.remote_type === "remote" ? inferApplicantCountry(job.location) : null;
 
   return {
     "@context": "https://schema.org",
@@ -125,14 +194,20 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
       value: job.external_id
     },
     datePosted: postedAt,
-    validThrough: addDaysIso(job.updated_at ?? job.discovered_at, 45),
     employmentType: inferEmploymentType(job),
     hiringOrganization: {
       "@type": "Organization",
       name: companyName,
       sameAs: job.companies?.website ?? undefined
     },
+    baseSalary: buildBaseSalary(job),
     jobLocation: buildJobLocation(job),
+    applicantLocationRequirements: applicantCountry
+      ? {
+          "@type": "Country",
+          name: applicantCountry
+        }
+      : undefined,
     jobLocationType: job.remote_type === "remote" ? "TELECOMMUTE" : undefined,
     directApply: Boolean(job.apply_url),
     url: absoluteUrl(getJobPath(job))

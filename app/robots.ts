@@ -1,13 +1,23 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, siteUrl } from "@/lib/seo";
+import { absoluteUrl, aiSearchCrawlerUserAgents, crawlDisallowPaths, siteUrl } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
+  const publicContentRule = {
+    allow: "/",
+    disallow: [...crawlDisallowPaths]
+  };
+
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/admin/", "/api/", "/auth/", "/dashboard/"]
-    },
+    rules: [
+      {
+        userAgent: "*",
+        ...publicContentRule
+      },
+      ...aiSearchCrawlerUserAgents.map((userAgent) => ({
+        userAgent,
+        ...publicContentRule
+      }))
+    ],
     sitemap: absoluteUrl("/sitemap.xml"),
     host: siteUrl
   };

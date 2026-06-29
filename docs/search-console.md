@@ -25,13 +25,26 @@ Submit these in Search Console:
 
 - Sitemap: `https://www.hirevate.com/sitemap.xml`
 - Robots: `https://www.hirevate.com/robots.txt`
+- LLM context for AI crawlers: `https://www.hirevate.com/llms.txt`
+- AI crawler guide: `https://www.hirevate.com/ai.txt`
 
-The sitemap intentionally includes only public acquisition pages:
+The sitemap includes public acquisition pages, category pages, and active public job detail pages:
 
 - `https://www.hirevate.com/`
+- `https://www.hirevate.com/about`
 - `https://www.hirevate.com/jobs`
+- `https://www.hirevate.com/jobs/latest`
+- `https://www.hirevate.com/jobs/remote`
+- `https://www.hirevate.com/jobs/london`
+- `https://www.hirevate.com/jobs/engineering`
+- `https://www.hirevate.com/jobs/software-engineer`
+- `https://www.hirevate.com/jobs/product-manager`
+- `https://www.hirevate.com/jobs/data-analyst`
+- `https://www.hirevate.com/jobs/customer-success`
 - `https://www.hirevate.com/resume-builder`
+- `https://www.hirevate.com/cover-letter`
 - `https://www.hirevate.com/pricing`
+- active `/jobs/{slug}` detail URLs
 
 Private URLs are excluded:
 
@@ -41,17 +54,21 @@ Private URLs are excluded:
 - `/dashboard/*`
 - `/login`
 - `/signup`
-- `/jobs/[id]`
 
-Job detail pages should stay out of the sitemap until they are publicly crawlable without sign-in. Google job rich results require the page content to be visible and match the structured data.
+Job detail pages are public and can be included in the sitemap. Google job rich results require the
+page content to be visible and match the structured data.
 
 ## 3. Inspect Key URLs
 
 Use Search Console URL Inspection for:
 
 - `https://www.hirevate.com/`
+- `https://www.hirevate.com/about`
 - `https://www.hirevate.com/jobs`
+- `https://www.hirevate.com/jobs/latest`
+- `https://www.hirevate.com/jobs/remote`
 - `https://www.hirevate.com/resume-builder`
+- `https://www.hirevate.com/cover-letter`
 - `https://www.hirevate.com/pricing`
 
 After inspection, click `Request indexing` for each public URL.
@@ -74,21 +91,23 @@ Primary positioning:
 - Direct apply jobs
 - Fresh job listings
 - Resume builder
-- Resume A/B testing
-- Application-to-interview tracking
+- Cover letter builder
+- Application tracking
 
 Public pages to improve over time:
 
-- `/jobs`: add more indexable explanatory copy below results, such as source quality, freshness scoring, and direct-apply workflow.
+- `/jobs`: keep the explanatory copy and FAQ aligned with real source behavior and freshness scoring.
+- `/jobs/latest`: monitor that recent jobs remain public and return 200 status.
 - `/resume-builder`: add examples of ATS scoring, keyword coverage, and export output.
-- `/pricing`: add an FAQ section about free limits, Pro, Annual, and testing-mode resume export.
+- `/cover-letter`: add examples of role-targeted cover letter structure.
+- `/pricing`: keep the FAQ aligned with Silver, Gold, and Platinum pricing.
 
 ## 6. Off-Page SEO Plan
 
 Start with quality signals, not bulk backlinks:
 
 - Create a public changelog or blog later for job-search guides and product updates.
-- Publish one high-quality guide per week around hidden jobs, direct-apply workflows, resume testing, and interview conversion.
+- Publish one high-quality guide per week around hidden jobs, direct-apply workflows, resume building, cover letters, and application tracking.
 - List Hirevate on relevant startup, SaaS, and job-search directories.
 - Build partnerships with resume writers, career coaches, bootcamps, and university career centers.
 - Share data-backed posts from aggregated job source trends without exposing private user data.

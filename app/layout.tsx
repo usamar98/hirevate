@@ -4,7 +4,14 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
-import { absoluteUrl, defaultDescription, defaultOgImagePath, siteName, siteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  defaultDescription,
+  defaultOgImagePath,
+  geoAudienceKeywords,
+  siteName,
+  siteUrl
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -16,6 +23,7 @@ export const metadata: Metadata = {
   authors: [{ name: siteName, url: siteUrl }],
   category: "job search",
   creator: siteName,
+  publisher: siteName,
   description: defaultDescription,
   keywords: [
     "hidden jobs",
@@ -24,10 +32,18 @@ export const metadata: Metadata = {
     "resume builder",
     "job search tracker",
     "remote jobs",
-    "professional jobs"
+    "professional jobs",
+    ...geoAudienceKeywords
   ],
   alternates: {
-    canonical: "/"
+    canonical: "/",
+    types: {
+      "text/plain": [
+        { title: "Hirevate LLM context", url: "/llms.txt" },
+        { title: "Hirevate full LLM context", url: "/llms-full.txt" },
+        { title: "Hirevate AI crawler guide", url: "/ai.txt" }
+      ]
+    }
   },
   openGraph: {
     title: siteName,
@@ -76,23 +92,71 @@ export const viewport: Viewport = {
   themeColor: "#111827"
 };
 
+const organizationId = absoluteUrl("/#organization");
+const websiteId = absoluteUrl("/#website");
+
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": organizationId,
   name: siteName,
+  alternateName: "Hirevate Hidden Jobs",
   url: siteUrl,
-  logo: absoluteUrl("/icon.svg")
+  logo: absoluteUrl("/icon.svg"),
+  description: defaultDescription,
+  knowsAbout: geoAudienceKeywords
 };
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
+  "@id": websiteId,
   name: siteName,
   url: siteUrl,
+  description: defaultDescription,
+  inLanguage: "en-US",
+  publisher: {
+    "@id": organizationId
+  },
   potentialAction: {
     "@type": "SearchAction",
     target: `${absoluteUrl("/jobs")}?keyword={search_term_string}`,
     "query-input": "required name=search_term_string"
+  }
+};
+
+const jobSearchServiceJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": absoluteUrl("/#job-search-service"),
+  name: "Hidden job discovery and application workflow",
+  serviceType: "Direct-apply job search platform",
+  provider: {
+    "@id": organizationId
+  },
+  areaServed: "Global",
+  audience: {
+    "@type": "Audience",
+    audienceType: "Job seekers"
+  },
+  description: defaultDescription,
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Hirevate plans",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        name: "Free job search plan",
+        price: "0",
+        priceCurrency: "USD",
+        url: absoluteUrl("/")
+      },
+      {
+        "@type": "Offer",
+        name: "Paid job search plans",
+        url: absoluteUrl("/pricing")
+      }
+    ]
   }
 };
 
@@ -104,7 +168,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
+        <JsonLd data={[organizationJsonLd, websiteJsonLd, jobSearchServiceJsonLd]} />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

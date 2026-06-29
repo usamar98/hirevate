@@ -84,6 +84,23 @@ const fallbackPreviewJobs = [
   }
 ];
 
+const homeFaqItems = [
+  {
+    question: "Does Hirevate scrape LinkedIn or Indeed?",
+    answer:
+      "No. Hirevate uses official and public hiring sources, then sends you to the original apply page."
+  },
+  {
+    question: "Can Hirevate auto-apply for me?",
+    answer: "No. Hirevate helps you find direct-apply roles and sends you to the official apply page."
+  },
+  {
+    question: "What does freshness score mean?",
+    answer:
+      "It combines recent updates, location completeness, apply URL availability, and role relevance."
+  }
+];
+
 export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
@@ -92,21 +109,41 @@ export default async function LandingPage() {
   return (
     <>
       <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "WebApplication",
-          name: siteName,
-          url: absoluteUrl("/"),
-          applicationCategory: "BusinessApplication",
-          operatingSystem: "Web",
-          description: defaultDescription,
-          offers: {
-            "@type": "Offer",
-            name: "Free job search plan",
-            price: "0",
-            priceCurrency: "USD"
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: siteName,
+            url: absoluteUrl("/"),
+            applicationCategory: "BusinessApplication",
+            applicationSubCategory: "Job search and career management",
+            operatingSystem: "Web",
+            description: defaultDescription,
+            featureList: features.map((feature) => `${feature.title}: ${feature.description}`),
+            audience: {
+              "@type": "Audience",
+              audienceType: "Job seekers"
+            },
+            offers: {
+              "@type": "Offer",
+              name: "Free job search plan",
+              price: "0",
+              priceCurrency: "USD"
+            }
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: homeFaqItems.map((item) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.answer
+              }
+            }))
           }
-        }}
+        ]}
       />
       <section className="border-b border-gray-100 bg-white">
         <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
@@ -207,23 +244,10 @@ export default async function LandingPage() {
         <div className="container-shell max-w-3xl">
           <h2 className="text-3xl font-semibold text-ink-900">FAQ</h2>
           <div className="mt-6 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
-            {[
-              [
-                "Does Hirevate scrape LinkedIn or Indeed?",
-                "No. Hirevate uses official and public hiring sources, then sends you to the original apply page."
-              ],
-              [
-                "Can Hirevate auto-apply for me?",
-                "No. Hirevate helps you find direct-apply roles and sends you to the official apply page."
-              ],
-              [
-                "What does freshness score mean?",
-                "It combines recent updates, location completeness, apply URL availability, and role relevance."
-              ]
-            ].map(([question, answer]) => (
-              <div className="p-5" key={question}>
-                <h3 className="font-semibold text-ink-900">{question}</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-500">{answer}</p>
+            {homeFaqItems.map((item) => (
+              <div className="p-5" key={item.question}>
+                <h3 className="font-semibold text-ink-900">{item.question}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{item.answer}</p>
               </div>
             ))}
           </div>
