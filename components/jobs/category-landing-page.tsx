@@ -24,6 +24,13 @@ async function getCategoryJobs(category: JobCategoryPage) {
   return getEngineeringJobs();
 }
 
+const categoryWorkflowLinks = [
+  { href: "/jobs/latest", label: "Latest jobs" },
+  { href: "/resume-builder", label: "Resume builder" },
+  { href: "/cover-letter", label: "Cover letter builder" },
+  { href: "/pricing", label: "Pricing" }
+];
+
 function buildCategoryJsonLd(category: JobCategoryPage, jobs: JobWithCompany[]) {
   return [
     {
@@ -110,6 +117,19 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
             ))}
           </div>
 
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-ink-700">Search workflow:</span>
+            {categoryWorkflowLinks.map((item) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-medium text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
           {configured ? (
             <p className="mt-8 text-sm font-medium text-ink-500">
               Showing {jobs.length} fresh direct-apply roles.
@@ -154,6 +174,30 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
               />
             </div>
           ) : null}
+
+          <section className="mt-10 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">How this page works</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                Hirevate filters normalized public jobs for this category and links each result to
+                the employer application source when an apply URL is available.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">Source policy</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                Listings come from official/public hiring sources such as company career pages, ATS
+                job boards, and trusted job APIs. Hirevate does not scrape LinkedIn or Indeed.
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-ink-900">Application model</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-500">
+                Hirevate helps users discover, prepare, save, and track roles. It does not
+                auto-apply; users apply on the original employer page.
+              </p>
+            </div>
+          </section>
         </div>
       </section>
     </>

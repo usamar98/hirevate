@@ -20,7 +20,17 @@ const popularJobPages = [
   { href: "/jobs/latest", label: "Latest jobs" },
   { href: "/jobs/remote", label: "Remote jobs" },
   { href: "/jobs/london", label: "London jobs" },
-  { href: "/jobs/engineering", label: "Engineering jobs" }
+  { href: "/jobs/engineering", label: "Engineering jobs" },
+  { href: "/jobs/software-engineer", label: "Software engineer jobs" },
+  { href: "/jobs/product-manager", label: "Product manager jobs" },
+  { href: "/jobs/data-analyst", label: "Data analyst jobs" },
+  { href: "/jobs/customer-success", label: "Customer success jobs" }
+];
+
+const jobWorkflowPages = [
+  { href: "/resume-builder", label: "Resume builder" },
+  { href: "/cover-letter", label: "Cover letter builder" },
+  { href: "/pricing", label: "Plans" }
 ];
 
 const jobsFaqItems = [
@@ -323,6 +333,19 @@ export default async function JobsPage({
           <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
             <span className="font-semibold text-ink-700">Popular searches:</span>
             {popularJobPages.map((page) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-medium text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={page.href}
+                key={page.href}
+              >
+                {page.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-ink-700">Career tools:</span>
+            {jobWorkflowPages.map((page) => (
               <Link
                 className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-medium text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
                 href={page.href}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { env } from "@/lib/env";
+import { checkoutPlanKeys } from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getStripe,
@@ -13,13 +14,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function isPlanKey(value: unknown): value is StripePlanKey {
-  return (
-    value === "silver_weekly" ||
-    value === "gold_weekly" ||
-    value === "gold_monthly" ||
-    value === "platinum_weekly" ||
-    value === "platinum_monthly"
-  );
+  return typeof value === "string" && checkoutPlanKeys.includes(value as StripePlanKey);
 }
 
 async function updateProfileFromSubscription(subscription: Stripe.Subscription) {

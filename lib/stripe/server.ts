@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { env, hasStripeConfig } from "@/lib/env";
+import { publicPricingPlans, type CheckoutPlanKey } from "@/lib/pricing";
 
 let stripe: Stripe | null = null;
 
@@ -13,40 +14,29 @@ export function getStripe() {
   return stripe;
 }
 
-export const stripePlans = {
-  silver_weekly: {
-    name: "Silver Weekly",
-    amount: 499,
-    interval: "week" as const,
-    subscriptionStatus: "silver"
-  },
-  gold_weekly: {
-    name: "Gold Weekly",
-    amount: 899,
-    interval: "week" as const,
-    subscriptionStatus: "gold"
-  },
-  gold_monthly: {
-    name: "Gold Monthly",
-    amount: 2517,
-    interval: "month" as const,
-    subscriptionStatus: "gold"
-  },
-  platinum_weekly: {
-    name: "Platinum Weekly",
-    amount: 1499,
-    interval: "week" as const,
-    subscriptionStatus: "platinum"
-  },
-  platinum_monthly: {
-    name: "Platinum Monthly",
-    amount: 4197,
-    interval: "month" as const,
-    subscriptionStatus: "platinum"
+export const stripePlans = Object.fromEntries(
+  publicPricingPlans.flatMap((plan) =>
+    plan.options.map((option) => [
+      option.key,
+      {
+        name: option.schemaName,
+        amount: option.amountCents,
+        interval: option.interval,
+        subscriptionStatus: plan.key
+      }
+    ])
+  )
+) as Record<
+  CheckoutPlanKey,
+  {
+    name: string;
+    amount: number;
+    interval: "week" | "month";
+    subscriptionStatus: "silver" | "gold" | "platinum";
   }
-};
+>;
 
-export type StripePlanKey = keyof typeof stripePlans;
+export type StripePlanKey = CheckoutPlanKey;
 
 export const resumeBuilderProduct = {
   key: "resume_builder",

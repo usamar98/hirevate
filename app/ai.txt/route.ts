@@ -1,6 +1,7 @@
 import {
   formatMarkdownLinks,
   hirevateEntityFacts,
+  hirevatePricingFacts,
   hirevatePublicPages,
   hirevateSourceFacts
 } from "@/lib/geo";
@@ -24,6 +25,9 @@ export function GET() {
     "",
     "## Source Facts",
     ...hirevateSourceFacts.map((fact) => `- ${fact}`),
+    "",
+    "## Current Pricing",
+    ...hirevatePricingFacts.map((fact) => `- ${fact}`),
     "",
     "## Public Routes",
     ...formatMarkdownLinks(hirevatePublicPages),

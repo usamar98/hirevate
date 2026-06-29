@@ -7,6 +7,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import {
   hirevateAnswerBriefs,
   hirevateEntityFacts,
+  hirevatePricingFacts,
   hirevatePublicPages,
   hirevateSourceFacts
 } from "@/lib/geo";
@@ -139,6 +140,9 @@ export default function AboutPage() {
               <Button asChild href="/resume-builder" variant="outline">
                 Build resume
               </Button>
+              <Button asChild href="/cover-letter" variant="outline">
+                Write cover letter
+              </Button>
             </div>
           </div>
 
@@ -155,7 +159,7 @@ export default function AboutPage() {
       </section>
 
       <section className="bg-white py-12">
-        <div className="container-shell grid gap-8 lg:grid-cols-2">
+        <div className="container-shell grid gap-8 lg:grid-cols-3">
           <div>
             <h2 className="text-3xl font-semibold text-ink-900">Core facts</h2>
             <ul className="mt-5 space-y-3 text-sm leading-6 text-ink-700">
@@ -177,6 +181,20 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
+          </div>
+          <div>
+            <h2 className="text-3xl font-semibold text-ink-900">Pricing facts</h2>
+            <ul className="mt-5 space-y-3 text-sm leading-6 text-ink-700">
+              {hirevatePricingFacts.map((fact) => (
+                <li className="flex gap-2" key={fact}>
+                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+                  <span>{fact}</span>
+                </li>
+              ))}
+            </ul>
+            <Button asChild href="/pricing" className="mt-5" variant="outline">
+              Compare plans
+            </Button>
           </div>
         </div>
       </section>

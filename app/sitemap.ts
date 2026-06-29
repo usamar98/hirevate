@@ -16,6 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority
   }));
 
+  const publicDiscoveryRoutes = ["/llms.txt", "/llms-full.txt", "/ai.txt"].map((path) => ({
+    url: absoluteUrl(path),
+    lastModified,
+    changeFrequency: "weekly" as const,
+    priority: 0.35
+  }));
+
   const jobRoutes = jobs.map((job) => ({
     url: absoluteUrl(getJobPath(job)),
     lastModified: new Date(job.updated_at ?? job.discovered_at),
@@ -23,5 +30,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85
   }));
 
-  return [...publicRoutes, ...jobRoutes];
+  return [...publicRoutes, ...publicDiscoveryRoutes, ...jobRoutes];
 }

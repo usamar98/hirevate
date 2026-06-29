@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CoverLetterBuilder } from "@/components/cover-letter/cover-letter-builder";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo";
@@ -22,6 +23,14 @@ const coverLetterFaqItems = [
     answer:
       "No. Hirevate helps users prepare application materials, then users apply directly on the employer's original application page."
   }
+];
+
+const coverLetterInternalLinks = [
+  { href: "/jobs/latest", label: "Latest jobs" },
+  { href: "/jobs/remote", label: "Remote jobs" },
+  { href: "/jobs/product-manager", label: "Product manager jobs" },
+  { href: "/resume-builder", label: "Resume builder" },
+  { href: "/pricing", label: "Pricing" }
 ];
 
 export const metadata: Metadata = {
@@ -78,10 +87,44 @@ export default function CoverLetterPage() {
                 text: item.answer
               }
             }))
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: absoluteUrl("/")
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Cover Letter Builder",
+                item: absoluteUrl("/cover-letter")
+              }
+            ]
           }
         ]}
       />
       <CoverLetterBuilder />
+      <section className="border-t border-gray-100 bg-white py-10">
+        <div className="container-shell">
+          <h2 className="text-2xl font-semibold text-ink-900">Pair cover letters with job pages</h2>
+          <div className="mt-5 flex flex-wrap gap-3">
+            {coverLetterInternalLinks.map((item) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="border-t border-gray-100 bg-white py-12">
         <div className="container-shell max-w-3xl">
           <h2 className="text-3xl font-semibold text-ink-900">Cover letter FAQ</h2>

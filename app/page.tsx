@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
+import { publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
 import type { JobWithCompany } from "@/types/database";
 
@@ -86,6 +87,21 @@ const fallbackPreviewJobs = [
 
 const homeFaqItems = [
   {
+    question: "What is Hirevate?",
+    answer:
+      "Hirevate is a web SaaS for finding fresh direct-apply jobs from official hiring sources, then using resume, cover letter, saved job, and tracker tools around those roles."
+  },
+  {
+    question: "Who is Hirevate for?",
+    answer:
+      "Hirevate is for job seekers who want professional roles from cleaner hiring sources, including remote, engineering, product, data, customer success, sales, marketing, operations, and business roles."
+  },
+  {
+    question: "What sources does Hirevate use?",
+    answer:
+      "Hirevate uses company career pages, public ATS job boards, and trusted job APIs such as Greenhouse, Lever, Adzuna, and Google Jobs via SerpApi."
+  },
+  {
     question: "Does Hirevate scrape LinkedIn or Indeed?",
     answer:
       "No. Hirevate uses official and public hiring sources, then sends you to the original apply page."
@@ -100,6 +116,74 @@ const homeFaqItems = [
       "It combines recent updates, location completeness, apply URL availability, and role relevance."
   }
 ];
+
+const discoveryLinks = [
+  {
+    href: "/jobs/latest",
+    label: "Latest jobs",
+    description: "Recently indexed direct-apply roles from the public job database."
+  },
+  {
+    href: "/jobs/remote",
+    label: "Remote jobs",
+    description: "Remote roles from official hiring sources and public ATS boards."
+  },
+  {
+    href: "/jobs/software-engineer",
+    label: "Software engineer jobs",
+    description: "Fresh engineering and software roles with direct apply links."
+  },
+  {
+    href: "/jobs/product-manager",
+    label: "Product manager jobs",
+    description: "Product roles collected from company hiring pages and job APIs."
+  },
+  {
+    href: "/jobs/data-analyst",
+    label: "Data analyst jobs",
+    description: "Analytics, BI, and data roles from public hiring sources."
+  },
+  {
+    href: "/jobs/customer-success",
+    label: "Customer success jobs",
+    description: "Customer-facing roles from employer and ATS sources."
+  }
+];
+
+const workflowLinks = [
+  {
+    href: "/resume-builder",
+    label: "Resume builder",
+    description: "Build a role-targeted resume with ATS checks and export."
+  },
+  {
+    href: "/cover-letter",
+    label: "Cover letter builder",
+    description: "Create a targeted cover letter for a specific company and role."
+  },
+  {
+    href: "/pricing",
+    label: "Pricing",
+    description: "Compare Silver, Gold, and Platinum weekly and monthly options."
+  },
+  {
+    href: "/about",
+    label: "About Hirevate",
+    description: "Read product facts, source policy, pricing facts, and AI context."
+  }
+];
+
+const homeOfferItems = publicPricingPlans.flatMap((plan) =>
+  plan.options.map((option) => ({
+    "@type": "Offer",
+    name: option.schemaName,
+    price: option.priceValue,
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+    url: absoluteUrl("/pricing"),
+    category: plan.name
+  }))
+);
 
 export const dynamic = "force-dynamic";
 
@@ -125,10 +209,18 @@ export default async function LandingPage() {
               audienceType: "Job seekers"
             },
             offers: {
-              "@type": "Offer",
-              name: "Free job search plan",
-              price: "0",
-              priceCurrency: "USD"
+              "@type": "OfferCatalog",
+              name: "Hirevate plans",
+              itemListElement: [
+                {
+                  "@type": "Offer",
+                  name: "Free job search preview",
+                  price: "0",
+                  priceCurrency: "USD",
+                  url: absoluteUrl("/signup")
+                },
+                ...homeOfferItems
+              ]
             }
           },
           {
@@ -214,6 +306,42 @@ export default async function LandingPage() {
       </section>
 
       <section className="below-fold-section border-y border-gray-100 bg-gray-50 py-16">
+        <div className="container-shell">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-semibold text-ink-900">Explore fresh job paths</h2>
+            <p className="mt-3 text-base leading-7 text-ink-500">
+              Start with the public pages crawlers can understand: latest roles, remote roles, and
+              focused category searches.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {discoveryLinks.map((item) => (
+              <Link
+                className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-brand-200 hover:shadow-soft"
+                href={item.href}
+                key={item.href}
+              >
+                <h3 className="font-semibold text-ink-900">{item.label}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{item.description}</p>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {workflowLinks.map((item) => (
+              <Link
+                className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-brand-200 hover:shadow-soft"
+                href={item.href}
+                key={item.href}
+              >
+                <h3 className="font-semibold text-ink-900">{item.label}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{item.description}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="below-fold-section bg-white py-16">
         <div className="container-shell grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
             <h2 className="text-3xl font-semibold text-ink-900">Simple pricing for serious search</h2>
@@ -225,15 +353,11 @@ export default async function LandingPage() {
             </Button>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            {[
-              ["Silver", "Focused weekly search", "$4.99/wk"],
-              ["Gold", "Tracker plus monthly savings", "$8.99/wk"],
-              ["Platinum", "Full search system", "$14.99/wk"]
-            ].map(([name, detail, price]) => (
-              <Card className="p-5" key={name}>
-                <h3 className="font-semibold text-ink-900">{name}</h3>
-                <p className="mt-5 text-3xl font-semibold text-ink-900">{price}</p>
-                <p className="mt-2 text-sm text-ink-500">{detail}</p>
+            {publicPricingPlans.map((plan) => (
+              <Card className="p-5" key={plan.key}>
+                <h3 className="font-semibold text-ink-900">{plan.name}</h3>
+                <p className="mt-5 text-3xl font-semibold text-ink-900">{plan.homepagePrice}</p>
+                <p className="mt-2 text-sm text-ink-500">{plan.homepageDetail}</p>
               </Card>
             ))}
           </div>

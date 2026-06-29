@@ -13,6 +13,15 @@ import { formatRelativeDate } from "@/lib/utils";
 const latestJobsDescription =
   "Browse the latest public direct-apply job detail pages indexed by Hirevate from official hiring sources.";
 
+const latestJobsInternalLinks = [
+  { href: "/jobs/remote", label: "Remote jobs" },
+  { href: "/jobs/software-engineer", label: "Software engineer jobs" },
+  { href: "/jobs/product-manager", label: "Product manager jobs" },
+  { href: "/jobs/data-analyst", label: "Data analyst jobs" },
+  { href: "/resume-builder", label: "Resume builder" },
+  { href: "/cover-letter", label: "Cover letter builder" }
+];
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -103,6 +112,19 @@ export default async function LatestJobsPage() {
               Search jobs
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-ink-700">Related pages:</span>
+            {latestJobsInternalLinks.map((item) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-medium text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
           <div className="mt-8 grid gap-3">

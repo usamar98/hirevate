@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { z } from "zod";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
+import { checkoutPlanKeys } from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getStripe,
@@ -13,13 +14,7 @@ import {
 
 const checkoutSchema = z.union([
   z.object({
-    plan: z.enum([
-      "silver_weekly",
-      "gold_weekly",
-      "gold_monthly",
-      "platinum_weekly",
-      "platinum_monthly"
-    ] satisfies [StripePlanKey, ...StripePlanKey[]])
+    plan: z.enum([...checkoutPlanKeys] as [StripePlanKey, ...StripePlanKey[]])
   }),
   z.object({
     product: z.literal("resume_builder")

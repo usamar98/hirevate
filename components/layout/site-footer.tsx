@@ -28,6 +28,18 @@ export function SiteFooter() {
           <Link href="/jobs/engineering" className="hover:text-ink-900">
             Engineering Jobs
           </Link>
+          <Link href="/jobs/software-engineer" className="hover:text-ink-900">
+            Software Engineer Jobs
+          </Link>
+          <Link href="/jobs/product-manager" className="hover:text-ink-900">
+            Product Manager Jobs
+          </Link>
+          <Link href="/jobs/data-analyst" className="hover:text-ink-900">
+            Data Analyst Jobs
+          </Link>
+          <Link href="/resume-builder" className="hover:text-ink-900">
+            Resume Builder
+          </Link>
           <Link href="/cover-letter" className="hover:text-ink-900">
             Cover Letter
           </Link>

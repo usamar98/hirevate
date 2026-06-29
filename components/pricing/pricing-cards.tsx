@@ -5,120 +5,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-type CheckoutPlanKey =
-  | "silver_weekly"
-  | "gold_weekly"
-  | "gold_monthly"
-  | "platinum_weekly"
-  | "platinum_monthly";
-
-type PricingPlan = {
-  key: string;
-  name: string;
-  service: string;
-  description: string;
-  badge: string;
-  highlighted?: boolean;
-  options: Array<{
-    key: CheckoutPlanKey;
-    label: string;
-    price: string;
-    cadence: string;
-    cta: string;
-    note?: string;
-  }>;
-  features: string[];
-};
-
-const plans: PricingPlan[] = [
-  {
-    key: "silver",
-    name: "Silver",
-    service: "Focused search",
-    description: "For a short, focused search sprint when you need fresh roles this week.",
-    badge: "Weekly only",
-    options: [
-      {
-        key: "silver_weekly",
-        label: "Weekly",
-        price: "$4.99",
-        cadence: "/week",
-        cta: "Start Silver"
-      }
-    ],
-    features: [
-      "Fresh direct-apply job search",
-      "Advanced role, company, location, and freshness filters",
-      "Save jobs from detail pages",
-      "Resume builder and cover letter builder",
-      "Best for one active search week"
-    ]
-  },
-  {
-    key: "gold",
-    name: "Gold",
-    service: "Active search",
-    description: "For ongoing applications with tracking, follow-ups, and better workflow control.",
-    badge: "Popular",
-    options: [
-      {
-        key: "gold_weekly",
-        label: "Weekly",
-        price: "$8.99",
-        cadence: "/week",
-        cta: "Start Gold weekly"
-      },
-      {
-        key: "gold_monthly",
-        label: "Monthly",
-        price: "$25.17",
-        cadence: "/month",
-        cta: "Start Gold monthly",
-        note: "30% off"
-      }
-    ],
-    features: [
-      "Everything in Silver",
-      "Application tracker with follow-up dates",
-      "Track interested, applied, interview, offer, and rejected roles",
-      "Saved jobs and direct apply workflow",
-      "Best for a steady weekly application routine"
-    ],
-    highlighted: true
-  },
-  {
-    key: "platinum",
-    name: "Platinum",
-    service: "Full search system",
-    description: "For serious campaigns where every role, document, and follow-up needs structure.",
-    badge: "Highest tier",
-    options: [
-      {
-        key: "platinum_weekly",
-        label: "Weekly",
-        price: "$14.99",
-        cadence: "/week",
-        cta: "Start Platinum weekly"
-      },
-      {
-        key: "platinum_monthly",
-        label: "Monthly",
-        price: "$41.97",
-        cadence: "/month",
-        cta: "Start Platinum monthly",
-        note: "30% off"
-      }
-    ],
-    features: [
-      "Everything in Gold",
-      "Full job tracker and follow-up queue",
-      "Resume builder plus targeted cover letters",
-      "Best for high-volume interview pipelines",
-      "Best fit for aggressive search campaigns"
-    ]
-  }
-];
+import { publicPricingPlans, type CheckoutPlanKey } from "@/lib/pricing";
 
 export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -164,7 +51,7 @@ export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
       ) : null}
       <div className="grid gap-4 lg:grid-cols-3">
-        {plans.map((plan) => (
+        {publicPricingPlans.map((plan) => (
           <Card
             className={plan.highlighted ? "relative border-amber-200 p-6 shadow-soft" : "relative p-6"}
             key={plan.key}

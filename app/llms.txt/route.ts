@@ -2,6 +2,7 @@ import {
   formatMarkdownLinks,
   hirevateAnswerBriefs,
   hirevateEntityFacts,
+  hirevatePricingFacts,
   hirevatePublicPages,
   hirevateSourceFacts
 } from "@/lib/geo";
@@ -23,6 +24,9 @@ export function GET() {
     "",
     "## Source And Freshness Policy",
     ...hirevateSourceFacts.map((fact) => `- ${fact}`),
+    "",
+    "## Current Pricing",
+    ...hirevatePricingFacts.map((fact) => `- ${fact}`),
     "",
     "## Best Public Pages To Crawl Or Cite",
     ...formatMarkdownLinks(hirevatePublicPages),

@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
+import { publicPricingPlans } from "@/lib/pricing";
 import {
   absoluteUrl,
   defaultDescription,
@@ -94,6 +95,25 @@ export const viewport: Viewport = {
 
 const organizationId = absoluteUrl("/#organization");
 const websiteId = absoluteUrl("/#website");
+const softwareApplicationId = absoluteUrl("/#software-application");
+
+const paidPlanOfferItems = publicPricingPlans.flatMap((plan) =>
+  plan.options.map((option) => ({
+    "@type": "Offer",
+    name: option.schemaName,
+    price: option.priceValue,
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+    url: absoluteUrl("/pricing"),
+    category: plan.name,
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: option.priceValue,
+      priceCurrency: "USD",
+      unitText: option.interval
+    }
+  }))
+);
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -125,6 +145,35 @@ const websiteJsonLd = {
   }
 };
 
+const softwareApplicationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": softwareApplicationId,
+  name: siteName,
+  url: siteUrl,
+  applicationCategory: "BusinessApplication",
+  applicationSubCategory: "Job search and career management",
+  operatingSystem: "Web",
+  description: defaultDescription,
+  publisher: {
+    "@id": organizationId
+  },
+  offers: {
+    "@type": "OfferCatalog",
+    name: "Hirevate subscriptions",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        name: "Free job search preview",
+        price: "0",
+        priceCurrency: "USD",
+        url: absoluteUrl("/signup")
+      },
+      ...paidPlanOfferItems
+    ]
+  }
+};
+
 const jobSearchServiceJsonLd = {
   "@context": "https://schema.org",
   "@type": "Service",
@@ -151,11 +200,7 @@ const jobSearchServiceJsonLd = {
         priceCurrency: "USD",
         url: absoluteUrl("/")
       },
-      {
-        "@type": "Offer",
-        name: "Paid job search plans",
-        url: absoluteUrl("/pricing")
-      }
+      ...paidPlanOfferItems
     ]
   }
 };
@@ -168,7 +213,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <JsonLd data={[organizationJsonLd, websiteJsonLd, jobSearchServiceJsonLd]} />
+        <JsonLd data={[organizationJsonLd, websiteJsonLd, softwareApplicationJsonLd, jobSearchServiceJsonLd]} />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

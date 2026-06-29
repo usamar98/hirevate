@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PricingCards } from "@/components/pricing/pricing-cards";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser } from "@/lib/auth/session";
+import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl } from "@/lib/seo";
 
 const pricingDescription =
@@ -14,6 +16,10 @@ const pricingFaqItems = [
       "Gold is the best fit for most active searches because it combines hidden job discovery with saved jobs and application tracking."
   },
   {
+    question: "What are the current Hirevate prices?",
+    answer: pricingSummary
+  },
+  {
     question: "Does the free plan include direct-apply job search?",
     answer:
       "Yes. The free plan lets job seekers browse a preview of direct-apply roles from official hiring sources."
@@ -23,6 +29,35 @@ const pricingFaqItems = [
     answer:
       "Yes. Paid Hirevate plans include the resume builder, cover letter builder, saved jobs, and the application workflow tools listed on the pricing page."
   }
+];
+
+const pricingOffers = publicPricingPlans.flatMap((plan) =>
+  plan.options.map((option) => ({
+    "@type": "Offer",
+    name: option.schemaName,
+    price: option.priceValue,
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+    url: absoluteUrl("/pricing"),
+    category: plan.name,
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: option.priceValue,
+      priceCurrency: "USD",
+      unitText: option.interval
+    }
+  }))
+);
+
+const pricingInternalLinks = [
+  { href: "/jobs/latest", label: "Latest jobs" },
+  { href: "/jobs/remote", label: "Remote jobs" },
+  { href: "/jobs/software-engineer", label: "Software engineer jobs" },
+  { href: "/jobs/product-manager", label: "Product manager jobs" },
+  { href: "/jobs/data-analyst", label: "Data analyst jobs" },
+  { href: "/jobs/customer-success", label: "Customer success jobs" },
+  { href: "/resume-builder", label: "Resume builder" },
+  { href: "/cover-letter", label: "Cover letter builder" }
 ];
 
 export const metadata: Metadata = {
@@ -59,43 +94,7 @@ export default async function PricingPage() {
               "@type": "Brand",
               name: "Hirevate"
             },
-            offers: [
-              {
-                "@type": "Offer",
-                name: "Silver Weekly",
-                price: "4.99",
-                priceCurrency: "USD",
-                availability: "https://schema.org/InStock"
-              },
-              {
-                "@type": "Offer",
-                name: "Gold Weekly",
-                price: "8.99",
-                priceCurrency: "USD",
-                availability: "https://schema.org/InStock"
-              },
-              {
-                "@type": "Offer",
-                name: "Gold Monthly",
-                price: "25.17",
-                priceCurrency: "USD",
-                availability: "https://schema.org/InStock"
-              },
-              {
-                "@type": "Offer",
-                name: "Platinum Weekly",
-                price: "14.99",
-                priceCurrency: "USD",
-                availability: "https://schema.org/InStock"
-              },
-              {
-                "@type": "Offer",
-                name: "Platinum Monthly",
-                price: "41.97",
-                priceCurrency: "USD",
-                availability: "https://schema.org/InStock"
-              }
-            ]
+            offers: pricingOffers
           },
           {
             "@context": "https://schema.org",
@@ -108,6 +107,24 @@ export default async function PricingPage() {
                 text: item.answer
               }
             }))
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: absoluteUrl("/")
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Pricing",
+                item: absoluteUrl("/pricing")
+              }
+            ]
           }
         ]}
       />
@@ -122,6 +139,22 @@ export default async function PricingPage() {
           </div>
           <div className="mt-8">
             <PricingCards isLoggedIn={Boolean(user)} />
+          </div>
+        </div>
+      </section>
+      <section className="border-t border-gray-100 bg-white py-10">
+        <div className="container-shell">
+          <h2 className="text-2xl font-semibold text-ink-900">What each plan connects to</h2>
+          <div className="mt-5 flex flex-wrap gap-3">
+            {pricingInternalLinks.map((item) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

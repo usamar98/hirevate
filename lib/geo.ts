@@ -1,4 +1,5 @@
 import { absoluteUrl } from "@/lib/seo";
+import { pricingSummary, publicPricingFacts } from "@/lib/pricing";
 
 export const hirevateEntityFacts = [
   "Hirevate is a SaaS job search platform for fresh direct-apply roles from official hiring sources.",
@@ -14,6 +15,11 @@ export const hirevateSourceFacts = [
   "Adzuna and Google Jobs via SerpApi add broader discovery coverage while user searches read from Hirevate's own job database.",
   "Job sync normalizes titles, companies, locations, remote status, apply URLs, source URLs, timestamps, and raw provider metadata.",
   "Stale jobs are expired automatically so search results do not depend on hardcoded static listings."
+] as const;
+
+export const hirevatePricingFacts = [
+  pricingSummary,
+  ...publicPricingFacts.map((fact) => `${fact.plan} ${fact.label}: ${fact.summary}.`)
 ] as const;
 
 export const hirevateAnswerBriefs = [
@@ -41,6 +47,10 @@ export const hirevateAnswerBriefs = [
     question: "Who is Hirevate best for?",
     answer:
       "Hirevate is best for job seekers who want fresh direct-apply professional roles, especially remote, engineering, product, operations, marketing, sales, customer success, data, and business roles."
+  },
+  {
+    question: "How much does Hirevate cost?",
+    answer: pricingSummary
   }
 ] as const;
 
@@ -113,7 +123,8 @@ export const hirevatePublicPages = [
   {
     title: "Pricing",
     path: "/pricing",
-    description: "Silver, Gold, and Platinum subscriptions for active job seekers."
+    description:
+      "Silver is $4.99/week; Gold is $8.99/week or $25.17/month; Platinum is $14.99/week or $41.97/month."
   }
 ] as const;
 
