@@ -105,6 +105,11 @@ function getAdzunaUrl(query: string) {
   url.searchParams.set("results_per_page", String(getResultsPerQuery()));
   url.searchParams.set("what", query);
   url.searchParams.set("content-type", "application/json");
+  url.searchParams.set("sort_by", "date");
+
+  if (env.adzunaMaxDaysOld) {
+    url.searchParams.set("max_days_old", env.adzunaMaxDaysOld);
+  }
 
   if (env.adzunaDefaultWhere) {
     url.searchParams.set("where", env.adzunaDefaultWhere);

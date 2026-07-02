@@ -11,7 +11,9 @@ import type { Database } from "@/types/database";
 type RawSearchParams = Record<string, string | string[] | undefined> | undefined;
 type PublicJobsReadClient = SupabaseClient<Database>;
 
-const jobWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
+const jobListWithCompanySelect =
+  "id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)";
+const jobDetailWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
 const JOBS_PAGE_SIZE = 50;
 const JOB_SLUG_LOOKUP_LIMIT = 5000;
 
@@ -130,7 +132,7 @@ export async function getJobs(searchParams: RawSearchParams) {
 
   let query = supabase
     .from("jobs")
-    .select(jobWithCompanySelect, { count: "exact" })
+    .select(jobListWithCompanySelect, { count: "exact" })
     .eq("status", "active")
     .range(rangeStart, rangeEnd);
 
@@ -209,7 +211,7 @@ export async function getJobById(id: string) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobDetailWithCompanySelect)
     .eq("id", id)
     .eq("status", "active")
     .maybeSingle();
@@ -235,7 +237,7 @@ export async function getJobBySlugOrId(slugOrId: string) {
   const token = getJobSlugToken(decodedSlug);
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .order("freshness_score", { ascending: false })
     .order("discovered_at", { ascending: false })
@@ -248,11 +250,12 @@ export async function getJobBySlugOrId(slugOrId: string) {
 
   const jobs = (data ?? []) as JobWithCompany[];
 
-  return (
+  const match =
     jobs.find((job) => getJobSlug(job) === decodedSlug) ??
     jobs.find((job) => Boolean(token) && jobMatchesSlug(job, decodedSlug)) ??
-    null
-  );
+    null;
+
+  return match ? getJobById(match.id) : null;
 }
 
 export async function getFeaturedJobs(limit = 3) {
@@ -261,7 +264,7 @@ export async function getFeaturedJobs(limit = 3) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .order("freshness_score", { ascending: false })
     .order("discovered_at", { ascending: false })
@@ -281,7 +284,7 @@ export async function getSitemapJobs(limit = 5000) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .order("updated_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
@@ -301,7 +304,7 @@ export async function getRemoteJobs(limit = 40) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .eq("remote_type", "remote")
     .order("freshness_score", { ascending: false })
@@ -322,7 +325,7 @@ export async function getLocationJobs(location: string, limit = 40) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .ilike("location", `%${location}%`)
     .order("freshness_score", { ascending: false })
@@ -343,7 +346,7 @@ export async function getEngineeringJobs(limit = 40) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .or(
       "title.ilike.%engineer%,title.ilike.%engineering%,title.ilike.%developer%,title.ilike.%software%"
@@ -373,7 +376,7 @@ export async function getKeywordJobs(keywords: string[], limit = 40) {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select(jobWithCompanySelect)
+    .select(jobListWithCompanySelect)
     .eq("status", "active")
     .or(cleanKeywords.map((keyword) => `title.ilike.%${keyword}%`).join(","))
     .order("freshness_score", { ascending: false })
@@ -412,7 +415,7 @@ export async function getSavedJobs(userId: string) {
   const { data, error } = await supabase
     .from("saved_jobs")
     .select(
-      "*, jobs:job_id(*, companies:company_id(id, name, greenhouse_slug, website))"
+      "*, jobs:job_id(id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website))"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });

@@ -133,7 +133,7 @@ export default function AboutPage() {
               and a simple workflow for resumes, cover letters, saved jobs, and follow-ups.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild href="/jobs">
+              <Button asChild href="/jobs#results">
                 Browse jobs
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>

@@ -293,7 +293,7 @@ export default async function LandingPage() {
               fresh roles.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild href="/jobs" size="lg">
+              <Button asChild href="/jobs#results" size="lg">
                 Browse Hidden Jobs
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
@@ -581,7 +581,7 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
             <Search className="h-4 w-4" aria-hidden="true" />
             Backend engineer
           </div>
-          <Button asChild href="/jobs" className="w-full sm:w-auto">
+          <Button asChild href="/jobs#results" className="w-full sm:w-auto">
             Search
           </Button>
         </div>

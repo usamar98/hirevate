@@ -15,7 +15,7 @@ export async function SiteHeader() {
       <div className="container-shell flex h-16 items-center justify-between gap-4">
         <Logo />
         <nav className="hidden items-center gap-6 text-sm font-medium text-ink-700 md:flex">
-          <Link className="transition hover:text-ink-900" href="/jobs">
+          <Link className="transition hover:text-ink-900" href="/jobs#results">
             Jobs
           </Link>
           <Link className="transition hover:text-ink-900" href="/resume-builder">

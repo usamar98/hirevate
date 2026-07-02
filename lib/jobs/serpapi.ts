@@ -159,7 +159,8 @@ function getSerpApiUrl(query: string) {
   const url = new URL("https://serpapi.com/search");
 
   url.searchParams.set("engine", "google_jobs");
-  url.searchParams.set("q", query);
+  const freshnessSuffix = env.serpApiFreshnessQuerySuffix.trim();
+  url.searchParams.set("q", freshnessSuffix ? `${query} ${freshnessSuffix}` : query);
   url.searchParams.set("api_key", env.serpApiKey);
   url.searchParams.set("google_domain", env.serpApiGoogleDomain);
   url.searchParams.set("gl", env.serpApiGl);

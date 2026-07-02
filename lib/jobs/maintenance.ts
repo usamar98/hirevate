@@ -164,7 +164,7 @@ export async function expireDuplicateJobs(): Promise<JobSyncResult> {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select("*, companies:company_id(id, name, greenhouse_slug, website)")
+    .select("id, company_id, title, location, apply_url, discovered_at, updated_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)")
     .eq("status", "active")
     .not("apply_url", "is", null)
     .limit(10000);

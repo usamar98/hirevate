@@ -411,7 +411,7 @@ export default async function JobsPage({
             </div>
           ) : null}
 
-          <div className="mt-8 space-y-4">
+          <div id="results" className="mt-8 scroll-mt-24 space-y-4">
             {visibleJobs.map((job) => (
               <JobCard isSaved={savedJobIds.has(job.id)} job={job} key={job.id} />
             ))}

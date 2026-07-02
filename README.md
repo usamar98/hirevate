@@ -11,6 +11,18 @@ It includes hidden job discovery, resume building, cover letters, application tr
 analytics, and Stripe subscriptions. It does not use LinkedIn scraping, Indeed scraping,
 protected-site scraping, or auto-apply flows.
 
+## Daily job sync
+
+Vercel runs the protected cron endpoint `/api/cron/jobs-sync` every day at `04:00 UTC`. Set
+`CRON_SECRET` in Vercel production environment variables. `JOB_SYNC_SECRET` is accepted as a
+fallback for compatibility with the manual admin sync endpoint.
+
+Freshness controls:
+
+- `ADZUNA_MAX_DAYS_OLD` defaults to `7` and keeps Adzuna searches focused on recent listings.
+- `SERPAPI_FRESHNESS_QUERY_SUFFIX` defaults to `in the last 3 days` and can be set to an empty
+  value if broader Google Jobs coverage is needed.
+
 ## Stack
 
 - Next.js App Router

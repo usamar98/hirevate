@@ -13,7 +13,7 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="flex flex-wrap gap-5 text-sm font-medium text-ink-500">
-          <Link href="/jobs" className="hover:text-ink-900">
+          <Link href="/jobs#results" className="hover:text-ink-900">
             Jobs
           </Link>
           <Link href="/jobs/latest" className="hover:text-ink-900">
