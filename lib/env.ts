@@ -43,6 +43,9 @@ export const env = {
   dailyFreshAdzunaQueryCount: readEnv("DAILY_FRESH_ADZUNA_QUERY_COUNT"),
   dailyFreshMaxDaysOld: readEnv("DAILY_FRESH_MAX_DAYS_OLD"),
   dailyFreshStaleDays: readEnv("DAILY_FRESH_STALE_DAYS"),
+  ashbyCompanySlugs: readEnv("ASHBY_COMPANY_SLUGS"),
+  ashbyDisableDefaultSources: readEnv("ASHBY_DISABLE_DEFAULT_SOURCES"),
+  ashbyMaxCompaniesPerSync: readEnv("ASHBY_MAX_COMPANIES_PER_SYNC"),
   leverCompanySlugs: readEnv("LEVER_COMPANY_SLUGS"),
   leverEuCompanySlugs: readEnv("LEVER_EU_COMPANY_SLUGS"),
   leverMaxCompaniesPerSync: readEnv("LEVER_MAX_COMPANIES_PER_SYNC"),
@@ -73,3 +76,6 @@ export function hasLeverConfig() {
   return Boolean(env.leverCompanySlugs || env.leverEuCompanySlugs);
 }
 
+export function hasAshbyConfig() {
+  return env.ashbyDisableDefaultSources.toLowerCase() !== "true" || Boolean(env.ashbyCompanySlugs);
+}

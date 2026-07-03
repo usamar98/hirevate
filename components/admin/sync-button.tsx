@@ -7,6 +7,7 @@ import type { JobSyncResult } from "@/lib/jobs/sync";
 
 function getSourceLabel(source: string) {
   if (source === "freshness-planner") return "Freshness Planner";
+  if (source === "ashby") return "Ashby";
   if (source === "lever") return "Lever";
   if (source === "maintenance") return "Maintenance";
   return source;

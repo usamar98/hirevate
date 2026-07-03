@@ -11,7 +11,7 @@ export const hirevateEntityFacts = [
 
 export const hirevateSourceFacts = [
   "Company career pages and public ATS job boards are prioritized because they are closer to the employer source.",
-  "Greenhouse and Lever connectors import public company postings directly from ATS job board endpoints.",
+  "Greenhouse, Ashby, and Lever connectors import public company postings directly from ATS job board endpoints.",
   "Public job discovery sources and trusted hiring partners add broader coverage while user searches read from Hirevate's own job database.",
   "Job sync normalizes titles, companies, locations, remote status, apply URLs, source URLs, timestamps, and raw provider metadata.",
   "Stale jobs are expired automatically so search results do not depend on hardcoded static listings."

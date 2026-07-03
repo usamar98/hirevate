@@ -64,7 +64,7 @@ export function isEmployerOrAtsApplyUrl(job: Pick<JobWithCompany, "apply_url" | 
   const applyHostname = getHostname(job.apply_url);
 
   if (!job.apply_url || !applyHostname) return false;
-  if (source === "greenhouse" || source === "lever") return true;
+  if (source === "greenhouse" || source === "lever" || source === "ashby") return true;
   if (hostMatches(applyHostname, partnerHostPatterns)) return false;
   if (hostMatches(applyHostname, atsHostPatterns)) return true;
 
@@ -92,6 +92,16 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
       isEmployerOrAtsApply,
       label: "Employer ATS",
       sourceType: "Lever"
+    };
+  }
+
+  if (source === "ashby") {
+    return {
+      applyCta: getApplyCta(job),
+      applyDescription: "Open the employer or ATS application page for this role.",
+      isEmployerOrAtsApply,
+      label: "Employer ATS",
+      sourceType: "Public ATS"
     };
   }
 
@@ -128,14 +138,14 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
 }
 
 export function getJobSourceLabel(source: string | null | undefined) {
-  if (source === "lever" || source === "greenhouse") return "Employer ATS";
+  if (source === "lever" || source === "greenhouse" || source === "ashby") return "Employer ATS";
   if (source === "adzuna") return "Verified hiring source";
   return "Public ATS";
 }
 
 export function getJobSourceDescription(source: string | null | undefined) {
   if (source === "adzuna") return "Verified public hiring source.";
-  if (source === "lever" || source === "greenhouse") return "Employer ATS posting.";
+  if (source === "lever" || source === "greenhouse" || source === "ashby") return "Employer ATS posting.";
 
   return "Public hiring source.";
 }

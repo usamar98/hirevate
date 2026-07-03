@@ -1,4 +1,5 @@
 import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
+import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { expireDuplicateJobs, expireStaleJobs } from "@/lib/jobs/maintenance";
@@ -72,6 +73,11 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
     mergeResult(result, failedSourceResult("greenhouse", getSyncErrorMessage(error, "Greenhouse sync failed.")));
   }
 
+  try {
+    mergeResult(result, await syncAshbyJobs());
+  } catch (error) {
+    mergeResult(result, failedSourceResult("ashby", getSyncErrorMessage(error, "Ashby sync failed.")));
+  }
   try {
     mergeResult(result, await syncAdzunaJobs());
   } catch (error) {

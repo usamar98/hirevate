@@ -23,7 +23,7 @@ export default async function AdminJobsSyncPage() {
           <h1 className="text-4xl font-semibold text-ink-900">Admin job sync</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
             Run the daily fresh-jobs algorithm across company career pages, public ATS boards,
-            Adzuna, and Lever. Production rotates role searches every
+            Ashby, Greenhouse, Lever, and Adzuna. Production rotates role searches every
             day at 04:00 UTC through the protected Vercel cron endpoint.
           </p>
         </div>
@@ -34,7 +34,7 @@ export default async function AdminJobsSyncPage() {
           </Card>
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Freshness algorithm</p>
-            <p className="mt-2 text-sm leading-6 text-ink-500">Rotates role searches and keeps imports inside a recent window.</p>
+            <p className="mt-2 text-sm leading-6 text-ink-500">Refreshes ATS boards daily, rotates role searches, and keeps imports inside a recent window.</p>
           </Card>
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Source health</p>

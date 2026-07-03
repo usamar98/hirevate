@@ -21,7 +21,7 @@ The daily fresh-jobs algorithm:
 
 1. Builds a UTC-day query plan from broad role categories.
 2. Rotates the query window daily so Hirevate does not import the same hardcoded job mix forever.
-3. Refreshes official ATS/company boards from Greenhouse and Lever.
+3. Refreshes official ATS/company boards from Greenhouse, Ashby, and Lever.
 4. Pulls recent Adzuna jobs with `sort_by=date` and a configurable `max_days_old` window.
 5. Checks source health before requests and skips sources that are cooling down.
 6. Records source successes, failures, average jobs fetched, and jobs inserted today.
@@ -170,7 +170,7 @@ not block new-account checkout sessions.
 
 ## Job Source Sync
 
-The admin sync page and protected sync endpoint import jobs from Greenhouse, Adzuna, and Lever. Public `/jobs` searches read from Supabase only, so user traffic does not spend external API credits. Source health tracking records each board/query result and temporarily cools down repeated failures. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without
+The admin sync page and protected sync endpoint import jobs from Greenhouse, Ashby, Lever, and Adzuna. Public `/jobs` searches read from Supabase only, so user traffic does not spend external API credits. Source health tracking records each board/query result and temporarily cools down repeated failures. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without
 a browser admin session:
 
 ```bash
@@ -197,6 +197,25 @@ The Adzuna sync:
 5. Uses `ADZUNA_RESULTS_PER_QUERY`, default `30`, capped at `50`.
 6. Upserts Adzuna companies with an `adzuna-` slug and keeps Greenhouse sync from calling those rows as Greenhouse boards.
 7. Stores Adzuna `redirect_url` as the apply/source URL and marks the job source as `adzuna`.
+
+
+The Ashby sync:
+
+1. Uses Ashby's public job posting API and does not require an API key.
+2. Starts with a bundled curated list of validated public Ashby boards.
+3. Add more boards to Vercel as `ASHBY_COMPANY_SLUGS`, for example
+   `openai=OpenAI,perplexity=Perplexity,loop-earplugs=Loop`.
+4. Accepts raw slugs like `openai`, named slugs like `openai=OpenAI`, or Ashby URLs like
+   `https://jobs.ashbyhq.com/openai`.
+5. Calls `https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=true`.
+6. Uses `ASHBY_MAX_COMPANIES_PER_SYNC`, default `140`, capped at `300`, to keep scheduled syncs
+   inside serverless runtime limits.
+7. Inserts Ashby companies with an `ashby-` slug so Greenhouse sync never crawls them as
+   Greenhouse boards.
+8. Stores Ashby job/apply URLs, workplace type, compensation metadata, descriptions, locations,
+   published timestamps, and raw JSON.
+9. Expires Ashby jobs that disappear from a successful board refresh, so stale postings leave the
+   public feed faster than the global stale-job window.
 
 The Lever sync:
 

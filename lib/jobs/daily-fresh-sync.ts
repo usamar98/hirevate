@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
+import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { expireDuplicateJobs, expireStaleJobs } from "@/lib/jobs/maintenance";
@@ -138,7 +139,7 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
 function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
   result.sourceResults.unshift({
     configured: true,
-    skippedReason: `Daily fresh plan ${plan.runDate}: ${plan.adzunaQueries.length} Adzuna searches, ${plan.freshWindowDays}-day freshness window, stale jobs expire after ${plan.staleAfterDays} days.`,
+    skippedReason: `Daily fresh plan ${plan.runDate}: Ashby + Greenhouse + Lever ATS refresh, ${plan.adzunaQueries.length} Adzuna searches, ${plan.freshWindowDays}-day freshness window, stale jobs expire after ${plan.staleAfterDays} days.`,
     source: "freshness-planner",
     totalJobsFetched: 0,
     totalJobsInserted: 0,
@@ -164,6 +165,11 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
     mergeResult(result, failedSourceResult("greenhouse", getSyncErrorMessage(error, "Greenhouse sync failed.")));
   }
 
+  try {
+    mergeResult(result, await syncAshbyJobs());
+  } catch (error) {
+    mergeResult(result, failedSourceResult("ashby", getSyncErrorMessage(error, "Ashby sync failed.")));
+  }
   try {
     mergeResult(
       result,

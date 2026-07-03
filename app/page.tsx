@@ -191,6 +191,12 @@ const trackedSourceLogos = [
     logo: <LeverSourceIcon />
   },
   {
+    name: "Ashby",
+    description: "Public ATS boards",
+    iconFrameClass: "border-violet-100 bg-violet-50",
+    logo: <AshbySourceIcon />
+  },
+  {
     name: "Hiring partners",
     description: "Hiring partner",
     iconFrameClass: "border-gray-200 bg-gray-50",
@@ -512,6 +518,15 @@ function LeverSourceIcon() {
   );
 }
 
+function AshbySourceIcon() {
+  return (
+    <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#6D28D9" />
+      <path d="M7.2 16.8 12 6.8l4.8 10h-2.3l-.9-2.1H10.4l-.9 2.1H7.2Z" fill="#FFFFFF" />
+      <path d="m11.1 12.9.9-2.2.9 2.2h-1.8Z" fill="#DDD6FE" />
+    </svg>
+  );
+}
 function PartnerSourceIcon() {
   return (
     <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
