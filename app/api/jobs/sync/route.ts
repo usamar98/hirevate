@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
-import { syncAllJobs } from "@/lib/jobs/sync";
+import { syncDailyFreshJobs } from "@/lib/jobs/daily-fresh-sync";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS = 3;
@@ -42,7 +42,7 @@ function hasValidCronSecret(request: NextRequest) {
 
 async function runSync() {
   try {
-    const result = await syncAllJobs();
+    const result = await syncDailyFreshJobs();
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(

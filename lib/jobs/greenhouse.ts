@@ -1,6 +1,7 @@
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
 import type { Company, Database, Json } from "@/types/database";
 import type { JobSyncError, JobSyncSourceResult } from "@/lib/jobs/sync-types";
 
@@ -164,11 +165,24 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
   };
 
   for (const company of companies ?? []) {
+    const healthIdentity = {
+      displayName: company.name,
+      source: "greenhouse",
+      sourceKey: company.greenhouse_slug
+    };
+    const healthStatus = await getSourceHealthStatus(supabase, healthIdentity);
+
+    if (healthStatus.shouldSkip) {
+      result.sourceResult.totalSkipped = (result.sourceResult.totalSkipped ?? 0) + 1;
+      continue;
+    }
+
     result.totalCompaniesChecked += 1;
 
     try {
       result.sourceResult.totalRequests += 1;
       const greenhouseJobs = await fetchGreenhouseJobs(company.greenhouse_slug);
+      let companyJobsInserted = 0;
       result.totalJobsFetched += greenhouseJobs.length;
       result.sourceResult.totalJobsFetched += greenhouseJobs.length;
       const normalizedJobs = greenhouseJobs.map((job) => normalizeJob(company, job));
@@ -198,17 +212,26 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
           } else {
             result.totalJobsInserted += 1;
             result.sourceResult.totalJobsInserted += 1;
+            companyJobsInserted += 1;
           }
         }
       }
+
+      await recordSourceSuccess(supabase, healthIdentity, {
+        jobsFetched: greenhouseJobs.length,
+        jobsInserted: companyJobsInserted
+      });
 
       await supabase
         .from("companies")
         .update({ last_synced_at: new Date().toISOString() })
         .eq("id", company.id);
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown sync error";
+
       if (isRetiredGreenhouseBoard(error)) {
         result.sourceResult.totalSkipped = (result.sourceResult.totalSkipped ?? 0) + 1;
+        await recordSourceFailure(supabase, healthIdentity, message, { permanent: true });
         await supabase
           .from("companies")
           .update({ is_active: false, last_synced_at: new Date().toISOString() })
@@ -216,17 +239,18 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
         continue;
       }
 
+      await recordSourceFailure(supabase, healthIdentity, message);
       result.errors.push({
         source: "greenhouse",
         company: company.name,
         slug: company.greenhouse_slug,
-        message: error instanceof Error ? error.message : "Unknown sync error"
+        message
       });
     }
   }
 
   if ((result.sourceResult.totalSkipped ?? 0) > 0) {
-    result.sourceResult.skippedReason = `${result.sourceResult.totalSkipped} inactive Greenhouse boards were skipped and disabled for future syncs.`;
+    result.sourceResult.skippedReason = `${result.sourceResult.totalSkipped} Greenhouse boards were skipped because they are inactive, disabled, or cooling down.`;
   }
 
   return result;

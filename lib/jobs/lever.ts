@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import { env, hasLeverConfig } from "@/lib/env";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
 import type { Company, Database, Json } from "@/types/database";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
@@ -376,6 +377,18 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
   const companies = await ensureLeverCompanies(supabase, sources);
 
   for (const source of sources) {
+    const healthIdentity = {
+      displayName: source.companyName,
+      source: sourceName,
+      sourceKey: getCompanySlug(source)
+    };
+    const healthStatus = await getSourceHealthStatus(supabase, healthIdentity);
+
+    if (healthStatus.shouldSkip) {
+      sourceResult.totalSkipped = (sourceResult.totalSkipped ?? 0) + 1;
+      continue;
+    }
+
     result.totalCompaniesChecked += 1;
     sourceResult.totalRequests += 1;
 
@@ -386,6 +399,7 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
       }
 
       const jobs = await fetchLeverJobs(source);
+      let sourceJobsInserted = 0;
       result.sourceResults[0].totalJobsFetched += jobs.length;
 
       const normalizedJobs = jobs.map((job) => normalizeJob(source, company.id, job));
@@ -417,27 +431,35 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
           } else {
             result.totalJobsInserted += 1;
             sourceResult.totalJobsInserted += 1;
+            sourceJobsInserted += 1;
           }
         }
       }
+
+      await recordSourceSuccess(supabase, healthIdentity, {
+        jobsFetched: jobs.length,
+        jobsInserted: sourceJobsInserted
+      });
 
       await supabase
         .from("companies")
         .update({ last_synced_at: new Date().toISOString() })
         .eq("greenhouse_slug", getCompanySlug(source));
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown Lever sync error";
       sourceResult.totalSkipped = (sourceResult.totalSkipped ?? 0) + 1;
+      await recordSourceFailure(supabase, healthIdentity, message);
       result.errors.push({
         source: sourceName,
         company: source.companyName,
         slug: source.slug,
-        message: error instanceof Error ? error.message : "Unknown Lever sync error"
+        message
       });
     }
   }
 
   if ((sourceResult.totalSkipped ?? 0) > 0) {
-    sourceResult.skippedReason = `${sourceResult.totalSkipped} Lever boards were skipped. Check invalid slugs or region settings.`;
+    sourceResult.skippedReason = `${sourceResult.totalSkipped} Lever boards were skipped because they failed, are invalid, or are cooling down.`;
   }
 
   return result;

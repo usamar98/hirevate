@@ -17,11 +17,24 @@ Vercel runs the protected cron endpoint `/api/cron/jobs-sync` every day at `04:0
 `CRON_SECRET` in Vercel production environment variables. `JOB_SYNC_SECRET` is accepted as a
 fallback for compatibility with the manual admin sync endpoint.
 
+The daily fresh-jobs algorithm:
+
+1. Builds a UTC-day query plan from broad role categories.
+2. Rotates the query window daily so Hirevate does not import the same hardcoded job mix forever.
+3. Refreshes official ATS/company boards from Greenhouse and Lever.
+4. Pulls recent Adzuna jobs with `sort_by=date` and a configurable `max_days_old` window.
+5. Checks source health before requests and skips sources that are cooling down.
+6. Records source successes, failures, average jobs fetched, and jobs inserted today.
+7. Expires stale jobs and removes duplicates after the import.
+
 Freshness controls:
 
-- `ADZUNA_MAX_DAYS_OLD` defaults to `7` and keeps Adzuna searches focused on recent listings.
-- `SERPAPI_FRESHNESS_QUERY_SUFFIX` defaults to `in the last 3 days` and can be set to an empty
-  value if broader Google Jobs coverage is needed.
+- `DAILY_FRESH_JOB_QUERIES` overrides the rotating role pool. Separate values with commas, semicolons, or new lines.
+- `DAILY_FRESH_ADZUNA_QUERY_COUNT` defaults to `8`, capped at `20`.
+- `DAILY_FRESH_MAX_DAYS_OLD` defaults to `3` and controls recent Adzuna targeting.
+- `DAILY_FRESH_STALE_DAYS` defaults to `45` and expires old active jobs during maintenance.
+- `ADZUNA_MAX_DAYS_OLD` defaults to `7` for broader/manual Adzuna sync behavior.
+- Run `supabase/migrations/008_job_source_health.sql` to enable source health tracking.
 
 ## Stack
 
@@ -52,23 +65,21 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 JOB_SYNC_SECRET=
+CRON_SECRET=
 ADZUNA_APP_ID=
 ADZUNA_APP_KEY=
 ADZUNA_COUNTRY=us
 ADZUNA_SEARCH_QUERIES=
 ADZUNA_DEFAULT_WHERE=
 ADZUNA_RESULTS_PER_QUERY=30
+ADZUNA_MAX_DAYS_OLD=7
+DAILY_FRESH_JOB_QUERIES=
+DAILY_FRESH_ADZUNA_QUERY_COUNT=8
+DAILY_FRESH_MAX_DAYS_OLD=3
+DAILY_FRESH_STALE_DAYS=45
 LEVER_COMPANY_SLUGS=
 LEVER_EU_COMPANY_SLUGS=
 LEVER_MAX_COMPANIES_PER_SYNC=100
-SERPAPI_API_KEY=
-SERPAPI_SEARCH_QUERIES=
-SERPAPI_DEFAULT_LOCATION=United States
-SERPAPI_GOOGLE_DOMAIN=google.com
-SERPAPI_GL=us
-SERPAPI_HL=en
-SERPAPI_MONTHLY_LIMIT=220
-SERPAPI_MAX_SEARCHES_PER_SYNC=5
 GOOGLE_SITE_VERIFICATION=
 SUPER_LOGIN_USERNAME=
 SUPER_LOGIN_EMAIL=
@@ -159,9 +170,7 @@ not block new-account checkout sessions.
 
 ## Job Source Sync
 
-The admin sync page and protected sync endpoint import jobs from Greenhouse, Adzuna, Lever, and
-SerpApi Google Jobs. Public `/jobs` searches read from Supabase only, so user traffic does not
-spend external API credits. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without
+The admin sync page and protected sync endpoint import jobs from Greenhouse, Adzuna, and Lever. Public `/jobs` searches read from Supabase only, so user traffic does not spend external API credits. Source health tracking records each board/query result and temporarily cools down repeated failures. Set `JOB_SYNC_SECRET` in production if you want to trigger sync without
 a browser admin session:
 
 ```bash
@@ -205,17 +214,6 @@ The Lever sync:
    Greenhouse boards.
 8. Stores Lever hosted/apply URLs, workplace type, salary range metadata, descriptions, lists, and
    raw JSON.
-
-The SerpApi sync:
-
-1. Requires `SERPAPI_API_KEY`.
-2. Calls `https://serpapi.com/search?engine=google_jobs`.
-3. Uses `SERPAPI_SEARCH_QUERIES` as a comma-separated query list, or 5 broad default queries.
-4. Does not paginate by default because each Google Jobs page can cost another search.
-5. Uses `SERPAPI_MAX_SEARCHES_PER_SYNC`, default `5`, capped at `10`.
-6. Uses `SERPAPI_MONTHLY_LIMIT`, default `220`, capped at `250` to leave safety room on a 250-search plan.
-7. Tracks monthly usage in `public.job_source_usage`; run `supabase/migrations/006_job_source_usage.sql` before enabling SerpApi in production.
-8. Leaves `no_cache=false` so identical SerpApi searches can use SerpApi cache when available.
 
 Greenhouse company boards that return `404` or `410` are treated as inactive career boards. The
 sync disables those company records so future runs do not keep retrying dead boards or filling the
@@ -299,9 +297,9 @@ not in committed files.
    `Authorization: Bearer <CRON_SECRET>` for scheduled sync calls.
 7. Deploy.
 
-`vercel.json` runs `/api/jobs/sync` daily at `04:00 UTC` (09:00 Pakistan time). The same endpoint
-can still be triggered manually from `/admin/jobs-sync` by an admin. Each daily run refreshes active
-job sources, respects the SerpApi monthly quota, and expires stale active jobs older than 45 days.
+`vercel.json` runs `/api/cron/jobs-sync` daily at `04:00 UTC` (09:00 Pakistan time). The same daily
+fresh planner can be triggered manually from `/admin/jobs-sync` by an admin. Each run rotates role
+searches and expires stale active jobs.
 
 ## Search Console and SEO
 

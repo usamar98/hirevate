@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
-import { syncAllJobs } from "@/lib/jobs/sync";
+import { syncDailyFreshJobs } from "@/lib/jobs/daily-fresh-sync";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await syncAllJobs();
+    const result = await syncDailyFreshJobs();
 
     return NextResponse.json({
       ok: true,

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { JobSyncResult } from "@/lib/jobs/sync";
 
 function getSourceLabel(source: string) {
-  if (source === "serpapi") return "SerpApi";
+  if (source === "freshness-planner") return "Freshness Planner";
   if (source === "lever") return "Lever";
   if (source === "maintenance") return "Maintenance";
   return source;
@@ -65,8 +65,8 @@ export function SyncButton() {
             <Metric label="Stale jobs expired" value={result.totalJobsExpired ?? 0} />
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {result.sourceResults.map((source) => (
-              <div className="rounded-md border border-gray-100 bg-gray-50 p-4" key={source.source}>
+            {result.sourceResults.map((source, index) => (
+              <div className="rounded-md border border-gray-100 bg-gray-50 p-4" key={`${source.source}-${index}`}>
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold capitalize text-ink-900">
                     {getSourceLabel(source.source)}

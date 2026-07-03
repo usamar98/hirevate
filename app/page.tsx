@@ -179,12 +179,6 @@ const workflowLinks = [
 
 const trackedSourceLogos = [
   {
-    name: "Google Jobs",
-    description: "Public job discovery",
-    iconFrameClass: "border-blue-100 bg-blue-50",
-    logo: <GoogleSourceIcon />
-  },
-  {
     name: "Greenhouse",
     description: "Employer ATS boards",
     iconFrameClass: "border-emerald-100 bg-emerald-50",
@@ -492,29 +486,6 @@ export default async function LandingPage() {
         </div>
       </section>
     </>
-  );
-}
-
-function GoogleSourceIcon() {
-  return (
-    <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A10.99 10.99 0 0 0 12 23Z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.1A6.62 6.62 0 0 1 5.5 12c0-.73.12-1.43.34-2.1V7.06H2.18A10.99 10.99 0 0 0 1 12c0 1.77.42 3.44 1.18 4.94l3.66-2.84Z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.37c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A10.99 10.99 0 0 0 2.18 7.06L5.84 9.9C6.71 7.3 9.14 5.37 12 5.37Z"
-        fill="#EA4335"
-      />
-    </svg>
   );
 }
 

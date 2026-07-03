@@ -5,7 +5,7 @@ type SourceTrust = {
   applyDescription: string;
   isEmployerOrAtsApply: boolean;
   label: string;
-  sourceType: "Company Career Page" | "Greenhouse" | "Lever" | "Adzuna" | "Google Jobs" | "SerpApi" | "Public ATS";
+  sourceType: "Company Career Page" | "Greenhouse" | "Lever" | "Adzuna" | "Public ATS";
 };
 
 const atsHostPatterns = [
@@ -28,7 +28,6 @@ const atsHostPatterns = [
 const partnerHostPatterns = [
   "adzuna.",
   "google.",
-  "serpapi.com",
   "linkedin.com",
   "indeed.com",
   "glassdoor.com",
@@ -108,17 +107,6 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
     };
   }
 
-  if (source === "serpapi") {
-    return {
-      applyCta: getApplyCta(job),
-      applyDescription: isEmployerOrAtsApply
-        ? "Open the employer or ATS application page for this role."
-        : "Open the verified hiring source for this role.",
-      isEmployerOrAtsApply,
-      label: isEmployerOrAtsApply ? "Employer ATS" : "Verified hiring source",
-      sourceType: "Google Jobs"
-    };
-  }
 
   if (isEmployerOrAtsApply) {
     return {
@@ -141,12 +129,12 @@ export function getJobSourceTrust(job: Pick<JobWithCompany, "apply_url" | "sourc
 
 export function getJobSourceLabel(source: string | null | undefined) {
   if (source === "lever" || source === "greenhouse") return "Employer ATS";
-  if (source === "serpapi" || source === "adzuna") return "Verified hiring source";
+  if (source === "adzuna") return "Verified hiring source";
   return "Public ATS";
 }
 
 export function getJobSourceDescription(source: string | null | undefined) {
-  if (source === "serpapi" || source === "adzuna") return "Verified public hiring source.";
+  if (source === "adzuna") return "Verified public hiring source.";
   if (source === "lever" || source === "greenhouse") return "Employer ATS posting.";
 
   return "Public hiring source.";

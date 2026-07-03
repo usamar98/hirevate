@@ -39,18 +39,13 @@ export const env = {
   adzunaDefaultWhere: readEnv("ADZUNA_DEFAULT_WHERE"),
   adzunaResultsPerQuery: readEnv("ADZUNA_RESULTS_PER_QUERY"),
   adzunaMaxDaysOld: readEnv("ADZUNA_MAX_DAYS_OLD") || "7",
+  dailyFreshJobQueries: readEnv("DAILY_FRESH_JOB_QUERIES"),
+  dailyFreshAdzunaQueryCount: readEnv("DAILY_FRESH_ADZUNA_QUERY_COUNT"),
+  dailyFreshMaxDaysOld: readEnv("DAILY_FRESH_MAX_DAYS_OLD"),
+  dailyFreshStaleDays: readEnv("DAILY_FRESH_STALE_DAYS"),
   leverCompanySlugs: readEnv("LEVER_COMPANY_SLUGS"),
   leverEuCompanySlugs: readEnv("LEVER_EU_COMPANY_SLUGS"),
   leverMaxCompaniesPerSync: readEnv("LEVER_MAX_COMPANIES_PER_SYNC"),
-  serpApiKey: readEnv("SERPAPI_API_KEY"),
-  serpApiSearchQueries: readEnv("SERPAPI_SEARCH_QUERIES"),
-  serpApiFreshnessQuerySuffix: readEnv("SERPAPI_FRESHNESS_QUERY_SUFFIX") || "in the last 3 days",
-  serpApiDefaultLocation: readEnv("SERPAPI_DEFAULT_LOCATION") || "United States",
-  serpApiGoogleDomain: readEnv("SERPAPI_GOOGLE_DOMAIN") || "google.com",
-  serpApiGl: readEnv("SERPAPI_GL") || "us",
-  serpApiHl: readEnv("SERPAPI_HL") || "en",
-  serpApiMonthlyLimit: readEnv("SERPAPI_MONTHLY_LIMIT"),
-  serpApiMaxSearchesPerSync: readEnv("SERPAPI_MAX_SEARCHES_PER_SYNC"),
   googleSiteVerification: readEnv("GOOGLE_SITE_VERIFICATION"),
   superLoginUsername: readEnv("SUPER_LOGIN_USERNAME"),
   superLoginEmail: readEnv("SUPER_LOGIN_EMAIL"),
@@ -78,6 +73,3 @@ export function hasLeverConfig() {
   return Boolean(env.leverCompanySlugs || env.leverEuCompanySlugs);
 }
 
-export function hasSerpApiConfig() {
-  return Boolean(env.serpApiKey);
-}

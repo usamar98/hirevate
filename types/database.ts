@@ -223,6 +223,72 @@ export type Database = {
         };
         Relationships: [];
       };
+      job_source_health: {
+        Row: {
+          id: string;
+          source: string;
+          source_key: string;
+          display_name: string;
+          status: "active" | "cooldown" | "disabled";
+          consecutive_failures: number;
+          total_successes: number;
+          total_failures: number;
+          last_success_at: string | null;
+          last_failure_at: string | null;
+          disabled_until: string | null;
+          last_error: string | null;
+          last_jobs_fetched: number;
+          last_jobs_inserted: number;
+          average_jobs_fetched: number;
+          inserted_today: number;
+          checked_today_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          source: string;
+          source_key: string;
+          display_name: string;
+          status?: "active" | "cooldown" | "disabled";
+          consecutive_failures?: number;
+          total_successes?: number;
+          total_failures?: number;
+          last_success_at?: string | null;
+          last_failure_at?: string | null;
+          disabled_until?: string | null;
+          last_error?: string | null;
+          last_jobs_fetched?: number;
+          last_jobs_inserted?: number;
+          average_jobs_fetched?: number;
+          inserted_today?: number;
+          checked_today_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          source?: string;
+          source_key?: string;
+          display_name?: string;
+          status?: "active" | "cooldown" | "disabled";
+          consecutive_failures?: number;
+          total_successes?: number;
+          total_failures?: number;
+          last_success_at?: string | null;
+          last_failure_at?: string | null;
+          disabled_until?: string | null;
+          last_error?: string | null;
+          last_jobs_fetched?: number;
+          last_jobs_inserted?: number;
+          average_jobs_fetched?: number;
+          inserted_today?: number;
+          checked_today_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       job_applications: {
         Row: {
           id: string;
@@ -428,6 +494,7 @@ export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type SavedJob = Database["public"]["Tables"]["saved_jobs"]["Row"];
 export type JobApplication = Database["public"]["Tables"]["job_applications"]["Row"];
 export type JobSourceUsage = Database["public"]["Tables"]["job_source_usage"]["Row"];
+export type JobSourceHealth = Database["public"]["Tables"]["job_source_health"]["Row"];
 export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applications"]["Row"];
 export type ResumeAbTest = Database["public"]["Tables"]["resume_ab_tests"]["Row"];
 
