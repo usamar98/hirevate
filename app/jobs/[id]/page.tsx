@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
+import { ResumeMatchCard } from "@/components/jobs/resume-match-card";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -189,6 +190,12 @@ export default async function JobDetailPage({
                 </Button>
               </div>
             </Card>
+            <ResumeMatchCard
+              companyName={companyName}
+              jobDescription={job.description}
+              jobLocation={job.location}
+              jobTitle={job.title}
+            />
             {!access.allowed ? (
               <Card className="border-amber-200 bg-amber-50 p-5">
                 <h2 className="text-lg font-semibold text-amber-950">Free view limit reached</h2>
