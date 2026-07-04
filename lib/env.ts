@@ -53,6 +53,7 @@ export const env = {
   superLoginUsername: readEnv("SUPER_LOGIN_USERNAME"),
   superLoginEmail: readEnv("SUPER_LOGIN_EMAIL"),
   superLoginPassword: readEnv("SUPER_LOGIN_PASSWORD"),
+  adminHirevatePassword: readEnv("ADMINHIREVATE01_PASSWORD"),
   appUrl: configuredAppUrl || (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000")
 };
 
