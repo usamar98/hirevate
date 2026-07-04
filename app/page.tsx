@@ -7,12 +7,11 @@ import {
   CheckCircle2,
   Clock3,
   Filter,
-  Globe2,
   Link2,
   Search,
-  ShieldCheck,
   XCircle
 } from "lucide-react";
+import { CompanyLogo } from "@/components/company-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -177,46 +176,48 @@ const workflowLinks = [
   }
 ];
 
-const trackedSourceLogos = [
+const fallbackTrackedCompanies = [
   {
-    name: "Greenhouse",
-    description: "Employer ATS boards",
-    iconFrameClass: "border-emerald-100 bg-emerald-50",
-    logo: <GreenhouseSourceIcon />
+    name: "Reddit",
+    description: "Community and product roles",
+    website: "https://reddit.com"
   },
   {
-    name: "Lever",
-    description: "Employer ATS boards",
-    iconFrameClass: "border-sky-100 bg-sky-50",
-    logo: <LeverSourceIcon />
+    name: "Meta",
+    description: "Facebook and product roles",
+    website: "https://meta.com"
   },
   {
-    name: "Ashby",
-    description: "Public ATS boards",
-    iconFrameClass: "border-violet-100 bg-violet-50",
-    logo: <AshbySourceIcon />
+    name: "OpenAI",
+    description: "AI and platform roles",
+    website: "https://openai.com"
   },
   {
-    name: "Hiring partners",
-    description: "Hiring partner",
-    iconFrameClass: "border-gray-200 bg-gray-50",
-    logo: <PartnerSourceIcon />
+    name: "Stripe",
+    description: "Payments and business roles",
+    website: "https://stripe.com"
   },
   {
-    name: "Career pages",
-    description: "Company websites",
-    iconFrameClass: "border-indigo-100 bg-indigo-50 text-indigo-700",
-    logo: <Globe2 className="h-5 w-5" aria-hidden="true" />
+    name: "Figma",
+    description: "Design and engineering roles",
+    website: "https://figma.com"
   },
   {
-    name: "Public ATS",
-    description: "Open hiring boards",
-    iconFrameClass: "border-amber-100 bg-amber-50 text-amber-700",
-    logo: <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+    name: "Notion",
+    description: "Productivity software roles",
+    website: "https://notion.so"
+  },
+  {
+    name: "Vercel",
+    description: "Developer platform roles",
+    website: "https://vercel.com"
+  },
+  {
+    name: "Ramp",
+    description: "Fintech and operations roles",
+    website: "https://ramp.com"
   }
 ];
-
-const sourceSliderItems = [...trackedSourceLogos, ...trackedSourceLogos];
 
 const homeOfferItems = publicPricingPlans.flatMap((plan) =>
   plan.options.map((option) => ({
@@ -233,7 +234,9 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
 export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
-  const featuredJobs = await getFeaturedJobs(3);
+  const featuredJobs = await getFeaturedJobs(12);
+  const trackedCompanyItems = getTrackedCompanyItems(featuredJobs);
+  const companySliderItems = [...trackedCompanyItems, ...trackedCompanyItems];
 
   return (
     <>
@@ -302,7 +305,7 @@ export default async function LandingPage() {
               </Button>
             </div>
           </div>
-          <HeroProductPreview jobs={featuredJobs} />
+          <HeroProductPreview jobs={featuredJobs.slice(0, 3)} />
         </div>
       </section>
 
@@ -311,34 +314,29 @@ export default async function LandingPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm font-semibold text-ink-900">From companies we track Jobs</p>
+                <p className="text-sm font-semibold text-ink-900">From companies we track jobs</p>
                 <p className="mt-1 text-sm leading-6 text-ink-500">
-                  Company career pages, public ATS boards, and trusted hiring sources in one fresh
-                  job index.
+                  Real companies with jobs currently visible in the Hirevate index.
                 </p>
               </div>
               <p className="text-xs font-semibold uppercase tracking-normal text-brand-600">
-                Source-aware job discovery
+                Live company jobs
               </p>
             </div>
             <div className="source-slider-mask mt-5">
               <div className="source-slider-track flex gap-3">
-                {sourceSliderItems.map((source, index) => (
+                {companySliderItems.map((company, index) => (
                   <div
                     className="flex h-16 min-w-[190px] items-center gap-3 rounded-md border border-gray-200 bg-white px-4 shadow-sm"
-                    key={`${source.name}-${index}`}
+                    key={`${company.name}-${index}`}
                   >
-                    <span
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${source.iconFrameClass}`}
-                    >
-                      {source.logo}
-                    </span>
+                    <CompanyLogo companyName={company.name} website={company.website} />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-ink-900">
-                        {source.name}
+                        {company.name}
                       </span>
                       <span className="block truncate text-xs text-ink-500">
-                        {source.description}
+                        {company.description}
                       </span>
                     </span>
                   </div>
@@ -495,49 +493,29 @@ export default async function LandingPage() {
   );
 }
 
-function GreenhouseSourceIcon() {
-  return (
-    <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
-      <path
-        d="M4 11.2 12 4l8 7.2v8.3a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5v-8.3Z"
-        fill="#0B7A3B"
-      />
-      <path d="M8.2 20.9v-6.1h7.6v6.1" fill="#D1FAE5" />
-      <path d="M8.6 10.4c3.6-.2 6-2.1 7.1-5.6 2 4.5-.1 8.4-4.2 8.4-1.1 0-2.1-.4-2.9-1.2Z" fill="#34D399" />
-    </svg>
-  );
-}
+function getTrackedCompanyItems(jobs: JobWithCompany[]) {
+  const items = new Map<string, { description: string; name: string; website: string | null }>();
 
-function LeverSourceIcon() {
-  return (
-    <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
-      <path d="M5 4h5v12h9v4H5V4Z" fill="#2563EB" />
-      <path d="M12 4h7v4h-7V4Z" fill="#38BDF8" />
-      <path d="M12 10h6v4h-6v-4Z" fill="#1D4ED8" />
-    </svg>
-  );
-}
+  for (const job of jobs) {
+    const name = job.companies?.name?.trim();
+    if (!name || items.has(name.toLowerCase())) continue;
 
-function AshbySourceIcon() {
-  return (
-    <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" fill="#6D28D9" />
-      <path d="M7.2 16.8 12 6.8l4.8 10h-2.3l-.9-2.1H10.4l-.9 2.1H7.2Z" fill="#FFFFFF" />
-      <path d="m11.1 12.9.9-2.2.9 2.2h-1.8Z" fill="#DDD6FE" />
-    </svg>
-  );
-}
-function PartnerSourceIcon() {
-  return (
-    <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" fill="#2F3437" />
-      <path
-        d="M7 8.5 12 5l5 3.5v7l-5 3.5-5-3.5v-7Z"
-        fill="#FFFFFF"
-      />
-      <path d="M9.2 12 12 10.1l2.8 1.9-2.8 1.9L9.2 12Z" fill="#FF7A1A" />
-    </svg>
-  );
+    items.set(name.toLowerCase(), {
+      description: job.title,
+      name,
+      website: job.companies?.website ?? null
+    });
+  }
+
+  for (const company of fallbackTrackedCompanies) {
+    const key = company.name.toLowerCase();
+    if (items.has(key)) continue;
+
+    items.set(key, company);
+    if (items.size >= 10) break;
+  }
+
+  return [...items.values()].slice(0, 10);
 }
 
 function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
