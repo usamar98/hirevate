@@ -66,6 +66,7 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
       errors: greenhouse.errors,
       sourceResults: [greenhouse.sourceResult],
       totalCompaniesChecked: greenhouse.totalCompaniesChecked,
+      totalJobsExpired: greenhouse.totalJobsExpired ?? 0,
       totalJobsInserted: greenhouse.totalJobsInserted,
       totalJobsUpdated: greenhouse.totalJobsUpdated
     });

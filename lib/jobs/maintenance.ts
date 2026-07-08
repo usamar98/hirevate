@@ -40,12 +40,11 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
   }
 
   const cutoff = getStaleCutoff(days);
-  const staleFilter = `updated_at.is.null,updated_at.lt.${cutoff}`;
+  const staleFilter = `last_seen_at.is.null,last_seen_at.lt.${cutoff}`;
   const { count, error: countError } = await supabase
     .from("jobs")
     .select("id", { count: "exact", head: true })
     .eq("status", "active")
-    .lt("discovered_at", cutoff)
     .or(staleFilter);
 
   if (countError) {
@@ -78,9 +77,8 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
   if (totalJobsExpired > 0) {
     const { error: updateError } = await supabase
       .from("jobs")
-      .update({ status: "expired" })
+      .update({ status: "expired", updated_at: new Date().toISOString() })
       .eq("status", "active")
-      .lt("discovered_at", cutoff)
       .or(staleFilter);
 
     if (updateError) {
@@ -117,7 +115,7 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
         configured: true,
         skippedReason:
           totalJobsExpired > 0
-            ? `${totalJobsExpired} stale jobs older than ${days} days were expired.`
+            ? `${totalJobsExpired} jobs not seen by any source for ${days} days were expired.`
             : undefined,
         source: "maintenance",
         totalJobsExpired,
@@ -164,7 +162,7 @@ export async function expireDuplicateJobs(): Promise<JobSyncResult> {
 
   const { data, error } = await supabase
     .from("jobs")
-    .select("id, company_id, title, location, apply_url, discovered_at, updated_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)")
+    .select("id, company_id, title, location, apply_url, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)")
     .eq("status", "active")
     .not("apply_url", "is", null)
     .limit(10000);

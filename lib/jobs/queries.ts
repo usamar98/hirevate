@@ -12,7 +12,7 @@ type RawSearchParams = Record<string, string | string[] | undefined> | undefined
 type PublicJobsReadClient = SupabaseClient<Database>;
 
 const jobListWithCompanySelect =
-  "id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)";
+  "id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)";
 const jobDetailWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
 const JOBS_PAGE_SIZE = 50;
 const JOB_SLUG_LOOKUP_LIMIT = 5000;
@@ -155,7 +155,7 @@ export async function getJobs(searchParams: RawSearchParams) {
   const postedWithinStart = getPostedWithinStart(filters.postedWithin);
 
   if (postedWithinStart) {
-    query = query.gte("discovered_at", postedWithinStart);
+    query = query.gte("last_seen_at", postedWithinStart);
   }
 
   if (filters.freshness === "fresh") {
@@ -167,15 +167,19 @@ export async function getJobs(searchParams: RawSearchParams) {
   }
 
   if (filters.sort === "freshness") {
-    query = query.order("freshness_score", { ascending: false }).order("discovered_at", {
-      ascending: false
-    });
+    query = query
+      .order("freshness_score", { ascending: false })
+      .order("last_seen_at", { ascending: false, nullsFirst: false })
+      .order("discovered_at", { ascending: false });
   } else if (filters.sort === "updated") {
     query = query
       .order("updated_at", { ascending: false, nullsFirst: false })
+      .order("last_seen_at", { ascending: false, nullsFirst: false })
       .order("discovered_at", { ascending: false });
   } else {
-    query = query.order("discovered_at", { ascending: false });
+    query = query
+      .order("last_seen_at", { ascending: false, nullsFirst: false })
+      .order("discovered_at", { ascending: false });
   }
 
   const { count, data, error } = await query;
@@ -240,6 +244,7 @@ export async function getJobBySlugOrId(slugOrId: string) {
     .select(jobListWithCompanySelect)
     .eq("status", "active")
     .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(JOB_SLUG_LOOKUP_LIMIT);
 
@@ -267,6 +272,7 @@ export async function getFeaturedJobs(limit = 3) {
     .select(jobListWithCompanySelect)
     .eq("status", "active")
     .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
@@ -287,6 +293,7 @@ export async function getSitemapJobs(limit = 5000) {
     .select(jobListWithCompanySelect)
     .eq("status", "active")
     .order("updated_at", { ascending: false, nullsFirst: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
@@ -308,6 +315,7 @@ export async function getRemoteJobs(limit = 40) {
     .eq("status", "active")
     .eq("remote_type", "remote")
     .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
@@ -329,6 +337,7 @@ export async function getLocationJobs(location: string, limit = 40) {
     .eq("status", "active")
     .ilike("location", `%${location}%`)
     .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
@@ -352,6 +361,7 @@ export async function getEngineeringJobs(limit = 40) {
       "title.ilike.%engineer%,title.ilike.%engineering%,title.ilike.%developer%,title.ilike.%software%"
     )
     .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
@@ -380,6 +390,7 @@ export async function getKeywordJobs(keywords: string[], limit = 40) {
     .eq("status", "active")
     .or(cleanKeywords.map((keyword) => `title.ilike.%${keyword}%`).join(","))
     .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
@@ -415,7 +426,7 @@ export async function getSavedJobs(userId: string) {
   const { data, error } = await supabase
     .from("saved_jobs")
     .select(
-      "*, jobs:job_id(id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website))"
+      "*, jobs:job_id(id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website))"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });

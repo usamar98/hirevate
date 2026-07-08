@@ -31,9 +31,14 @@ const defaultDailyFreshQueries = [
 
 type DailyFreshJobPlan = {
   adzunaQueries: string[];
+  ashbyCompanyCount: number;
   freshWindowDays: number;
+  greenhouseCompanyCount: number;
+  leverCompanyCount: number;
   runDate: string;
+  sourceRotationSeed: number;
   staleAfterDays: number;
+  syncBudgetMs: number;
 };
 
 function emptyResult(): JobSyncResult {
@@ -75,10 +80,34 @@ function failedSourceResult(source: string, message: string): JobSyncResult {
         configured: true,
         skippedReason: message,
         source,
+        totalJobsExpired: 0,
         totalJobsFetched: 0,
         totalJobsInserted: 0,
         totalJobsUpdated: 0,
         totalRequests: 0
+      }
+    ],
+    totalCompaniesChecked: 0,
+    totalJobsExpired: 0,
+    totalJobsInserted: 0,
+    totalJobsUpdated: 0
+  };
+}
+
+function skippedSourceResult(source: string, message: string): JobSyncResult {
+  return {
+    errors: [],
+    sourceResults: [
+      {
+        configured: true,
+        skippedReason: message,
+        source,
+        totalJobsExpired: 0,
+        totalJobsFetched: 0,
+        totalJobsInserted: 0,
+        totalJobsUpdated: 0,
+        totalRequests: 0,
+        totalSkipped: 1
       }
     ],
     totalCompaniesChecked: 0,
@@ -119,10 +148,18 @@ function rotateQueries(queries: string[], count: number, seed: number) {
   return selected;
 }
 
+function hasTimeBudget(startedAt: number, budgetMs: number) {
+  const elapsedMs = Date.now() - startedAt;
+  return elapsedMs < Math.max(1_000, budgetMs - 5_000);
+}
+
+function budgetSkipMessage(source: string, budgetMs: number) {
+  return `${source} skipped because the daily sync reached its ${Math.round(budgetMs / 1000)}s time budget. It will rotate into the next run.`;
+}
+
 export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
-  const pool = parseQueries(env.dailyFreshJobQueries).length > 0
-    ? parseQueries(env.dailyFreshJobQueries)
-    : defaultDailyFreshQueries;
+  const configuredPool = parseQueries(env.dailyFreshJobQueries);
+  const pool = configuredPool.length > 0 ? configuredPool : defaultDailyFreshQueries;
   const seed = getUtcDaySeed(now);
   const freshWindowDays = parsePositiveInt(env.dailyFreshMaxDaysOld, 3, 14);
   const staleAfterDays = parsePositiveInt(env.dailyFreshStaleDays, 45, 120);
@@ -130,75 +167,138 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
 
   return {
     adzunaQueries: rotateQueries(pool, adzunaQueryCount, seed),
+    ashbyCompanyCount: parsePositiveInt(env.dailyFreshAshbyCompanyCount, 35, 200),
     freshWindowDays,
+    greenhouseCompanyCount: parsePositiveInt(env.dailyFreshGreenhouseCompanyCount, 40, 200),
+    leverCompanyCount: parsePositiveInt(env.dailyFreshLeverCompanyCount, 35, 200),
     runDate: now.toISOString().slice(0, 10),
-    staleAfterDays
+    sourceRotationSeed: seed,
+    staleAfterDays,
+    syncBudgetMs: parsePositiveInt(env.dailyFreshSyncBudgetMs, 55_000, 290_000)
   };
 }
 
 function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
   result.sourceResults.unshift({
     configured: true,
-    skippedReason: `Daily fresh plan ${plan.runDate}: Ashby + Greenhouse + Lever ATS refresh, ${plan.adzunaQueries.length} Adzuna searches, ${plan.freshWindowDays}-day freshness window, stale jobs expire after ${plan.staleAfterDays} days.`,
+    skippedReason: `Daily fresh plan ${plan.runDate}: Adzuna first (${plan.adzunaQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; stale jobs expire after ${plan.staleAfterDays} days; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
     source: "freshness-planner",
+    totalJobsExpired: 0,
     totalJobsFetched: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
-    totalRequests: plan.adzunaQueries.length
+    totalRequests:
+      plan.adzunaQueries.length +
+      plan.ashbyCompanyCount +
+      plan.leverCompanyCount +
+      plan.greenhouseCompanyCount
   });
+}
+
+async function runPlannedSource(
+  target: JobSyncResult,
+  source: string,
+  startedAt: number,
+  budgetMs: number,
+  action: () => Promise<JobSyncResult>,
+  fallback: string
+) {
+  if (!hasTimeBudget(startedAt, budgetMs)) {
+    mergeResult(target, skippedSourceResult(source, budgetSkipMessage(source, budgetMs)));
+    return;
+  }
+
+  try {
+    mergeResult(target, await action());
+  } catch (error) {
+    mergeResult(target, failedSourceResult(source, getSyncErrorMessage(error, fallback)));
+  }
 }
 
 export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResult> {
   const plan = buildDailyFreshJobPlan(now);
   const result = emptyResult();
+  const startedAt = Date.now();
 
-  try {
-    const greenhouse = await syncGreenhouseJobs();
-    mergeResult(result, {
-      errors: greenhouse.errors,
-      sourceResults: [greenhouse.sourceResult],
-      totalCompaniesChecked: greenhouse.totalCompaniesChecked,
-      totalJobsInserted: greenhouse.totalJobsInserted,
-      totalJobsUpdated: greenhouse.totalJobsUpdated
-    });
-  } catch (error) {
-    mergeResult(result, failedSourceResult("greenhouse", getSyncErrorMessage(error, "Greenhouse sync failed.")));
-  }
-
-  try {
-    mergeResult(result, await syncAshbyJobs());
-  } catch (error) {
-    mergeResult(result, failedSourceResult("ashby", getSyncErrorMessage(error, "Ashby sync failed.")));
-  }
-  try {
-    mergeResult(
-      result,
-      await syncAdzunaJobs({
+  await runPlannedSource(
+    result,
+    "adzuna",
+    startedAt,
+    plan.syncBudgetMs,
+    () =>
+      syncAdzunaJobs({
         maxDaysOld: plan.freshWindowDays,
         queries: plan.adzunaQueries
-      })
-    );
-  } catch (error) {
-    mergeResult(result, failedSourceResult("adzuna", getSyncErrorMessage(error, "Adzuna sync failed.")));
-  }
+      }),
+    "Adzuna sync failed."
+  );
 
-  try {
-    mergeResult(result, await syncLeverJobs());
-  } catch (error) {
-    mergeResult(result, failedSourceResult("lever", getSyncErrorMessage(error, "Lever sync failed.")));
-  }
+  await runPlannedSource(
+    result,
+    "ashby",
+    startedAt,
+    plan.syncBudgetMs,
+    () =>
+      syncAshbyJobs({
+        maxCompanies: plan.ashbyCompanyCount,
+        offsetSeed: plan.sourceRotationSeed
+      }),
+    "Ashby sync failed."
+  );
 
-  try {
-    mergeResult(result, await expireStaleJobs(plan.staleAfterDays));
-  } catch (error) {
-    mergeResult(result, failedSourceResult("maintenance", getSyncErrorMessage(error, "Job maintenance failed.")));
-  }
+  await runPlannedSource(
+    result,
+    "lever",
+    startedAt,
+    plan.syncBudgetMs,
+    () =>
+      syncLeverJobs({
+        maxCompanies: plan.leverCompanyCount,
+        offsetSeed: plan.sourceRotationSeed
+      }),
+    "Lever sync failed."
+  );
 
-  try {
-    mergeResult(result, await expireDuplicateJobs());
-  } catch (error) {
-    mergeResult(result, failedSourceResult("maintenance", getSyncErrorMessage(error, "Job dedupe failed.")));
-  }
+  await runPlannedSource(
+    result,
+    "greenhouse",
+    startedAt,
+    plan.syncBudgetMs,
+    async () => {
+      const greenhouse = await syncGreenhouseJobs({
+        maxCompanies: plan.greenhouseCompanyCount,
+        offsetSeed: plan.sourceRotationSeed
+      });
+
+      return {
+        errors: greenhouse.errors,
+        sourceResults: [greenhouse.sourceResult],
+        totalCompaniesChecked: greenhouse.totalCompaniesChecked,
+        totalJobsExpired: greenhouse.totalJobsExpired ?? 0,
+        totalJobsInserted: greenhouse.totalJobsInserted,
+        totalJobsUpdated: greenhouse.totalJobsUpdated
+      };
+    },
+    "Greenhouse sync failed."
+  );
+
+  await runPlannedSource(
+    result,
+    "maintenance",
+    startedAt,
+    plan.syncBudgetMs,
+    () => expireStaleJobs(plan.staleAfterDays),
+    "Job maintenance failed."
+  );
+
+  await runPlannedSource(
+    result,
+    "maintenance",
+    startedAt,
+    plan.syncBudgetMs,
+    () => expireDuplicateJobs(),
+    "Job dedupe failed."
+  );
 
   addPlannerSummary(result, plan);
   return result;

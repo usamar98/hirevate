@@ -4,7 +4,7 @@ import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
 import type { Company, Database, Json } from "@/types/database";
-import type { JobSyncResult } from "@/lib/jobs/sync-types";
+import type { JobSyncResult, JobSyncSourceResult } from "@/lib/jobs/sync-types";
 
 type LeverRegion = "global" | "eu";
 
@@ -54,9 +54,25 @@ type LeverPosting = {
   workplaceType?: string | null;
 };
 
-type LeverCompany = Pick<Company, "greenhouse_slug" | "id">;
+type LeverCompany = Pick<Company, "greenhouse_slug" | "id" | "is_active">;
+
+type SourceBatchOptions = {
+  maxCompanies?: number;
+  offsetSeed?: number;
+};
 
 const sourceName = "lever";
+const requestTimeoutMs = 10_000;
+
+class LeverHttpError extends Error {
+  constructor(
+    message: string,
+    public status: number
+  ) {
+    super(message);
+    this.name = "LeverHttpError";
+  }
+}
 
 function parsePositiveInt(value: string, fallback: number, max: number) {
   const parsed = Number.parseInt(value, 10);
@@ -66,6 +82,23 @@ function parsePositiveInt(value: string, fallback: number, max: number) {
 
 function getMaxCompaniesPerSync() {
   return parsePositiveInt(env.leverMaxCompaniesPerSync, 100, 500);
+}
+
+function normalizeBatchSize(value: number | undefined, total: number) {
+  if (!value || !Number.isFinite(value)) return total;
+  return Math.min(Math.max(Math.floor(value), 1), total);
+}
+
+function rotateItems<T>(items: T[], seed = 0) {
+  if (items.length <= 1) return items;
+
+  const offset = ((Math.abs(seed) % items.length) + items.length) % items.length;
+  return [...items.slice(offset), ...items.slice(0, offset)];
+}
+
+function selectSourceBatch(sources: LeverSource[], options: SourceBatchOptions) {
+  const batchSize = normalizeBatchSize(options.maxCompanies, sources.length);
+  return rotateItems(sources, options.offsetSeed).slice(0, batchSize);
 }
 
 function titleizeSlug(slug: string) {
@@ -251,56 +284,103 @@ function buildDescription(job: LeverPosting) {
 }
 
 async function fetchLeverJobs(source: LeverSource) {
-  const response = await fetch(getLeverApiUrl(source), {
-    headers: {
-      accept: "application/json"
-    },
-    next: { revalidate: 0 }
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
-  if (!response.ok) {
-    throw new Error(`Lever returned ${response.status}`);
+  try {
+    const response = await fetch(getLeverApiUrl(source), {
+      headers: {
+        accept: "application/json"
+      },
+      next: { revalidate: 0 },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new LeverHttpError(`Lever returned ${response.status}`, response.status);
+    }
+
+    const payload = (await response.json()) as LeverPosting[];
+    return Array.isArray(payload) ? payload : [];
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const payload = (await response.json()) as LeverPosting[];
-  return Array.isArray(payload) ? payload : [];
 }
 
 async function ensureLeverCompanies(
   supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   sources: LeverSource[]
 ) {
-  const companyRows = sources.map((source) => ({
-    greenhouse_slug: getCompanySlug(source),
-    industry: "Direct employer",
-    is_active: true,
-    name: source.companyName,
-    website: getCompanyWebsite(source)
-  })) satisfies Database["public"]["Tables"]["companies"]["Insert"][];
+  if (sources.length === 0) return new Map<string, LeverCompany>();
 
-  if (companyRows.length === 0) return new Map<string, LeverCompany>();
+  const sourceSlugs = sources.map((source) => getCompanySlug(source));
+  const { data: existingRows, error: existingError } = await supabase
+    .from("companies")
+    .select("id, greenhouse_slug, is_active")
+    .in("greenhouse_slug", sourceSlugs);
 
-  const { error } = await supabase.from("companies").upsert(companyRows, {
-    onConflict: "greenhouse_slug"
-  });
+  if (existingError) throw existingError;
 
-  if (error) {
-    throw error;
+  const existingSlugs = new Set((existingRows ?? []).map((company) => company.greenhouse_slug));
+  const missingRows = sources
+    .filter((source) => !existingSlugs.has(getCompanySlug(source)))
+    .map((source) => ({
+      greenhouse_slug: getCompanySlug(source),
+      industry: "Public ATS",
+      is_active: true,
+      name: source.companyName,
+      website: getCompanyWebsite(source)
+    })) satisfies Database["public"]["Tables"]["companies"]["Insert"][];
+
+  if (missingRows.length > 0) {
+    const { error: insertError } = await supabase.from("companies").insert(missingRows);
+    if (insertError) throw insertError;
   }
 
   const { data, error: selectError } = await supabase
     .from("companies")
-    .select("id, greenhouse_slug")
-    .in(
-      "greenhouse_slug",
-      sources.map((source) => getCompanySlug(source))
-    );
+    .select("id, greenhouse_slug, is_active")
+    .in("greenhouse_slug", sourceSlugs);
 
-  if (selectError) {
-    throw selectError;
-  }
+  if (selectError) throw selectError;
 
   return new Map((data ?? []).map((company) => [company.greenhouse_slug, company]));
+}
+
+async function expireMissingLeverJobs(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  companyId: string,
+  activeExternalIds: string[]
+) {
+  const activeExternalIdSet = new Set(activeExternalIds);
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("id, external_id")
+    .eq("company_id", companyId)
+    .eq("source", sourceName)
+    .eq("status", "active");
+
+  if (error) throw error;
+
+  const expiredIds = (data ?? [])
+    .filter((job) => !activeExternalIdSet.has(job.external_id))
+    .map((job) => job.id);
+
+  for (let index = 0; index < expiredIds.length; index += 150) {
+    const idChunk = expiredIds.slice(index, index + 150);
+    const { error: updateError } = await supabase
+      .from("jobs")
+      .update({ status: "expired", updated_at: new Date().toISOString() })
+      .in("id", idChunk);
+
+    if (updateError) throw updateError;
+  }
+
+  return expiredIds.length;
+}
+
+function isRetiredLeverBoard(error: unknown) {
+  return error instanceof LeverHttpError && (error.status === 404 || error.status === 410);
 }
 
 function normalizeJob(source: LeverSource, companyId: string, job: LeverPosting) {
@@ -309,6 +389,7 @@ function normalizeJob(source: LeverSource, companyId: string, job: LeverPosting)
   const applyUrl = job.applyUrl ?? job.hostedUrl ?? null;
   const sourceUrl = job.hostedUrl ?? applyUrl;
   const updatedAt = toIsoDate(job.updatedAt ?? job.createdAt);
+  const lastSeenAt = new Date().toISOString();
   const salaryDescription = getSalaryDescription(job);
   const rawData = {
     ...job,
@@ -332,6 +413,7 @@ function normalizeJob(source: LeverSource, companyId: string, job: LeverPosting)
       updatedAt
     }),
     location,
+    last_seen_at: lastSeenAt,
     posted_at: toIsoDate(job.createdAt),
     raw_data: rawData as unknown as Json,
     remote_type: getRemoteType(job, title, location),
@@ -343,15 +425,17 @@ function normalizeJob(source: LeverSource, companyId: string, job: LeverPosting)
   } satisfies Database["public"]["Tables"]["jobs"]["Insert"];
 }
 
-export async function syncLeverJobs(): Promise<JobSyncResult> {
+export async function syncLeverJobs(options: SourceBatchOptions = {}): Promise<JobSyncResult> {
   const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     throw new Error("Supabase service role environment variables are not configured.");
   }
 
-  const sources = parseLeverSources();
-  const sourceResult = {
+  const allSources = parseLeverSources();
+  const sources = selectSourceBatch(allSources, options);
+  const batchSkipped = Math.max(0, allSources.length - sources.length);
+  const sourceResult: JobSyncSourceResult = {
     configured: hasLeverConfig(),
     skippedReason: sources.length === 0 ? "Add LEVER_COMPANY_SLUGS in Vercel to enable Lever sync." : undefined,
     source: sourceName,
@@ -359,13 +443,14 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
     totalRequests: 0,
-    totalSkipped: 0
+    totalSkipped: batchSkipped
   };
 
   const result: JobSyncResult = {
     errors: [],
     sourceResults: [sourceResult],
     totalCompaniesChecked: 0,
+    totalJobsExpired: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0
   };
@@ -384,7 +469,9 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
     };
     const healthStatus = await getSourceHealthStatus(supabase, healthIdentity);
 
-    if (healthStatus.shouldSkip) {
+    const company = companies.get(getCompanySlug(source));
+
+    if (!company || company.is_active === false || healthStatus.shouldSkip) {
       sourceResult.totalSkipped = (sourceResult.totalSkipped ?? 0) + 1;
       continue;
     }
@@ -393,14 +480,9 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
     sourceResult.totalRequests += 1;
 
     try {
-      const company = companies.get(getCompanySlug(source));
-      if (!company) {
-        throw new Error("Lever company record was not found after upsert.");
-      }
-
       const jobs = await fetchLeverJobs(source);
       let sourceJobsInserted = 0;
-      result.sourceResults[0].totalJobsFetched += jobs.length;
+      sourceResult.totalJobsFetched += jobs.length;
 
       const normalizedJobs = jobs.map((job) => normalizeJob(source, company.id, job));
       if (normalizedJobs.length > 0) {
@@ -436,6 +518,14 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
         }
       }
 
+      const expiredCount = await expireMissingLeverJobs(
+        supabase,
+        company.id,
+        normalizedJobs.map((job) => job.external_id)
+      );
+      result.totalJobsExpired = (result.totalJobsExpired ?? 0) + expiredCount;
+      sourceResult.totalJobsExpired = (sourceResult.totalJobsExpired ?? 0) + expiredCount;
+
       await recordSourceSuccess(supabase, healthIdentity, {
         jobsFetched: jobs.length,
         jobsInserted: sourceJobsInserted
@@ -448,6 +538,16 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown Lever sync error";
       sourceResult.totalSkipped = (sourceResult.totalSkipped ?? 0) + 1;
+
+      if (isRetiredLeverBoard(error)) {
+        await recordSourceFailure(supabase, healthIdentity, message, { permanent: true });
+        await supabase
+          .from("companies")
+          .update({ is_active: false, last_synced_at: new Date().toISOString() })
+          .eq("id", company.id);
+        continue;
+      }
+
       await recordSourceFailure(supabase, healthIdentity, message);
       result.errors.push({
         source: sourceName,
@@ -458,8 +558,18 @@ export async function syncLeverJobs(): Promise<JobSyncResult> {
     }
   }
 
-  if ((sourceResult.totalSkipped ?? 0) > 0) {
-    sourceResult.skippedReason = `${sourceResult.totalSkipped} Lever boards were skipped because they failed, are invalid, or are cooling down.`;
+  const messages: string[] = [];
+  if (batchSkipped > 0) {
+    messages.push(
+      `Daily batch checked ${sources.length} of ${allSources.length} Lever boards; remaining boards rotate into future syncs.`
+    );
+  }
+  if ((sourceResult.totalSkipped ?? 0) > batchSkipped) {
+    messages.push("Some Lever boards were skipped because they failed, are invalid, or are cooling down.");
+  }
+
+  if (messages.length > 0) {
+    sourceResult.skippedReason = messages.join(" ");
   }
 
   return result;

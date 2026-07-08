@@ -30,7 +30,7 @@ export default async function AdminJobsSyncPage() {
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Automatic refresh</p>
-            <p className="mt-2 text-sm leading-6 text-ink-500">Runs daily at 04:00 UTC on production.</p>
+            <p className="mt-2 text-sm leading-6 text-ink-500">Runs daily at 04:00 UTC on production through Vercel Cron.</p>
           </Card>
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Freshness algorithm</p>
@@ -46,7 +46,7 @@ export default async function AdminJobsSyncPage() {
           </Card>
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Required secret</p>
-            <p className="mt-2 font-mono text-xs text-ink-500">CRON_SECRET or JOB_SYNC_SECRET</p>
+            <p className="mt-2 font-mono text-xs text-ink-500">CRON_SECRET</p>
           </Card>
         </div>
 

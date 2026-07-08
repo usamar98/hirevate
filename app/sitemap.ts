@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const jobRoutes = jobs.map((job) => ({
     url: absoluteUrl(getJobPath(job)),
-    lastModified: new Date(job.updated_at ?? job.discovered_at),
+    lastModified: new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at),
     changeFrequency: "daily" as const,
     priority: 0.85
   }));

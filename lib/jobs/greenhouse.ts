@@ -24,6 +24,11 @@ type GreenhouseResponse = {
   jobs?: GreenhouseJob[];
 };
 
+type SourceBatchOptions = {
+  maxCompanies?: number;
+  offsetSeed?: number;
+};
+
 class GreenhouseHttpError extends Error {
   constructor(
     message: string,
@@ -40,15 +45,36 @@ export type SyncResult = {
   sourceResult: JobSyncSourceResult;
   totalCompaniesChecked: number;
   totalJobsFetched: number;
+  totalJobsExpired?: number;
   totalJobsInserted: number;
   totalJobsUpdated: number;
   errors: SyncError[];
 };
 
+const requestTimeoutMs = 10_000;
+
+function normalizeBatchSize(value: number | undefined, total: number) {
+  if (!value || !Number.isFinite(value)) return total;
+  return Math.min(Math.max(Math.floor(value), 1), total);
+}
+
+function rotateItems<T>(items: T[], seed = 0) {
+  if (items.length <= 1) return items;
+
+  const offset = ((Math.abs(seed) % items.length) + items.length) % items.length;
+  return [...items.slice(offset), ...items.slice(0, offset)];
+}
+
+function selectCompanyBatch(companies: Company[], options: SourceBatchOptions) {
+  const batchSize = normalizeBatchSize(options.maxCompanies, companies.length);
+  return rotateItems(companies, options.offsetSeed).slice(0, batchSize);
+}
+
 function normalizeJob(company: Company, job: GreenhouseJob) {
   const location = job.location?.name ?? null;
   const applyUrl = job.absolute_url ?? null;
   const updatedAt = job.updated_at ?? null;
+  const lastSeenAt = new Date().toISOString();
 
   return {
     company_id: company.id,
@@ -62,6 +88,7 @@ function normalizeJob(company: Company, job: GreenhouseJob) {
     apply_url: applyUrl,
     posted_at: updatedAt,
     updated_at: updatedAt,
+    last_seen_at: lastSeenAt,
     freshness_score: calculateFreshnessScore({
       applyUrl,
       location,
@@ -75,26 +102,66 @@ function normalizeJob(company: Company, job: GreenhouseJob) {
 }
 
 async function fetchGreenhouseJobs(slug: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
   const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(
     slug
   )}/jobs?content=true`;
-  const response = await fetch(url, {
-    headers: {
-      accept: "application/json"
-    },
-    next: { revalidate: 0 }
-  });
 
-  if (!response.ok) {
-    throw new GreenhouseHttpError(`Greenhouse returned ${response.status}`, response.status);
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: "application/json"
+      },
+      next: { revalidate: 0 },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new GreenhouseHttpError(`Greenhouse returned ${response.status}`, response.status);
+    }
+
+    const payload = (await response.json()) as GreenhouseResponse;
+    return payload.jobs ?? [];
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const payload = (await response.json()) as GreenhouseResponse;
-  return payload.jobs ?? [];
 }
 
 function isRetiredGreenhouseBoard(error: unknown) {
   return error instanceof GreenhouseHttpError && (error.status === 404 || error.status === 410);
+}
+
+async function expireMissingGreenhouseJobs(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  companyId: string,
+  activeExternalIds: string[]
+) {
+  const activeExternalIdSet = new Set(activeExternalIds);
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("id, external_id")
+    .eq("company_id", companyId)
+    .eq("source", "greenhouse")
+    .eq("status", "active");
+
+  if (error) throw error;
+
+  const expiredIds = (data ?? [])
+    .filter((job) => !activeExternalIdSet.has(job.external_id))
+    .map((job) => job.id);
+
+  for (let index = 0; index < expiredIds.length; index += 150) {
+    const batch = expiredIds.slice(index, index + 150);
+    const { error: updateError } = await supabase
+      .from("jobs")
+      .update({ status: "expired", updated_at: new Date().toISOString() })
+      .in("id", batch);
+
+    if (updateError) throw updateError;
+  }
+
+  return expiredIds.length;
 }
 
 async function ensureDefaultCompanies(
@@ -103,7 +170,6 @@ async function ensureDefaultCompanies(
   const { count, error: countError } = await supabase
     .from("companies")
     .select("id", { count: "exact", head: true })
-    .eq("is_active", true)
     .not("greenhouse_slug", "like", "adzuna-%")
     .not("greenhouse_slug", "like", "lever-%")
     .not("greenhouse_slug", "like", "ashby-%")
@@ -126,7 +192,7 @@ async function ensureDefaultCompanies(
   }
 }
 
-export async function syncGreenhouseJobs(): Promise<SyncResult> {
+export async function syncGreenhouseJobs(options: SourceBatchOptions = {}): Promise<SyncResult> {
   const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
@@ -149,6 +215,10 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
     throw companiesError;
   }
 
+  const allCompanies = (companies ?? []) as Company[];
+  const selectedCompanies = selectCompanyBatch(allCompanies, options);
+  const batchSkipped = Math.max(0, allCompanies.length - selectedCompanies.length);
+
   const result: SyncResult = {
     sourceResult: {
       configured: true,
@@ -157,16 +227,17 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
       totalJobsInserted: 0,
       totalJobsUpdated: 0,
       totalRequests: 0,
-      totalSkipped: 0
+      totalSkipped: batchSkipped
     },
     totalCompaniesChecked: 0,
     totalJobsFetched: 0,
+    totalJobsExpired: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
     errors: []
   };
 
-  for (const company of companies ?? []) {
+  for (const company of selectedCompanies) {
     const healthIdentity = {
       displayName: company.name,
       source: "greenhouse",
@@ -219,6 +290,14 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
         }
       }
 
+      const expiredCount = await expireMissingGreenhouseJobs(
+        supabase,
+        company.id,
+        normalizedJobs.map((job) => job.external_id)
+      );
+      result.sourceResult.totalJobsExpired = (result.sourceResult.totalJobsExpired ?? 0) + expiredCount;
+      result.totalJobsExpired = (result.totalJobsExpired ?? 0) + expiredCount;
+
       await recordSourceSuccess(supabase, healthIdentity, {
         jobsFetched: greenhouseJobs.length,
         jobsInserted: companyJobsInserted
@@ -251,8 +330,18 @@ export async function syncGreenhouseJobs(): Promise<SyncResult> {
     }
   }
 
-  if ((result.sourceResult.totalSkipped ?? 0) > 0) {
-    result.sourceResult.skippedReason = `${result.sourceResult.totalSkipped} Greenhouse boards were skipped because they are inactive, disabled, or cooling down.`;
+  const messages = [];
+  if (batchSkipped > 0) {
+    messages.push(
+      `Daily batch checked ${selectedCompanies.length} of ${allCompanies.length} Greenhouse boards; remaining boards rotate into future syncs.`
+    );
+  }
+  if ((result.sourceResult.totalSkipped ?? 0) > batchSkipped) {
+    messages.push("Some Greenhouse boards were skipped because they are inactive, disabled, or cooling down.");
+  }
+
+  if (messages.length > 0) {
+    result.sourceResult.skippedReason = messages.join(" ");
   }
 
   return result;

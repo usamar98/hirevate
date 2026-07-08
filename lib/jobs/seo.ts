@@ -143,6 +143,7 @@ function inferApplicantCountry(location: string | null) {
 export function buildJobPostingJsonLd(job: JobWithCompany) {
   const companyName = getJobCompanyName(job);
   const postedAt = job.posted_at ?? job.discovered_at;
+  const lastSeenAt = job.last_seen_at ?? job.updated_at ?? job.discovered_at;
   const description = stripHtml(job.description) || getJobMetaDescription(job);
   const applicantCountry = job.remote_type === "remote" ? inferApplicantCountry(job.location) : null;
 
@@ -157,6 +158,7 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
       value: job.external_id
     },
     datePosted: postedAt,
+    dateModified: lastSeenAt,
     employmentType: inferEmploymentType(job),
     hiringOrganization: {
       "@type": "Organization",

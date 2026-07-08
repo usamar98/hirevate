@@ -22,7 +22,7 @@ function getCompanyKey(job: JobWithCompany) {
 }
 
 function getSortTime(job: JobWithCompany) {
-  const value = job.updated_at ?? job.discovered_at;
+  const value = job.last_seen_at ?? job.updated_at ?? job.discovered_at;
   const time = value ? new Date(value).getTime() : 0;
   return Number.isFinite(time) ? time : 0;
 }

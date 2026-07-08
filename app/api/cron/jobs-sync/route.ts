@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   if (!env.cronSecret) {
     return NextResponse.json(
       {
-        error: "CRON_SECRET or JOB_SYNC_SECRET must be configured before daily job sync can run."
+        error: "CRON_SECRET must be configured in Vercel before daily job sync can run. JOB_SYNC_SECRET is only for manual sync calls."
       },
       { status: 503 }
     );

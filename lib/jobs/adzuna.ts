@@ -5,6 +5,8 @@ import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from 
 import type { Company, Database, Json } from "@/types/database";
 import type { JobSyncResult, JobSyncSourceResult } from "@/lib/jobs/sync-types";
 
+const requestTimeoutMs = 12_000;
+
 const defaultQueries = [
   "software engineer",
   "data analyst",
@@ -135,23 +137,31 @@ function getAdzunaUrl(query: string, options: AdzunaSyncOptions = {}) {
 }
 
 async function fetchAdzunaJobs(query: string, options: AdzunaSyncOptions = {}): Promise<AdzunaFetchBatch> {
-  const response = await fetch(getAdzunaUrl(query, options), {
-    headers: {
-      accept: "application/json"
-    },
-    next: { revalidate: 0 }
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
-  if (!response.ok) {
-    throw new Error(`Adzuna returned ${response.status}`);
+  try {
+    const response = await fetch(getAdzunaUrl(query, options), {
+      headers: {
+        accept: "application/json"
+      },
+      next: { revalidate: 0 },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`Adzuna returned ${response.status}`);
+    }
+
+    const payload = (await response.json()) as AdzunaSearchResponse;
+    return {
+      jobs: payload.results ?? [],
+      query,
+      sourceKey: getQuerySourceKey(query)
+    };
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const payload = (await response.json()) as AdzunaSearchResponse;
-  return {
-    jobs: payload.results ?? [],
-    query,
-    sourceKey: getQuerySourceKey(query)
-  };
 }
 
 async function ensureAdzunaCompanies(
@@ -200,6 +210,7 @@ function normalizeJob(job: AdzunaJob, companyId: string) {
   const location = getLocation(job);
   const applyUrl = job.redirect_url ?? null;
   const createdAt = job.created ?? null;
+  const lastSeenAt = new Date().toISOString();
   const title = job.title.trim();
 
   return {
@@ -208,6 +219,7 @@ function normalizeJob(job: AdzunaJob, companyId: string) {
     title,
     description: job.description ?? null,
     location,
+    last_seen_at: lastSeenAt,
     remote_type: inferRemoteType(title, location),
     source: "adzuna",
     source_url: applyUrl,

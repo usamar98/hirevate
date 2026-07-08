@@ -146,7 +146,7 @@ export default async function JobDetailPage({
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
-                Discovered {formatDate(job.discovered_at)}
+                Refreshed {formatDate(job.last_seen_at ?? job.updated_at ?? job.discovered_at)}
               </span>
               {compensationLabel ? (
                 <span className="inline-flex items-center gap-1.5">
@@ -228,8 +228,12 @@ export default async function JobDetailPage({
                   <dd className="mt-1 text-ink-500">{sourceTrust.label}</dd>
                 </div>
                 <div>
-                  <dt className="font-semibold text-ink-700">Updated</dt>
-                  <dd className="mt-1 text-ink-500">{formatDate(job.updated_at)}</dd>
+                  <dt className="font-semibold text-ink-700">Last refreshed</dt>
+                  <dd className="mt-1 text-ink-500">{formatDate(job.last_seen_at ?? job.updated_at ?? job.discovered_at)}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-ink-700">First discovered</dt>
+                  <dd className="mt-1 text-ink-500">{formatDate(job.discovered_at)}</dd>
                 </div>
                 <div>
                   <dt className="font-semibold text-ink-700">Freshness score</dt>

@@ -75,6 +75,11 @@ type AshbyResponse = {
 
 type AshbyCompany = Pick<Company, "greenhouse_slug" | "id" | "is_active">;
 
+type SourceBatchOptions = {
+  maxCompanies?: number;
+  offsetSeed?: number;
+};
+
 const sourceName = "ashby";
 const requestTimeoutMs = 15_000;
 
@@ -96,6 +101,23 @@ function parsePositiveInt(value: string, fallback: number, max: number) {
 
 function getMaxCompaniesPerSync() {
   return parsePositiveInt(env.ashbyMaxCompaniesPerSync, 140, 300);
+}
+
+function normalizeBatchSize(value: number | undefined, total: number) {
+  if (!value || !Number.isFinite(value)) return total;
+  return Math.min(Math.max(Math.floor(value), 1), total);
+}
+
+function rotateItems<T>(items: T[], seed = 0) {
+  if (items.length <= 1) return items;
+
+  const offset = ((Math.abs(seed) % items.length) + items.length) % items.length;
+  return [...items.slice(offset), ...items.slice(0, offset)];
+}
+
+function selectSourceBatch(sources: AshbySource[], options: SourceBatchOptions) {
+  const batchSize = normalizeBatchSize(options.maxCompanies, sources.length);
+  return rotateItems(sources, options.offsetSeed).slice(0, batchSize);
 }
 
 function titleizeSlug(slug: string) {
@@ -308,6 +330,7 @@ function normalizeJob(source: AshbySource, companyId: string, job: AshbyJob) {
   const applyUrl = job.applyUrl ?? job.jobUrl ?? null;
   const sourceUrl = job.jobUrl ?? applyUrl;
   const updatedAt = toIsoDate(job.publishedAt);
+  const lastSeenAt = new Date().toISOString();
   const salary = getSalaryMetadata(job);
   const rawData = {
     ...job,
@@ -333,6 +356,7 @@ function normalizeJob(source: AshbySource, companyId: string, job: AshbyJob) {
       updatedAt
     }),
     location,
+    last_seen_at: lastSeenAt,
     posted_at: updatedAt,
     raw_data: rawData as unknown as Json,
     remote_type: getRemoteType(job, title, location),
@@ -499,15 +523,18 @@ function buildSourceResult(sources: AshbySource[]): JobSyncSourceResult {
   };
 }
 
-export async function syncAshbyJobs(): Promise<JobSyncResult> {
+export async function syncAshbyJobs(options: SourceBatchOptions = {}): Promise<JobSyncResult> {
   const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     throw new Error("Supabase service role environment variables are not configured.");
   }
 
-  const sources = parseAshbySources();
+  const allSources = parseAshbySources();
+  const sources = selectSourceBatch(allSources, options);
+  const batchSkipped = Math.max(0, allSources.length - sources.length);
   const sourceResult = buildSourceResult(sources);
+  sourceResult.totalSkipped = (sourceResult.totalSkipped ?? 0) + batchSkipped;
   const result: JobSyncResult = {
     errors: [],
     sourceResults: [sourceResult],
@@ -601,8 +628,18 @@ export async function syncAshbyJobs(): Promise<JobSyncResult> {
     }
   }
 
-  if ((sourceResult.totalSkipped ?? 0) > 0) {
-    sourceResult.skippedReason = `${sourceResult.totalSkipped} Ashby boards were skipped because they failed, are disabled, or are cooling down.`;
+  const messages = [];
+  if (batchSkipped > 0) {
+    messages.push(
+      `Daily batch checked ${sources.length} of ${allSources.length} Ashby boards; remaining boards rotate into future syncs.`
+    );
+  }
+  if ((sourceResult.totalSkipped ?? 0) > batchSkipped) {
+    messages.push("Some Ashby boards were skipped because they failed, are disabled, or are cooling down.");
+  }
+
+  if (messages.length > 0) {
+    sourceResult.skippedReason = messages.join(" ");
   }
 
   return result;

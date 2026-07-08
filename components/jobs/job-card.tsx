@@ -54,7 +54,7 @@ export function JobCard({
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
-                Discovered {formatRelativeDate(job.discovered_at)}
+                Refreshed {formatRelativeDate(job.last_seen_at ?? job.updated_at ?? job.discovered_at)}
               </span>
               {compensationLabel ? (
                 <span className="inline-flex items-center gap-1.5">
