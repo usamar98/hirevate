@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { defaultOgImagePath } from "@/lib/seo";
 import { JobCategoryLandingPage } from "@/components/jobs/category-landing-page";
 import { jobCategoryPages } from "@/lib/jobs/categories";
 
 const category = jobCategoryPages["data-analyst"];
 
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: {
@@ -17,11 +18,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: category.title,
     description: category.description,
-    url: category.path
+    url: category.path,
+    images: [defaultOgImagePath]
   },
   twitter: {
     title: category.title,
-    description: category.description
+    description: category.description,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 

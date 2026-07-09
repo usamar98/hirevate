@@ -41,6 +41,7 @@ export function CompanyLogo({
         sizes[size],
         className
       )}
+      role="img"
       title={companyName}
     >
       {showImage && domain ? (

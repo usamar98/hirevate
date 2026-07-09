@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ResumeBuilder } from "@/components/resume/resume-builder";
 import { JsonLd } from "@/components/seo/json-ld";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
   "Build an ATS-friendly, role-targeted resume with keyword coverage, impact suggestions, templates, and print-ready export.";
@@ -42,11 +42,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Resume Builder",
     description: resumeBuilderDescription,
-    url: "/resume-builder"
+    url: "/resume-builder",
+    images: [defaultOgImagePath]
   },
   twitter: {
     title: "Resume Builder",
-    description: resumeBuilderDescription
+    description: resumeBuilderDescription,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 

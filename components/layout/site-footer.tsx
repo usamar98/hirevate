@@ -22,6 +22,9 @@ export function SiteFooter() {
           <Link href="/jobs/remote" className="hover:text-ink-900">
             Remote Jobs
           </Link>
+          <Link href="/jobs/uk" className="hover:text-ink-900">
+            UK Jobs
+          </Link>
           <Link href="/jobs/london" className="hover:text-ink-900">
             London Jobs
           </Link>
@@ -48,6 +51,12 @@ export function SiteFooter() {
           </Link>
           <Link href="/pricing" className="hover:text-ink-900">
             Pricing
+          </Link>
+          <Link href="/guides" className="hover:text-ink-900">
+            Guides
+          </Link>
+          <Link href="/compare" className="hover:text-ink-900">
+            Compare
           </Link>
           <Link href="/llms.txt" className="hover:text-ink-900">
             LLMs

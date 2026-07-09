@@ -1,5 +1,6 @@
 export type JobCategorySlug =
   | "remote"
+  | "uk"
   | "london"
   | "engineering"
   | "software-engineer"
@@ -74,6 +75,54 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
           question: "Can I use the resume and cover letter tools for remote jobs?",
           answer:
             "Yes. Users can pair remote job pages with the resume builder, cover letter builder, and job tracker."
+        }
+      ]
+    }
+  },
+  uk: {
+    slug: "uk",
+    path: "/jobs/uk",
+    label: "UK jobs",
+    title: "UK Jobs From Public Hiring Sources | Hirevate",
+    description:
+      "Find fresh UK jobs from company career pages, public ATS boards, and trusted hiring sources across London, Manchester, Birmingham, Edinburgh, and other UK locations.",
+    heading: "UK jobs with clear source and freshness signals",
+    eyebrow: "United Kingdom job search",
+    emptyTitle: "No UK jobs found",
+    emptyDescription:
+      "Browse all jobs while Hirevate refreshes more roles from United Kingdom hiring sources.",
+    answerReady: {
+      helpsWith:
+        "This page helps job seekers find United Kingdom roles across major cities, regional offices, and UK-specific remote or hybrid listings.",
+      bestSources:
+        "Useful UK coverage comes from employer career pages, public ATS boards, public job discovery sources, and trusted hiring partners with clear location data.",
+      freshness:
+        "UK freshness score favors recently refreshed roles with a usable apply path, a clear UK location, and complete role metadata.",
+      faqs: [
+        {
+          question: "Which locations are included on the UK jobs page?",
+          answer:
+            "The page can include roles tagged with United Kingdom locations such as London, Manchester, Birmingham, Edinburgh, Glasgow, Bristol, Leeds, Belfast, and Cardiff."
+        },
+        {
+          question: "Are remote UK jobs included?",
+          answer:
+            "Yes, when the source identifies the role as remote and includes a United Kingdom location or restriction."
+        },
+        {
+          question: "Which sources are used for UK jobs?",
+          answer:
+            "Hirevate uses company career pages, public ATS boards, public job discovery sources, and trusted hiring partners."
+        },
+        {
+          question: "Does Hirevate auto-apply to UK jobs?",
+          answer:
+            "No. Users review the listing and apply on the available employer, ATS, or partner source."
+        },
+        {
+          question: "Can I tailor a resume for a UK role?",
+          answer:
+            "Yes. The resume builder and resume-to-job comparison can be used with the role description, while the user remains responsible for accurate content."
         }
       ]
     }

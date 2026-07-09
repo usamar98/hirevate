@@ -41,7 +41,7 @@ export const hirevateAnswerBriefs = [
   {
     question: "Does Hirevate auto-apply for users?",
     answer:
-      "No. Hirevate helps users discover, prepare for, save, and track job applications, but users apply directly on the employer's original application page."
+      "No. Hirevate helps users discover, prepare for, save, and track job applications, but users apply on the available employer, ATS, or verified partner source."
   },
   {
     question: "Who is Hirevate best for?",
@@ -79,6 +79,11 @@ export const hirevatePublicPages = [
     title: "Remote jobs",
     path: "/jobs/remote",
     description: "Remote jobs from company career pages, public ATS boards, and trusted hiring sources."
+  },
+  {
+    title: "UK jobs",
+    path: "/jobs/uk",
+    description: "Fresh United Kingdom roles across major cities and UK-specific remote or hybrid listings."
   },
   {
     title: "London jobs",
@@ -125,6 +130,16 @@ export const hirevatePublicPages = [
     path: "/pricing",
     description:
       "Silver is $4.99/week; Gold is $8.99/week or $25.17/month; Platinum is $14.99/week or $41.97/month."
+  },
+  {
+    title: "Job search guides",
+    path: "/guides",
+    description: "Evidence-first guides for source discovery, freshness, resumes, remote work, and application tracking."
+  },
+  {
+    title: "Job search comparisons",
+    path: "/compare",
+    description: "Fact-checked comparisons with LinkedIn and Indeed using first-party help documentation."
   }
 ] as const;
 

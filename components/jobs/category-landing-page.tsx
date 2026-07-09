@@ -4,14 +4,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser } from "@/lib/auth/session";
 import { jobCategoryList, type JobCategoryPage } from "@/lib/jobs/categories";
 import {
   getEngineeringJobs,
   getKeywordJobs,
   getLocationJobs,
   getRemoteJobs,
-  getSavedJobIds
+  getUkJobs
 } from "@/lib/jobs/queries";
 import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
 import { absoluteUrl } from "@/lib/seo";
@@ -19,6 +18,7 @@ import type { JobWithCompany } from "@/types/database";
 
 async function getCategoryJobs(category: JobCategoryPage) {
   if (category.slug === "remote") return getRemoteJobs();
+  if (category.slug === "uk") return getUkJobs();
   if (category.slug === "london") return getLocationJobs("London");
   if (category.keywords) return getKeywordJobs(category.keywords);
   return getEngineeringJobs();
@@ -91,8 +91,7 @@ function buildCategoryJsonLd(category: JobCategoryPage, jobs: JobWithCompany[]) 
 }
 
 export async function JobCategoryLandingPage({ category }: { category: JobCategoryPage }) {
-  const [{ configured, jobs }, user] = await Promise.all([getCategoryJobs(category), getCurrentUser()]);
-  const savedJobIds = user ? await getSavedJobIds(user.id) : new Set<string>();
+  const { configured, jobs } = await getCategoryJobs(category);
   const siblingCategories = jobCategoryList.filter((item) => item.slug !== category.slug);
 
   return (
@@ -150,12 +149,7 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
 
           <div className="mt-5 space-y-4">
             {jobs.map((job) => (
-              <JobCard
-                isSaved={savedJobIds.has(job.id)}
-                job={job}
-                key={job.id}
-                showSave={Boolean(user)}
-              />
+              <JobCard job={job} key={job.id} />
             ))}
           </div>
 

@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingCards } from "@/components/pricing/pricing-cards";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser } from "@/lib/auth/session";
 import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
   "Compare Hirevate Silver, Gold, and Platinum subscriptions for hidden job discovery, cover letters, job tracking, and public-source job search.";
@@ -69,17 +68,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Pricing",
     description: pricingDescription,
-    url: "/pricing"
+    url: "/pricing",
+    images: [defaultOgImagePath]
   },
   twitter: {
     title: "Pricing",
-    description: pricingDescription
+    description: pricingDescription,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 
-export default async function PricingPage() {
-  const user = await getCurrentUser();
-
+export default function PricingPage() {
   return (
     <>
       <JsonLd
@@ -89,6 +89,7 @@ export default async function PricingPage() {
             "@type": "Product",
             name: "Hirevate",
             url: absoluteUrl("/pricing"),
+            image: absoluteUrl(defaultOgImagePath),
             description: pricingDescription,
             brand: {
               "@type": "Brand",
@@ -104,6 +105,7 @@ export default async function PricingPage() {
             applicationCategory: "BusinessApplication",
             applicationSubCategory: "Job search and career management",
             operatingSystem: "Web",
+            image: absoluteUrl(defaultOgImagePath),
             description: pricingDescription,
             offers: {
               "@type": "OfferCatalog",
@@ -153,7 +155,7 @@ export default async function PricingPage() {
             </p>
           </div>
           <div className="mt-8">
-            <PricingCards isLoggedIn={Boolean(user)} />
+            <PricingCards />
           </div>
         </div>
       </section>

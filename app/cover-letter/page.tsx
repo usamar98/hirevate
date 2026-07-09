@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CoverLetterBuilder } from "@/components/cover-letter/cover-letter-builder";
 import { JsonLd } from "@/components/seo/json-ld";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const coverLetterDescription =
   "Create a focused cover letter for a specific company and role, with proof points, keywords, copy, and download.";
@@ -21,7 +21,7 @@ const coverLetterFaqItems = [
   {
     question: "Does Hirevate submit cover letters automatically?",
     answer:
-      "No. Hirevate helps users prepare application materials, then users apply directly on the employer's original application page."
+      "No. Hirevate helps users prepare application materials, then users apply on the available employer, ATS, or verified partner source."
   }
 ];
 
@@ -42,11 +42,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Cover Letter Builder",
     description: coverLetterDescription,
-    url: "/cover-letter"
+    url: "/cover-letter",
+    images: [defaultOgImagePath]
   },
   twitter: {
     title: "Cover Letter Builder",
-    description: coverLetterDescription
+    description: coverLetterDescription,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 

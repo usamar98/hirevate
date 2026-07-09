@@ -1,14 +1,41 @@
+"use client";
+
 import Link from "next/link";
 import { LogOut } from "lucide-react";
-import { getCurrentUser, getProfile } from "@/lib/auth/session";
+import { useEffect, useState } from "react";
 import { signOutAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
 
-export async function SiteHeader() {
-  const user = await getCurrentUser();
-  const profile = user ? await getProfile(user.id) : null;
-  const isAdmin = profile?.role === "admin";
+type AuthStatus = {
+  authenticated: boolean;
+  isAdmin: boolean;
+};
+
+const anonymousStatus: AuthStatus = {
+  authenticated: false,
+  isAdmin: false
+};
+
+export function SiteHeader() {
+  const [authStatus, setAuthStatus] = useState<AuthStatus>(anonymousStatus);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    void fetch("/api/auth/status", {
+      cache: "no-store",
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        if (!response.ok) return anonymousStatus;
+        return (await response.json()) as AuthStatus;
+      })
+      .then(setAuthStatus)
+      .catch(() => undefined);
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/92 backdrop-blur">
@@ -27,10 +54,13 @@ export async function SiteHeader() {
           <Link className="transition hover:text-ink-900" href="/about">
             About
           </Link>
+          <Link className="transition hover:text-ink-900" href="/guides">
+            Guides
+          </Link>
           <Link className="transition hover:text-ink-900" href="/pricing">
             Pricing
           </Link>
-          {user ? (
+          {authStatus.authenticated ? (
             <>
               <Link className="transition hover:text-ink-900" href="/dashboard">
                 Dashboard
@@ -40,7 +70,7 @@ export async function SiteHeader() {
               </Link>
             </>
           ) : null}
-          {isAdmin ? (
+          {authStatus.isAdmin ? (
             <>
               <Link className="transition hover:text-ink-900" href="/admin/users">
                 Users
@@ -55,7 +85,7 @@ export async function SiteHeader() {
           ) : null}
         </nav>
         <div className="flex items-center gap-2">
-          {user ? (
+          {authStatus.authenticated ? (
             <form action={signOutAction}>
               <Button aria-label="Sign out" size="icon" type="submit" variant="ghost">
                 <LogOut className="h-4 w-4" aria-hidden="true" />

@@ -4,6 +4,8 @@ import { isEmployerOrAtsApplyUrl } from "@/lib/jobs/sources";
 import { absoluteUrl, siteName } from "@/lib/seo";
 import type { Company, Job, JobWithCompany } from "@/types/database";
 
+const JOB_SCHEMA_MAX_AGE_DAYS = 45;
+
 type JobSlugSource = Pick<Job, "id" | "title" | "location"> & {
   companies: Pick<Company, "name"> | null;
 };
@@ -71,10 +73,11 @@ export function getJobMetaTitle(job: JobWithCompany) {
 
 export function getJobMetaDescription(job: JobWithCompany) {
   const location = job.location ? ` in ${job.location}` : "";
+  const applyDescription = isEmployerOrAtsApplyUrl(job)
+    ? "Apply on the available employer or ATS page."
+    : "Review the available hiring source and apply there.";
 
-  return `Apply directly to ${job.title} at ${getJobCompanyName(
-    job
-  )}${location}. Fresh listing, no middlemen.`;
+  return `${job.title} at ${getJobCompanyName(job)}${location}. ${applyDescription}`;
 }
 
 function stripHtml(value: string | null | undefined) {
@@ -140,12 +143,35 @@ function inferApplicantCountry(location: string | null) {
   return null;
 }
 
+export function isJobPostingEligible(job: JobWithCompany) {
+  const lastSeen = new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at);
+  const ageMs = Date.now() - lastSeen.getTime();
+  const hasCurrentSource =
+    Number.isFinite(lastSeen.getTime()) &&
+    ageMs >= 0 &&
+    ageMs <= JOB_SCHEMA_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+  const hasRequiredContent =
+    Boolean(job.title.trim()) &&
+    Boolean(job.companies?.name?.trim()) &&
+    stripHtml(job.description).length >= 100 &&
+    Boolean(job.apply_url);
+  const hasValidLocation =
+    job.remote_type === "remote"
+      ? Boolean(inferApplicantCountry(job.location))
+      : Boolean(job.location?.trim());
+
+  return hasCurrentSource && hasRequiredContent && hasValidLocation;
+}
+
 export function buildJobPostingJsonLd(job: JobWithCompany) {
   const companyName = getJobCompanyName(job);
   const postedAt = job.posted_at ?? job.discovered_at;
   const lastSeenAt = job.last_seen_at ?? job.updated_at ?? job.discovered_at;
   const description = stripHtml(job.description) || getJobMetaDescription(job);
   const applicantCountry = job.remote_type === "remote" ? inferApplicantCountry(job.location) : null;
+  const validThrough = new Date(
+    new Date(lastSeenAt).getTime() + JOB_SCHEMA_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
 
   return {
     "@context": "https://schema.org",
@@ -159,6 +185,7 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
     },
     datePosted: postedAt,
     dateModified: lastSeenAt,
+    validThrough,
     employmentType: inferEmploymentType(job),
     hiringOrganization: {
       "@type": "Organization",
@@ -166,7 +193,7 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
       sameAs: job.companies?.website ?? undefined
     },
     baseSalary: buildBaseSalary(job),
-    jobLocation: buildJobLocation(job),
+    jobLocation: job.remote_type === "remote" ? undefined : buildJobLocation(job),
     applicantLocationRequirements: applicantCountry
       ? {
           "@type": "Country",

@@ -19,7 +19,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { publicPricingPlans } from "@/lib/pricing";
-import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
+import { absoluteUrl, defaultDescription, siteName, defaultOgImagePath } from "@/lib/seo";
 import type { JobWithCompany } from "@/types/database";
 
 const landingDescription =
@@ -33,11 +33,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: siteName,
     description: landingDescription,
-    url: "/"
+    url: "/",
+    images: [defaultOgImagePath]
   },
   twitter: {
     title: siteName,
-    description: landingDescription
+    description: landingDescription,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 
@@ -64,27 +67,13 @@ const features = [
   }
 ];
 
-const fallbackPreviewJobs = [
+const emptyPreviewJobs = [
   {
-    title: "Senior Frontend Engineer",
-    company: "Figma",
-    location: "Remote",
-    score: 96,
-    href: "/jobs"
-  },
-  {
-    title: "AI Product Engineer",
-    company: "Notion",
-    location: "San Francisco",
-    score: 91,
-    href: "/jobs"
-  },
-  {
-    title: "Data Platform Engineer",
-    company: "Ramp",
-    location: "New York",
-    score: 84,
-    href: "/jobs"
+    title: "Fresh jobs are being indexed",
+    company: "Hirevate public job index",
+    location: "Browse the latest available roles",
+    score: null,
+    href: "/jobs/latest"
   }
 ];
 
@@ -173,51 +162,20 @@ const workflowLinks = [
     href: "/about",
     label: "About Hirevate",
     description: "Read product facts, source policy, pricing facts, and AI context."
+  },
+  {
+    href: "/guides",
+    label: "Job search guides",
+    description: "Use practical guides for hidden jobs, freshness, resumes, and tracking."
+  },
+  {
+    href: "/compare",
+    label: "Compare Hirevate",
+    description: "Read fact-checked comparisons with LinkedIn and Indeed."
   }
 ];
 
-const fallbackTrackedCompanies = [
-  {
-    name: "Reddit",
-    description: "Community and product roles",
-    website: "https://reddit.com"
-  },
-  {
-    name: "Meta",
-    description: "Facebook and product roles",
-    website: "https://meta.com"
-  },
-  {
-    name: "OpenAI",
-    description: "AI and platform roles",
-    website: "https://openai.com"
-  },
-  {
-    name: "Stripe",
-    description: "Payments and business roles",
-    website: "https://stripe.com"
-  },
-  {
-    name: "Figma",
-    description: "Design and engineering roles",
-    website: "https://figma.com"
-  },
-  {
-    name: "Notion",
-    description: "Productivity software roles",
-    website: "https://notion.so"
-  },
-  {
-    name: "Vercel",
-    description: "Developer platform roles",
-    website: "https://vercel.com"
-  },
-  {
-    name: "Ramp",
-    description: "Fintech and operations roles",
-    website: "https://ramp.com"
-  }
-];
+
 
 const homeOfferItems = publicPricingPlans.flatMap((plan) =>
   plan.options.map((option) => ({
@@ -231,7 +189,7 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
   }))
 );
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function LandingPage() {
   const featuredJobs = await getFeaturedJobs(12);
@@ -314,35 +272,41 @@ export default async function LandingPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm font-semibold text-ink-900">From companies we track jobs</p>
+                <p className="text-sm font-semibold text-ink-900">Companies in current listings</p>
                 <p className="mt-1 text-sm leading-6 text-ink-500">
-                  Real companies with jobs currently visible in the Hirevate index.
+                  Company logos are drawn from jobs currently returned by the Hirevate index.
                 </p>
               </div>
               <p className="text-xs font-semibold uppercase tracking-normal text-brand-600">
                 Live company jobs
               </p>
             </div>
-            <div className="source-slider-mask mt-5">
-              <div className="source-slider-track flex gap-3">
-                {companySliderItems.map((company, index) => (
-                  <div
-                    className="flex h-16 min-w-[190px] items-center gap-3 rounded-md border border-gray-200 bg-white px-4 shadow-sm"
-                    key={`${company.name}-${index}`}
-                  >
-                    <CompanyLogo companyName={company.name} website={company.website} />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-ink-900">
-                        {company.name}
+            {companySliderItems.length > 0 ? (
+              <div className="source-slider-mask mt-5">
+                <div className="source-slider-track flex gap-3">
+                  {companySliderItems.map((company, index) => (
+                    <div
+                      className="flex h-16 min-w-[190px] items-center gap-3 rounded-md border border-gray-200 bg-white px-4 shadow-sm"
+                      key={`${company.name}-${index}`}
+                    >
+                      <CompanyLogo companyName={company.name} website={company.website} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-ink-900">
+                          {company.name}
+                        </span>
+                        <span className="block truncate text-xs text-ink-500">
+                          {company.description}
+                        </span>
                       </span>
-                      <span className="block truncate text-xs text-ink-500">
-                        {company.description}
-                      </span>
-                    </span>
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="mt-5 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-ink-500">
+                Current company listings will appear after the next successful job index refresh.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -507,14 +471,6 @@ function getTrackedCompanyItems(jobs: JobWithCompany[]) {
     });
   }
 
-  for (const company of fallbackTrackedCompanies) {
-    const key = company.name.toLowerCase();
-    if (items.has(key)) continue;
-
-    items.set(key, company);
-    if (items.size >= 10) break;
-  }
-
   return [...items.values()].slice(0, 10);
 }
 
@@ -528,7 +484,7 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
           score: job.freshness_score,
           href: getJobPath(job)
         }))
-      : fallbackPreviewJobs;
+      : emptyPreviewJobs;
 
   return (
     <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] overflow-hidden rounded-lg border border-gray-200 bg-white p-3 shadow-soft sm:w-full sm:max-w-full">
@@ -565,7 +521,7 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
                   {job.company} - {job.location}
                 </p>
               </div>
-              <Badge tone="green">Score {job.score}</Badge>
+              {job.score === null ? null : <Badge tone="green">Score {job.score}</Badge>}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
               <Badge tone="blue">Verified source</Badge>

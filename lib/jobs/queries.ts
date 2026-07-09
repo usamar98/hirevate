@@ -16,6 +16,7 @@ const jobListWithCompanySelect =
 const jobDetailWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
 const JOBS_PAGE_SIZE = 50;
 const JOB_SLUG_LOOKUP_LIMIT = 5000;
+const SITEMAP_FRESH_DAYS = 30;
 
 function createAnonPublicJobsClient() {
   if (!hasSupabaseBrowserConfig()) return null;
@@ -284,14 +285,19 @@ export async function getFeaturedJobs(limit = 3) {
   return dedupeJobs((data ?? []) as JobWithCompany[]);
 }
 
-export async function getSitemapJobs(limit = 5000) {
+export async function getSitemapJobs(limit = 2000) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return [] as JobWithCompany[];
+  const freshCutoff = new Date(
+    Date.now() - SITEMAP_FRESH_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
 
   const { data, error } = await supabase
     .from("jobs")
     .select(jobListWithCompanySelect)
     .eq("status", "active")
+    .gte("last_seen_at", freshCutoff)
+    .not("apply_url", "is", null)
     .order("updated_at", { ascending: false, nullsFirst: false })
     .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
@@ -343,6 +349,45 @@ export async function getLocationJobs(location: string, limit = 40) {
 
   if (error) {
     console.error("Failed to load location jobs", error);
+    return { jobs: [] as JobWithCompany[], configured: true };
+  }
+
+  return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
+}
+
+export async function getUkJobs(limit = 40) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
+
+  const ukLocations = [
+    "United Kingdom",
+    "England",
+    "Scotland",
+    "Wales",
+    "Northern Ireland",
+    "London",
+    "Manchester",
+    "Birmingham",
+    "Edinburgh",
+    "Glasgow",
+    "Bristol",
+    "Leeds",
+    "Belfast",
+    "Cardiff"
+  ];
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(jobListWithCompanySelect)
+    .eq("status", "active")
+    .or(ukLocations.map((location) => `location.ilike.%${location}%`).join(","))
+    .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
+    .order("discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load UK jobs", error);
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 

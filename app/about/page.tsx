@@ -11,7 +11,7 @@ import {
   hirevatePublicPages,
   hirevateSourceFacts
 } from "@/lib/geo";
-import { absoluteUrl, defaultDescription, siteName } from "@/lib/seo";
+import { absoluteUrl, defaultDescription, siteName, defaultOgImagePath } from "@/lib/seo";
 
 const aboutDescription =
   "Learn what Hirevate is, how it finds fresh jobs from public hiring sources, and how its resume, cover letter, and job tracker tools support job seekers.";
@@ -52,11 +52,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About Hirevate",
     description: aboutDescription,
-    url: "/about"
+    url: "/about",
+    images: [defaultOgImagePath]
   },
   twitter: {
     title: "About Hirevate",
-    description: aboutDescription
+    description: aboutDescription,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 

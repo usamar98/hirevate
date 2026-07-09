@@ -7,16 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { publicPricingPlans, type CheckoutPlanKey } from "@/lib/pricing";
 
-export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function PricingCards() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function startCheckout(plan: CheckoutPlanKey) {
-    if (!isLoggedIn) {
-      window.location.href = "/login?redirect=/pricing";
-      return;
-    }
-
     setLoadingPlan(plan);
     setError(null);
 
@@ -29,6 +24,11 @@ export function PricingCards({ isLoggedIn }: { isLoggedIn: boolean }) {
         body: JSON.stringify({ plan })
       });
       const payload = (await response.json()) as { url?: string; error?: string };
+
+      if (response.status === 401) {
+        window.location.href = "/login?redirect=/pricing";
+        return;
+      }
 
       if (!response.ok || !payload.url) {
         setError(payload.error ?? "Unable to start checkout.");

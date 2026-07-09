@@ -9,7 +9,7 @@ import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jo
 import { getSitemapJobs } from "@/lib/jobs/queries";
 import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 import { formatRelativeDate } from "@/lib/utils";
 
 const latestJobsDescription =
@@ -24,22 +24,25 @@ const latestJobsInternalLinks = [
   { href: "/cover-letter", label: "Cover letter builder" }
 ];
 
-export const dynamic = "force-dynamic";
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "Latest Direct-Apply Jobs",
+  title: "Latest Public Jobs",
   description: latestJobsDescription,
   alternates: {
     canonical: "/jobs/latest"
   },
   openGraph: {
-    title: "Latest Direct-Apply Jobs",
+    title: "Latest Public Jobs",
     description: latestJobsDescription,
-    url: "/jobs/latest"
+    url: "/jobs/latest",
+    images: [defaultOgImagePath]
   },
   twitter: {
-    title: "Latest Direct-Apply Jobs",
-    description: latestJobsDescription
+    title: "Latest Public Jobs",
+    description: latestJobsDescription,
+    card: "summary_large_image",
+    images: [defaultOgImagePath]
   }
 };
 

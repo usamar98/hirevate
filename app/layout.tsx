@@ -123,6 +123,7 @@ const organizationJsonLd = {
   alternateName: "Hirevate Hidden Jobs",
   url: siteUrl,
   logo: absoluteUrl("/icon.svg"),
+  image: absoluteUrl(defaultOgImagePath),
   description: defaultDescription,
   knowsAbout: geoAudienceKeywords
 };
@@ -154,6 +155,7 @@ const softwareApplicationJsonLd = {
   applicationCategory: "BusinessApplication",
   applicationSubCategory: "Job search and career management",
   operatingSystem: "Web",
+  image: absoluteUrl(defaultOgImagePath),
   description: defaultDescription,
   publisher: {
     "@id": organizationId
@@ -179,7 +181,7 @@ const jobSearchServiceJsonLd = {
   "@type": "Service",
   "@id": absoluteUrl("/#job-search-service"),
   name: "Hidden job discovery and application workflow",
-  serviceType: "Direct-apply job search platform",
+  serviceType: "Public-source job discovery and application workflow",
   provider: {
     "@id": organizationId
   },

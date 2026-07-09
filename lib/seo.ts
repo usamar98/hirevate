@@ -10,7 +10,13 @@ export const defaultDescription =
   "Find fresh jobs from company career pages, public ATS boards, and trusted hiring sources, build targeted resumes, and track which applications turn into interviews.";
 export const defaultOgImagePath = "/opengraph-image";
 
-export const crawlDisallowPaths = ["/admin/", "/api/", "/auth/", "/dashboard/"] as const;
+export const crawlDisallowPaths = [
+  "/admin/",
+  "/adminhirevate01",
+  "/api/",
+  "/auth/",
+  "/dashboard/"
+] as const;
 
 export const aiSearchCrawlerUserAgents = [
   "GPTBot",
@@ -42,6 +48,7 @@ export const publicSeoRoutes = [
   { path: "/jobs", changeFrequency: "hourly", priority: 0.95 },
   { path: "/jobs/latest", changeFrequency: "hourly", priority: 0.92 },
   { path: "/jobs/remote", changeFrequency: "hourly", priority: 0.9 },
+  { path: "/jobs/uk", changeFrequency: "hourly", priority: 0.89 },
   { path: "/jobs/london", changeFrequency: "hourly", priority: 0.88 },
   { path: "/jobs/engineering", changeFrequency: "hourly", priority: 0.88 },
   { path: "/jobs/software-engineer", changeFrequency: "hourly", priority: 0.87 },
@@ -50,7 +57,9 @@ export const publicSeoRoutes = [
   { path: "/jobs/customer-success", changeFrequency: "hourly", priority: 0.84 },
   { path: "/resume-builder", changeFrequency: "weekly", priority: 0.8 },
   { path: "/cover-letter", changeFrequency: "weekly", priority: 0.78 },
-  { path: "/pricing", changeFrequency: "weekly", priority: 0.7 }
+  { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/guides", changeFrequency: "weekly", priority: 0.76 },
+  { path: "/compare", changeFrequency: "monthly", priority: 0.68 }
 ] as const;
 
 export function absoluteUrl(path = "/") {

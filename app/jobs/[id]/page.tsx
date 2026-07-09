@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { defaultOgImagePath } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,8 @@ import {
   getJobMetaDescription,
   getJobMetaTitle,
   getJobPath,
-  getJobSlug
+  getJobSlug,
+  isJobPostingEligible
 } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
@@ -63,11 +65,14 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: canonicalPath
+      url: canonicalPath,
+      images: [defaultOgImagePath]
     },
     twitter: {
       title,
-      description
+      description,
+      card: "summary_large_image",
+      images: [defaultOgImagePath]
     },
     robots: {
       index: true,
@@ -123,7 +128,12 @@ export default async function JobDetailPage({
 
   return (
     <>
-      <JsonLd data={[buildJobPostingJsonLd(job), buildJobBreadcrumbJsonLd(job)]} />
+      <JsonLd
+        data={[
+          ...(isJobPostingEligible(job) ? [buildJobPostingJsonLd(job)] : []),
+          buildJobBreadcrumbJsonLd(job)
+        ]}
+      />
       <section className="bg-gray-50 py-10">
         <div className="container-shell grid gap-6 lg:grid-cols-[1fr_320px]">
           <article className="min-w-0 rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:p-8">

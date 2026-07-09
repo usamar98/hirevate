@@ -10,7 +10,7 @@ import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/sessi
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
 import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const jobsDescription =
@@ -170,7 +170,7 @@ export async function generateMetadata({
   const title = titleParts.join(" ");
   const description =
     filters.keyword || filters.location || filters.company || filters.workMode !== "any"
-      ? `Search fresh ${title.toLowerCase()} from company career pages, public ATS boards, and trusted hiring sources. No middlemen, no noisy boards.`
+      ? `Search fresh ${title.toLowerCase()} from company career pages, public ATS boards, and trusted hiring sources. Clear source and freshness signals, without a noisy social feed.`
       : jobsDescription;
 
   return {
@@ -182,11 +182,14 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: "/jobs"
+      url: "/jobs",
+      images: [defaultOgImagePath]
     },
     twitter: {
       title,
-      description
+      description,
+      card: "summary_large_image",
+      images: [defaultOgImagePath]
     },
     robots: hasFacetedSearch(filters)
       ? {
