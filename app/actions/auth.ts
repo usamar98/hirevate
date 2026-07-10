@@ -10,7 +10,15 @@ import {
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validators/auth";
+import {
+  passwordResetRequestSchema,
+  passwordUpdateSchema,
+  signInSchema,
+  signUpSchema,
+  type AuthFormValues,
+  type PasswordResetRequestValues,
+  type PasswordUpdateValues
+} from "@/lib/validators/auth";
 
 type AuthResult =
   | { ok: true; needsConfirmation?: boolean; message?: string }
@@ -227,6 +235,69 @@ export async function signUpAction(
   }
 
   return { ok: true };
+}
+
+export async function requestPasswordResetAction(
+  values: PasswordResetRequestValues
+): Promise<AuthResult> {
+  const parsed = passwordResetRequestSchema.safeParse(values);
+  if (!parsed.success) {
+    return { ok: false, error: "Enter a valid email address." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return { ok: false, error: "Supabase is not configured." };
+  }
+
+  const origin = await getRequestOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/reset-password")}`
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      error: "We could not send a reset email right now. Please try again shortly."
+    };
+  }
+
+  return {
+    ok: true,
+    message: "If an account exists for that email, a password reset link is on its way."
+  };
+}
+
+export async function updatePasswordAction(values: PasswordUpdateValues): Promise<AuthResult> {
+  const parsed = passwordUpdateSchema.safeParse(values);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Enter a valid password." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return { ok: false, error: "Supabase is not configured." };
+  }
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return {
+      ok: false,
+      error: "This password reset link is invalid or has expired. Request a new one."
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  await supabase.auth.signOut();
+
+  return {
+    ok: true,
+    message: "Your password has been updated. You can now log in with your new password."
+  };
 }
 
 export async function signOutAction() {

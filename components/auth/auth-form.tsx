@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,8 +17,13 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const redirectParam = searchParams.get("redirect") ?? "/dashboard";
   const redirectTo =
     redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : "/dashboard";
-  const [message, setMessage] = useState<string | null>(null);
-  const [messageTone, setMessageTone] = useState<"error" | "success">("error");
+  const passwordWasUpdated = mode === "login" && searchParams.get("password") === "updated";
+  const [message, setMessage] = useState<string | null>(
+    passwordWasUpdated ? "Your password was updated. Log in with your new password." : null
+  );
+  const [messageTone, setMessageTone] = useState<"error" | "success">(
+    passwordWasUpdated ? "success" : "error"
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     formState: { errors },
@@ -86,10 +92,21 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         />
         {errors.email ? <span className="text-sm text-red-600">{errors.email.message}</span> : null}
       </label>
-      <label className="block space-y-1.5">
-        <span className="text-sm font-semibold text-ink-700">Password</span>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-3 text-sm font-semibold text-ink-700">
+          <label htmlFor={`${mode}-password`}>Password</label>
+          {mode === "login" ? (
+            <Link
+              className="font-semibold text-brand-600 hover:text-brand-700"
+              href="/forgot-password"
+            >
+              Forgot password?
+            </Link>
+          ) : null}
+        </div>
         <Input
           autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          id={`${mode}-password`}
           placeholder="At least 8 characters"
           type="password"
           {...register("password")}
@@ -97,7 +114,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         {errors.password ? (
           <span className="text-sm text-red-600">{errors.password.message}</span>
         ) : null}
-      </label>
+      </div>
       {message ? (
         <div
           className={
