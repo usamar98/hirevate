@@ -12,10 +12,16 @@ import { formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
 
 export function JobCard({
-  job
+  canApply,
+  hasAccount,
+  job,
+  showApplyAction = true
 }: {
+  canApply: boolean;
+  hasAccount: boolean;
   isSaved?: boolean;
   job: JobWithCompany;
+  showApplyAction?: boolean;
   showSave?: boolean;
 }) {
   const companyName = job.companies?.name ?? "Unknown company";
@@ -66,10 +72,21 @@ export function JobCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          {job.apply_url ? (
+          {showApplyAction && job.apply_url && canApply ? (
             <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer">
               Apply now
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          ) : showApplyAction && job.apply_url ? (
+            <Button
+              asChild
+              href={
+                hasAccount
+                  ? "/pricing?limit=apply-access#plans"
+                  : `/signup?redirect=${encodeURIComponent(jobPath)}`
+              }
+            >
+              {hasAccount ? "Upgrade to apply" : "Sign up to apply"}
             </Button>
           ) : null}
           <Button asChild href={jobPath} variant="outline">

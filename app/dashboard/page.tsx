@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JobCard } from "@/components/jobs/job-card";
 import { isSuperLoginProfile } from "@/lib/auth/super-login";
-import { getProfile, requireUser } from "@/lib/auth/session";
+import { getProfile, isPaidSubscription, requireUser } from "@/lib/auth/session";
 import { getJobTrackerDashboard } from "@/lib/job-tracker/queries";
 import { countSavedJobs, getSavedJobs } from "@/lib/jobs/queries";
 
@@ -34,6 +34,7 @@ export default async function DashboardPage({
   ]);
   const recentSavedJobs = savedJobs.slice(0, 3).filter((item) => item.jobs);
   const status = profile?.subscription_status ?? "free";
+  const isPaid = isPaidSubscription(status);
   const checkoutSuccess = resolvedSearchParams?.checkout === "success";
   const superLoginPlan = resolvedSearchParams?.superLoginPlan;
   const superLoginError = resolvedSearchParams?.superLoginError;
@@ -161,7 +162,7 @@ export default async function DashboardPage({
           <div className="space-y-4">
             {recentSavedJobs.map((item) =>
               item.jobs ? (
-                <JobCard isSaved job={item.jobs} key={item.id} />
+                <JobCard canApply={isPaid} hasAccount isSaved job={item.jobs} key={item.id} />
               ) : null
             )}
             {recentSavedJobs.length === 0 ? (

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -218,6 +219,11 @@ export default async function JobsPage({
     user ? getProfile(user.id) : Promise.resolve(null)
   ]);
   const isPaid = isPaidSubscription(profile?.subscription_status);
+
+  if (!isPaid && page > 1) {
+    redirect(buildJobsPageHref(filters, 1));
+  }
+
   const visibleJobs = isPaid ? jobs : jobs.slice(0, 10);
   const hasVisibleJobs = visibleJobs.length > 0;
   const isLimited = !isPaid && hasVisibleJobs && totalCount > visibleJobs.length;
@@ -416,7 +422,13 @@ export default async function JobsPage({
 
           <div id="results" className="mt-8 scroll-mt-24 space-y-4">
             {visibleJobs.map((job) => (
-              <JobCard isSaved={savedJobIds.has(job.id)} job={job} key={job.id} />
+              <JobCard
+                canApply={isPaid}
+                hasAccount={Boolean(user)}
+                isSaved={savedJobIds.has(job.id)}
+                job={job}
+                key={job.id}
+              />
             ))}
           </div>
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
@@ -92,11 +92,13 @@ function buildCategoryJsonLd(category: JobCategoryPage, jobs: JobWithCompany[]) 
 
 export async function JobCategoryLandingPage({ category }: { category: JobCategoryPage }) {
   const { configured, jobs } = await getCategoryJobs(category);
+  const visibleJobs = jobs.slice(0, 10);
+  const isLimited = jobs.length > visibleJobs.length;
   const siblingCategories = jobCategoryList.filter((item) => item.slug !== category.slug);
 
   return (
     <>
-      <JsonLd data={buildCategoryJsonLd(category, jobs)} />
+      <JsonLd data={buildCategoryJsonLd(category, visibleJobs)} />
       <section className="bg-gray-50 py-10">
         <div className="container-shell">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -143,13 +145,36 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
 
           {configured ? (
             <p className="mt-8 text-sm font-medium text-ink-500">
-              Showing {jobs.length} fresh public-source roles.
+              Showing {visibleJobs.length} of {jobs.length} fresh public-source roles.
             </p>
           ) : null}
 
+          {isLimited ? (
+            <div className="mt-5 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 md:flex-row md:items-center md:justify-between">
+              <span className="inline-flex items-center gap-2 font-medium">
+                <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+                Public preview: sign up to open the subscription-aware job feed and apply workflow.
+              </span>
+              <Button
+                asChild
+                href={`/signup?redirect=${encodeURIComponent("/jobs")}`}
+                size="sm"
+                variant="outline"
+              >
+                Sign up
+              </Button>
+            </div>
+          ) : null}
+
           <div className="mt-5 space-y-4">
-            {jobs.map((job) => (
-              <JobCard job={job} key={job.id} />
+            {visibleJobs.map((job) => (
+              <JobCard
+                canApply={false}
+                hasAccount={false}
+                job={job}
+                key={job.id}
+                showApplyAction={false}
+              />
             ))}
           </div>
 

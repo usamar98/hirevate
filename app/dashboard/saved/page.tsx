@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
 import { getSavedJobs } from "@/lib/jobs/queries";
-import { requireUser } from "@/lib/auth/session";
+import { getProfile, isPaidSubscription, requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Saved Jobs",
@@ -15,7 +15,11 @@ export const metadata: Metadata = {
 
 export default async function SavedJobsPage() {
   const user = await requireUser();
-  const savedJobs = await getSavedJobs(user.id);
+  const [savedJobs, profile] = await Promise.all([
+    getSavedJobs(user.id),
+    getProfile(user.id)
+  ]);
+  const isPaid = isPaidSubscription(profile?.subscription_status);
   const validSavedJobs = savedJobs.filter((item) => item.jobs);
 
   return (
@@ -30,7 +34,7 @@ export default async function SavedJobsPage() {
         <div className="mt-8 space-y-4">
           {validSavedJobs.map((item) =>
             item.jobs ? (
-              <JobCard isSaved job={item.jobs} key={item.id} />
+              <JobCard canApply={isPaid} hasAccount isSaved job={item.jobs} key={item.id} />
             ) : null
           )}
         </div>

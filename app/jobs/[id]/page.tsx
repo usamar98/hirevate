@@ -9,7 +9,7 @@ import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { ResumeMatchCard } from "@/components/jobs/resume-match-card";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
@@ -101,10 +101,12 @@ export default async function JobDetailPage({
     redirect(canonicalPath);
   }
 
-  const [access, savedJobIds] = await Promise.all([
+  const [access, savedJobIds, profile] = await Promise.all([
     user ? canViewJob(user.id, job.id) : Promise.resolve({ allowed: true, remaining: 0, reason: null }),
-    user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>())
+    user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>()),
+    user ? getProfile(user.id) : Promise.resolve(null)
   ]);
+  const isPaid = isPaidSubscription(profile?.subscription_status);
 
   if (user && access.allowed) {
     await recordJobView(user.id, job.id);
@@ -184,10 +186,22 @@ export default async function JobDetailPage({
                 </div>
               ) : null}
               <div className="mt-5 space-y-2">
-                {job.apply_url ? (
+                {job.apply_url && isPaid ? (
                   <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer" className="w-full">
                     {sourceTrust.applyCta}
                     <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                ) : job.apply_url ? (
+                  <Button
+                    asChild
+                    href={
+                      user
+                        ? "/pricing?limit=apply-access#plans"
+                        : `/signup?redirect=${encodeURIComponent(canonicalPath)}`
+                    }
+                    className="w-full"
+                  >
+                    {user ? "Upgrade to apply" : "Sign up to apply"}
                   </Button>
                 ) : null}
                 <SaveJobButton

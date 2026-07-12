@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LockKeyhole } from "lucide-react";
 import { PricingCards } from "@/components/pricing/pricing-cards";
 import { JsonLd } from "@/components/seo/json-ld";
 import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
@@ -54,17 +55,21 @@ const pricingOffers = publicPricingPlans.flatMap((plan) =>
 );
 
 const pricingInternalLinks = [
-  { href: "/jobs/latest", label: "Latest jobs" },
-  { href: "/jobs/remote", label: "Remote jobs" },
-  { href: "/jobs/software-engineer", label: "Software engineer jobs" },
-  { href: "/jobs/product-manager", label: "Product manager jobs" },
-  { href: "/jobs/data-analyst", label: "Data analyst jobs" },
-  { href: "/jobs/customer-success", label: "Customer success jobs" },
-  { href: "/resume-builder", label: "Resume builder" },
-  { href: "/cover-letter", label: "Cover letter builder" },
-  { href: "/legal/subscription-terms", label: "Subscription terms" },
-  { href: "/legal/eu-withdrawal-refund-policy", label: "EU refund policy" }
+  { href: "/jobs?sort=newest", label: "Latest jobs", requiresAccount: true },
+  { href: "/jobs?workMode=remote", label: "Remote jobs", requiresAccount: true },
+  { href: "/jobs?keyword=software%20engineer", label: "Software engineer jobs", requiresAccount: true },
+  { href: "/jobs?keyword=product%20manager", label: "Product manager jobs", requiresAccount: true },
+  { href: "/jobs?keyword=data%20analyst", label: "Data analyst jobs", requiresAccount: true },
+  { href: "/jobs?keyword=customer%20success", label: "Customer success jobs", requiresAccount: true },
+  { href: "/resume-builder", label: "Resume builder", requiresAccount: true },
+  { href: "/cover-letter", label: "Cover letter builder", requiresAccount: true },
+  { href: "/legal/subscription-terms", label: "Subscription terms", requiresAccount: false },
+  { href: "/legal/eu-withdrawal-refund-policy", label: "EU refund policy", requiresAccount: false }
 ];
+
+function getAccountAccessHref(path: string) {
+  return `/signup?redirect=${encodeURIComponent(path)}`;
+}
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -152,7 +157,7 @@ export default function PricingPage() {
           }
         ]}
       />
-      <section className="bg-gray-50 py-12">
+      <section className="bg-gray-50 py-12" id="plans">
         <div className="container-shell">
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
@@ -169,13 +174,22 @@ export default function PricingPage() {
       <section className="border-t border-gray-100 bg-white py-10">
         <div className="container-shell">
           <h2 className="text-2xl font-semibold text-ink-900">What each plan connects to</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
+            Public job pages can be previewed for discovery. Opening plan access from this page
+            requires an account, and a paid plan unlocks the complete job feed and Apply now links.
+            Both plans include the same job inventory; Career Pro adds resume matching and
+            application tracking.
+          </p>
           <div className="mt-5 flex flex-wrap gap-3">
             {pricingInternalLinks.map((item) => (
               <Link
-                className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
-                href={item.href}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={item.requiresAccount ? getAccountAccessHref(item.href) : item.href}
                 key={item.href}
               >
+                {item.requiresAccount ? (
+                  <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+                ) : null}
                 {item.label}
               </Link>
             ))}
