@@ -79,6 +79,9 @@ export default async function DashboardPage({
               <span className="text-2xl font-semibold capitalize text-ink-900">{status}</span>
               <Badge tone={status === "free" ? "gray" : "green"}>{status === "free" ? "Limited" : "Unlimited"}</Badge>
             </div>
+            <Link className="mt-3 inline-flex text-sm font-semibold text-brand-700" href="/account/subscription">
+              Manage billing
+            </Link>
           </Card>
           <Card className="p-5">
             <BookmarkCheck className="h-5 w-5 text-emerald-600" aria-hidden="true" />

@@ -13,6 +13,7 @@ export const defaultOgImagePath = "/opengraph-image";
 export const crawlDisallowPaths = [
   "/admin/",
   "/adminhirevate01",
+  "/account/",
   "/api/",
   "/auth/",
   "/dashboard/"
@@ -58,6 +59,7 @@ export const publicSeoRoutes = [
   { path: "/resume-builder", changeFrequency: "weekly", priority: 0.8 },
   { path: "/cover-letter", changeFrequency: "weekly", priority: 0.78 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/legal", changeFrequency: "yearly", priority: 0.3 },
   { path: "/guides", changeFrequency: "weekly", priority: 0.76 },
   { path: "/compare", changeFrequency: "monthly", priority: 0.68 }
 ] as const;

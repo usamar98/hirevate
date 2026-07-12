@@ -422,7 +422,7 @@ export default async function LandingPage() {
           <div>
             <h2 className="text-3xl font-semibold text-ink-900">Simple pricing for serious search</h2>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Start free, then unlock unlimited views and saved jobs when the search gets active.
+              Start free, then unlock unlimited job views and career workflow tools when the search gets active.
             </p>
             <Button asChild href="/pricing" className="mt-6" variant="secondary">
               View pricing

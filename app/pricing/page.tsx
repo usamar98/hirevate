@@ -6,13 +6,13 @@ import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate Job Search and Career Pro plans for fresh job discovery, cover letters, saved jobs, and application tracking.";
+  "Compare Hirevate Job Search and Career Pro plans for fresh job discovery, resume matching, cover letters, and application tracking.";
 
 const pricingFaqItems = [
   {
     question: "Which Hirevate plan is best for an active job search?",
     answer:
-      "Career Pro is the best fit for most active searches because it combines fresh job discovery with saved jobs and application tracking."
+      "Career Pro is the best fit for most active searches because it combines fresh job discovery with resume matching and application tracking."
   },
   {
     question: "What are the current Hirevate prices?",
@@ -26,7 +26,12 @@ const pricingFaqItems = [
   {
     question: "Do paid plans include resume and cover letter tools?",
     answer:
-      "Yes. Paid Hirevate plans include the resume builder, cover letter builder, saved jobs, and the application workflow tools listed on the pricing page."
+      "Yes. Paid Hirevate plans include the resume builder, cover letter builder, and the application workflow tools listed on the pricing page."
+  },
+  {
+    question: "How do I cancel a Hirevate subscription?",
+    answer:
+      "Sign in, open Dashboard, choose Manage billing, and confirm cancellation. Renewal stops and paid access continues until the end of the current billing period."
   }
 ];
 
@@ -56,7 +61,9 @@ const pricingInternalLinks = [
   { href: "/jobs/data-analyst", label: "Data analyst jobs" },
   { href: "/jobs/customer-success", label: "Customer success jobs" },
   { href: "/resume-builder", label: "Resume builder" },
-  { href: "/cover-letter", label: "Cover letter builder" }
+  { href: "/cover-letter", label: "Cover letter builder" },
+  { href: "/legal/subscription-terms", label: "Subscription terms" },
+  { href: "/legal/eu-withdrawal-refund-policy", label: "EU refund policy" }
 ];
 
 export const metadata: Metadata = {

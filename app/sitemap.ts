@@ -3,6 +3,7 @@ import { comparisons } from "@/lib/content/comparisons";
 import { guides } from "@/lib/content/guides";
 import { getSitemapJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
+import { legalDocuments, legalEffectiveDate } from "@/lib/legal";
 import { absoluteUrl, publicSeoRoutes } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -16,6 +17,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: contentLastModified,
     changeFrequency: route.changeFrequency,
     priority: route.priority
+  }));
+
+  const legalRoutes = legalDocuments.map((document) => ({
+    url: absoluteUrl("/legal/" + document.slug),
+    lastModified: new Date(legalEffectiveDate + "T00:00:00.000Z"),
+    changeFrequency: "yearly" as const,
+    priority: 0.3
   }));
 
   const publicDiscoveryRoutes = ["/llms.txt", "/llms-full.txt", "/ai.txt"].map((path) => ({
@@ -48,6 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...publicRoutes,
+    ...legalRoutes,
     ...guideRoutes,
     ...comparisonRoutes,
     ...publicDiscoveryRoutes,

@@ -62,8 +62,8 @@ export const publicPricingPlans: PublicPricingPlan[] = [
     features: [
       "Fresh public-source job search",
       "Advanced role, company, location, and freshness filters",
-      "Save jobs from detail pages",
-      "Resume builder and cover letter builder",
+      "Resume builder with role targeting and export",
+      "Company-specific cover letter builder",
       "Best for one active search week"
     ]
   },
@@ -104,9 +104,9 @@ export const publicPricingPlans: PublicPricingPlan[] = [
     ],
     features: [
       "Everything in Job Search",
+      "Resume-to-job match score and keyword gaps",
       "Application tracker with follow-up dates",
       "Track interested, applied, interview, offer, and rejected roles",
-      "Saved jobs and clear apply-source workflow",
       "Best for a steady weekly application routine"
     ],
     highlighted: true

@@ -1,5 +1,20 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
+import { legalFooterLinks } from "@/lib/legal";
+
+const productLinks = [
+  { href: "/jobs#results", label: "Jobs" },
+  { href: "/jobs/latest", label: "Latest Jobs" },
+  { href: "/jobs/remote", label: "Remote Jobs" },
+  { href: "/jobs/uk", label: "UK Jobs" },
+  { href: "/jobs/engineering", label: "Engineering Jobs" },
+  { href: "/resume-builder", label: "Resume Builder" },
+  { href: "/cover-letter", label: "Cover Letter" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/guides", label: "Guides" },
+  { href: "/about", label: "About" },
+  { href: "/login", label: "Login" }
+];
 
 export function SiteFooter() {
   return (
@@ -12,58 +27,27 @@ export function SiteFooter() {
             scraping, no auto-apply, no noisy boards.
           </p>
         </div>
-        <div className="flex flex-wrap gap-5 text-sm font-medium text-ink-500">
-          <Link href="/jobs#results" className="hover:text-ink-900">
-            Jobs
-          </Link>
-          <Link href="/jobs/latest" className="hover:text-ink-900">
-            Latest Jobs
-          </Link>
-          <Link href="/jobs/remote" className="hover:text-ink-900">
-            Remote Jobs
-          </Link>
-          <Link href="/jobs/uk" className="hover:text-ink-900">
-            UK Jobs
-          </Link>
-          <Link href="/jobs/london" className="hover:text-ink-900">
-            London Jobs
-          </Link>
-          <Link href="/jobs/engineering" className="hover:text-ink-900">
-            Engineering Jobs
-          </Link>
-          <Link href="/jobs/software-engineer" className="hover:text-ink-900">
-            Software Engineer Jobs
-          </Link>
-          <Link href="/jobs/product-manager" className="hover:text-ink-900">
-            Product Manager Jobs
-          </Link>
-          <Link href="/jobs/data-analyst" className="hover:text-ink-900">
-            Data Analyst Jobs
-          </Link>
-          <Link href="/resume-builder" className="hover:text-ink-900">
-            Resume Builder
-          </Link>
-          <Link href="/cover-letter" className="hover:text-ink-900">
-            Cover Letter
-          </Link>
-          <Link href="/about" className="hover:text-ink-900">
-            About
-          </Link>
-          <Link href="/pricing" className="hover:text-ink-900">
-            Pricing
-          </Link>
-          <Link href="/guides" className="hover:text-ink-900">
-            Guides
-          </Link>
-          <Link href="/compare" className="hover:text-ink-900">
-            Compare
-          </Link>
-          <Link href="/llms.txt" className="hover:text-ink-900">
-            LLMs
-          </Link>
-          <Link href="/login" className="hover:text-ink-900">
-            Login
-          </Link>
+        <nav aria-label="Product links" className="flex max-w-2xl flex-wrap gap-x-5 gap-y-3 text-sm font-medium text-ink-500">
+          {productLinks.map((item) => (
+            <Link className="hover:text-ink-900" href={item.href} key={item.href}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <div className="border-t border-gray-100">
+        <div className="container-shell flex flex-col gap-3 py-5 text-xs text-ink-400 md:flex-row md:items-center md:justify-between">
+          <p>&copy; 2026 Hirevate</p>
+          <nav aria-label="Legal links" className="flex flex-wrap gap-x-4 gap-y-2">
+            <Link className="hover:text-ink-700" href="/legal">
+              Legal
+            </Link>
+            {legalFooterLinks.map((item) => (
+              <Link className="hover:text-ink-700" href={item.href} key={item.href}>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>
