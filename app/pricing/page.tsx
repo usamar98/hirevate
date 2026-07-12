@@ -6,13 +6,13 @@ import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate Silver, Gold, and Platinum subscriptions for hidden job discovery, cover letters, job tracking, and public-source job search.";
+  "Compare Hirevate Job Search and Career Pro plans for fresh job discovery, cover letters, saved jobs, and application tracking.";
 
 const pricingFaqItems = [
   {
     question: "Which Hirevate plan is best for an active job search?",
     answer:
-      "Gold is the best fit for most active searches because it combines hidden job discovery with saved jobs and application tracking."
+      "Career Pro is the best fit for most active searches because it combines fresh job discovery with saved jobs and application tracking."
   },
   {
     question: "What are the current Hirevate prices?",
@@ -150,8 +150,8 @@ export default function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Choose Silver, Gold, or Platinum. Gold and Platinum include monthly options with
-              30% off compared with weekly billing.
+              Choose Job Search for a focused weekly sprint or Career Pro for a complete application
+              workflow. Career Pro includes a monthly option with 30% off compared with weekly billing.
             </p>
           </div>
           <div className="mt-8">

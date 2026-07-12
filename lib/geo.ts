@@ -129,7 +129,7 @@ export const hirevatePublicPages = [
     title: "Pricing",
     path: "/pricing",
     description:
-      "Silver is $4.99/week; Gold is $8.99/week or $25.17/month; Platinum is $14.99/week or $41.97/month."
+      "Job Search is $4.99/week; Career Pro is $8.99/week or $25.17/month with 30% off compared with weekly billing."
   },
   {
     title: "Job search guides",

@@ -50,7 +50,7 @@ export function PricingCards() {
           {error}
         </div>
       ) : null}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2">
         {publicPricingPlans.map((plan) => (
           <Card
             className={plan.highlighted ? "relative border-amber-200 p-6 shadow-soft" : "relative p-6"}

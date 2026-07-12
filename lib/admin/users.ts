@@ -34,11 +34,11 @@ export function getSubscriptionLabel(status: string | null | undefined) {
     annual: "Annual legacy plan",
     canceled: "Canceled",
     free: "Free account",
-    gold: "Gold",
+    gold: "Career Pro",
     past_due: "Past due",
-    platinum: "Platinum",
+    platinum: "Legacy Platinum",
     pro: "Pro legacy plan",
-    silver: "Silver",
+    silver: "Job Search",
     trialing: "Trialing paid plan",
     unpaid: "Unpaid"
   };

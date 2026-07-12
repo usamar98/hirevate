@@ -1,13 +1,12 @@
 export const checkoutPlanKeys = [
   "silver_weekly",
   "gold_weekly",
-  "gold_monthly",
-  "platinum_weekly",
-  "platinum_monthly"
+  "gold_monthly"
 ] as const;
 
 export type CheckoutPlanKey = (typeof checkoutPlanKeys)[number];
 export type SubscriptionTier = "silver" | "gold" | "platinum";
+export type PublicSubscriptionTier = Exclude<SubscriptionTier, "platinum">;
 export type BillingInterval = "week" | "month";
 
 export type PublicPricingOption = {
@@ -25,8 +24,8 @@ export type PublicPricingOption = {
 };
 
 export type PublicPricingPlan = {
-  key: SubscriptionTier;
-  name: "Silver" | "Gold" | "Platinum";
+  key: PublicSubscriptionTier;
+  name: "Job Search" | "Career Pro";
   service: string;
   description: string;
   badge: string;
@@ -40,7 +39,7 @@ export type PublicPricingPlan = {
 export const publicPricingPlans: PublicPricingPlan[] = [
   {
     key: "silver",
-    name: "Silver",
+    name: "Job Search",
     service: "Focused search",
     description: "For a short, focused search sprint when you need fresh roles this week.",
     badge: "Weekly only",
@@ -55,9 +54,9 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         amountCents: 499,
         cadence: "/week",
         interval: "week",
-        cta: "Start Silver",
+        cta: "Start Job Search",
         summary: "$4.99 per week",
-        schemaName: "Silver Weekly"
+        schemaName: "Hirevate Job Search Weekly"
       }
     ],
     features: [
@@ -70,7 +69,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
   },
   {
     key: "gold",
-    name: "Gold",
+    name: "Career Pro",
     service: "Active search",
     description: "For ongoing applications with tracking, follow-ups, and better workflow control.",
     badge: "Popular",
@@ -85,9 +84,9 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         amountCents: 899,
         cadence: "/week",
         interval: "week",
-        cta: "Start Gold weekly",
+        cta: "Start Career Pro weekly",
         summary: "$8.99 per week",
-        schemaName: "Gold Weekly"
+        schemaName: "Hirevate Career Pro Weekly"
       },
       {
         key: "gold_monthly",
@@ -97,63 +96,20 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         amountCents: 2517,
         cadence: "/month",
         interval: "month",
-        cta: "Start Gold monthly",
+        cta: "Start Career Pro monthly",
         note: "30% off",
         summary: "$25.17 per month with 30% off compared with weekly billing",
-        schemaName: "Gold Monthly"
+        schemaName: "Hirevate Career Pro Monthly"
       }
     ],
     features: [
-      "Everything in Silver",
+      "Everything in Job Search",
       "Application tracker with follow-up dates",
       "Track interested, applied, interview, offer, and rejected roles",
       "Saved jobs and clear apply-source workflow",
       "Best for a steady weekly application routine"
     ],
     highlighted: true
-  },
-  {
-    key: "platinum",
-    name: "Platinum",
-    service: "Full search system",
-    description: "For serious campaigns where every role, document, and follow-up needs structure.",
-    badge: "Highest tier",
-    homepagePrice: "$14.99/wk",
-    homepageDetail: "$41.97/month with 30% off",
-    options: [
-      {
-        key: "platinum_weekly",
-        label: "Weekly",
-        price: "$14.99",
-        priceValue: "14.99",
-        amountCents: 1499,
-        cadence: "/week",
-        interval: "week",
-        cta: "Start Platinum weekly",
-        summary: "$14.99 per week",
-        schemaName: "Platinum Weekly"
-      },
-      {
-        key: "platinum_monthly",
-        label: "Monthly",
-        price: "$41.97",
-        priceValue: "41.97",
-        amountCents: 4197,
-        cadence: "/month",
-        interval: "month",
-        cta: "Start Platinum monthly",
-        note: "30% off",
-        summary: "$41.97 per month with 30% off compared with weekly billing",
-        schemaName: "Platinum Monthly"
-      }
-    ],
-    features: [
-      "Everything in Gold",
-      "Full job tracker and follow-up queue",
-      "Resume builder plus targeted cover letters",
-      "Best for high-volume interview pipelines",
-      "Best fit for aggressive search campaigns"
-    ]
   }
 ];
 
@@ -172,7 +128,7 @@ export const publicPricingFacts = publicPricingPlans.flatMap((plan) =>
 );
 
 export const pricingSummary =
-  "Silver is $4.99 per week only. Gold is $8.99 per week or $25.17 per month with 30% off monthly billing. Platinum is $14.99 per week or $41.97 per month with 30% off monthly billing.";
+  "Job Search is $4.99 per week. Career Pro is $8.99 per week or $25.17 per month with 30% off compared with weekly billing.";
 
 export function getPricingPlanForOption(key: CheckoutPlanKey) {
   const plan = publicPricingPlans.find((item) => item.options.some((option) => option.key === key));

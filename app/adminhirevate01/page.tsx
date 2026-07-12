@@ -229,7 +229,7 @@ export default async function AdminHirevatePage({
             value={dashboard.totalUsers}
           />
           <StatCard
-            detail="Users with Silver, Gold, Platinum, or legacy paid status"
+            detail="Users with Job Search, Career Pro, or legacy paid status"
             icon={ShieldCheck}
             label="Paid users"
             value={dashboard.paidUsers}

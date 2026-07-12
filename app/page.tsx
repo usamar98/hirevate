@@ -156,7 +156,7 @@ const workflowLinks = [
   {
     href: "/pricing",
     label: "Pricing",
-    description: "Compare Silver, Gold, and Platinum weekly and monthly options."
+    description: "Compare Job Search and Career Pro weekly and monthly options."
   },
   {
     href: "/about",
@@ -428,7 +428,7 @@ export default async function LandingPage() {
               View pricing
             </Button>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             {publicPricingPlans.map((plan) => (
               <Card className="p-5" key={plan.key}>
                 <h3 className="font-semibold text-ink-900">{plan.name}</h3>
