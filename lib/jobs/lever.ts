@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { env, hasLeverConfig } from "@/lib/env";
+import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
@@ -203,10 +204,10 @@ function getLocation(job: LeverPosting) {
   const allLocations = categories?.allLocations?.filter(Boolean) ?? [];
   const location = categories?.location?.trim() || allLocations.join(", ").trim();
 
-  if (location) return location;
+  if (location) return formatJobLocation(location);
   if ((job.workplaceType ?? "").toLowerCase() === "remote") return "Remote";
 
-  return job.country ?? null;
+  return formatJobLocation(job.country);
 }
 
 function getRemoteType(job: LeverPosting, title: string, location: string | null) {

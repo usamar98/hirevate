@@ -1,4 +1,5 @@
 import { env, hasAdzunaConfig } from "@/lib/env";
+import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
@@ -110,7 +111,9 @@ function getCompanySlug(job: AdzunaJob) {
 }
 
 function getLocation(job: AdzunaJob) {
-  return job.location?.display_name ?? job.location?.area?.filter(Boolean).join(", ") ?? null;
+  return formatJobLocation(
+    job.location?.display_name ?? job.location?.area?.filter(Boolean).join(", ") ?? null
+  );
 }
 
 function getAdzunaUrl(query: string, options: AdzunaSyncOptions = {}) {

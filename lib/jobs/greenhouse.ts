@@ -1,3 +1,4 @@
+import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -71,7 +72,7 @@ function selectCompanyBatch(companies: Company[], options: SourceBatchOptions) {
 }
 
 function normalizeJob(company: Company, job: GreenhouseJob) {
-  const location = job.location?.name ?? null;
+  const location = formatJobLocation(job.location?.name);
   const applyUrl = job.absolute_url ?? null;
   const updatedAt = job.updated_at ?? null;
   const lastSeenAt = new Date().toISOString();

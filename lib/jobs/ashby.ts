@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { env, hasAshbyConfig } from "@/lib/env";
 import { defaultAshbySources } from "@/lib/jobs/default-ashby-sources";
+import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -262,7 +263,7 @@ function getLocation(job: AshbyJob) {
     ...(job.secondaryLocations ?? []).map(getSecondaryLocationLabel)
   ]);
 
-  if (locations.length > 0) return locations.join(", ");
+  if (locations.length > 0) return formatJobLocation(locations.join(", "));
   if (job.isRemote) return "Remote";
 
   return null;
