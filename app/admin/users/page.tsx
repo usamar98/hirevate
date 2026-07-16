@@ -50,7 +50,7 @@ export default async function AdminUsersPage() {
         <div>
           <h1 className="text-4xl font-semibold text-ink-900">User analytics</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-            Monitor registered users, paid vs freemium status, and signup country signals captured
+            Monitor registered users, paid vs unsubscribed status, and signup country signals captured
             from production request geography.
           </p>
         </div>
@@ -72,13 +72,13 @@ export default async function AdminUsersPage() {
             icon={ShieldCheck}
             label="Paid users"
             value={dashboard.paidUsers}
-            detail="Active Job Search, Career Pro, or legacy paid statuses"
+            detail="Active Weekly, Monthly, Annual, or legacy paid statuses"
           />
           <StatCard
             icon={UserCheck}
-            label="Freemium users"
+            label="Unsubscribed users"
             value={dashboard.freemiumUsers}
-            detail="Free accounts and unpaid users"
+            detail="Accounts without an active paid plan"
           />
           <StatCard
             icon={Globe2}
@@ -106,7 +106,7 @@ export default async function AdminUsersPage() {
                       <div>
                         <p className="font-semibold text-ink-900">{country.name}</p>
                         <p className="text-ink-500">
-                          {country.paid} paid / {country.freemium} freemium
+                          {country.paid} paid / {country.freemium} unsubscribed
                         </p>
                       </div>
                       <span className="font-semibold text-ink-900">{country.total}</span>

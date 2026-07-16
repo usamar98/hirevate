@@ -164,16 +164,7 @@ const softwareApplicationJsonLd = {
   offers: {
     "@type": "OfferCatalog",
     name: "Hirevate subscriptions",
-    itemListElement: [
-      {
-        "@type": "Offer",
-        name: "Free job search preview",
-        price: "0",
-        priceCurrency: "USD",
-        url: absoluteUrl("/signup")
-      },
-      ...paidPlanOfferItems
-    ]
+    itemListElement: paidPlanOfferItems
   }
 };
 
@@ -195,16 +186,7 @@ const jobSearchServiceJsonLd = {
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Hirevate plans",
-    itemListElement: [
-      {
-        "@type": "Offer",
-        name: "Free job search plan",
-        price: "0",
-        priceCurrency: "USD",
-        url: absoluteUrl("/")
-      },
-      ...paidPlanOfferItems
-    ]
+    itemListElement: paidPlanOfferItems
   }
 };
 

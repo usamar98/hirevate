@@ -128,8 +128,7 @@ export const hirevatePublicPages = [
   {
     title: "Pricing",
     path: "/pricing",
-    description:
-      "Job Search is $4.99/week; Career Pro is $8.99/week or $25.17/month with 30% off compared with weekly billing."
+    description: pricingSummary
   },
   {
     title: "Job search guides",

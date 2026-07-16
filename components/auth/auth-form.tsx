@@ -9,14 +9,16 @@ import { useForm } from "react-hook-form";
 import { signInAction, signUpAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { notifyAuthStatusChanged } from "@/lib/auth/client-events";
 import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validators/auth";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectParam = searchParams.get("redirect") ?? "/dashboard";
+  const defaultRedirect = mode === "signup" ? "/pricing" : "/dashboard";
+  const redirectParam = searchParams.get("redirect") ?? defaultRedirect;
   const redirectTo =
-    redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : "/dashboard";
+    redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : defaultRedirect;
   const passwordWasUpdated = mode === "login" && searchParams.get("password") === "updated";
   const [message, setMessage] = useState<string | null>(
     passwordWasUpdated ? "Your password was updated. Log in with your new password." : null
@@ -60,6 +62,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         return;
       }
 
+      notifyAuthStatusChanged();
       router.replace(redirectTo);
       router.refresh();
     } catch (error) {

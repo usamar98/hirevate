@@ -3,12 +3,12 @@ import { Logo } from "@/components/layout/logo";
 import { legalFooterLinks } from "@/lib/legal";
 
 const productLinks = [
-  { href: "/jobs#results", label: "Jobs" },
+  { href: "/jobs#results", label: "Find Jobs" },
   { href: "/jobs/latest", label: "Latest Jobs" },
   { href: "/jobs/remote", label: "Remote Jobs" },
   { href: "/jobs/uk", label: "UK Jobs" },
   { href: "/jobs/engineering", label: "Engineering Jobs" },
-  { href: "/resume-builder", label: "Resume Builder" },
+  { href: "/resume-builder", label: "Resume" },
   { href: "/cover-letter", label: "Cover Letter" },
   { href: "/pricing", label: "Pricing" },
   { href: "/guides", label: "Guides" },

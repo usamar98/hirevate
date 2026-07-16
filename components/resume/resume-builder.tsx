@@ -514,7 +514,13 @@ function buildPrintableHtml(draft: ResumeDraft) {
 </html>`;
 }
 
-export function ResumeBuilder() {
+export function ResumeBuilder({
+  canExport,
+  isAuthenticated
+}: {
+  canExport: boolean;
+  isAuthenticated: boolean;
+}) {
   const [draft, setDraft] = useState<ResumeDraft>(initialDraft);
   const [activeTab, setActiveTab] = useState("profile");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -563,6 +569,12 @@ export function ResumeBuilder() {
 
   function exportResume() {
     setCheckoutError(null);
+
+    if (!canExport) {
+      window.location.assign(isAuthenticated ? "/pricing" : "/login?redirect=%2Fpricing");
+      return;
+    }
+
     const html = buildPrintableHtml(draft);
     const resumeUrl = URL.createObjectURL(new Blob([html], { type: "text/html" }));
     const printWindow = window.open(resumeUrl, "_blank", "width=900,height=1100");
@@ -600,7 +612,7 @@ export function ResumeBuilder() {
           <div className="flex flex-wrap gap-3">
             <Button onClick={exportResume}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              Export resume
+              {canExport ? "Export resume" : "Unlock export"}
             </Button>
             <Button variant="outline" onClick={() => setDraft(initialDraft)}>
               Reset demo
@@ -909,12 +921,14 @@ export function ResumeBuilder() {
           </Card>
 
           <Card className="border-brand-100 bg-brand-50 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">Free Resume Export</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">Paid plan export</p>
             <h2 className="mt-2 text-xl font-semibold text-ink-900">
-              Testing mode enabled
+              {canExport ? "Export is unlocked" : "Unlock resume export"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink-600">
-              Build, tune, print, or save your resume as PDF without payment while testing.
+              {canExport
+                ? "Print or save your finished resume as a PDF from your browser."
+                : "Resume export is included with every Hirevate paid plan."}
             </p>
             {checkoutError ? (
               <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -923,7 +937,7 @@ export function ResumeBuilder() {
             ) : null}
             <Button className="mt-5 w-full" onClick={exportResume}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              Export resume
+              {canExport ? "Export resume" : "View paid plans"}
             </Button>
           </Card>
         </aside>

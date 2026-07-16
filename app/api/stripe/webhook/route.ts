@@ -17,6 +17,10 @@ function isPlanKey(value: unknown): value is StripePlanKey {
   return typeof value === "string" && checkoutPlanKeys.includes(value as StripePlanKey);
 }
 
+const legacySubscriptionStatuses: Record<string, "silver" | "gold" | "platinum"> = {
+  gold_weekly: "gold"
+};
+
 async function updateProfileFromSubscription(subscription: Stripe.Subscription) {
   const admin = createSupabaseAdminClient();
   if (!admin) throw new Error("Supabase service role is not configured.");
@@ -30,7 +34,7 @@ async function updateProfileFromSubscription(subscription: Stripe.Subscription) 
     subscription.status === "active" || subscription.status === "trialing"
       ? isPlanKey(plan)
         ? stripePlans[plan].subscriptionStatus
-        : subscription.status
+        : legacySubscriptionStatuses[plan] ?? subscription.status
       : "free";
 
   await admin

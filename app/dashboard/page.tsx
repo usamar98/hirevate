@@ -35,6 +35,16 @@ export default async function DashboardPage({
   const recentSavedJobs = savedJobs.slice(0, 3).filter((item) => item.jobs);
   const status = profile?.subscription_status ?? "free";
   const isPaid = isPaidSubscription(status);
+  const subscriptionLabel =
+    status === "silver"
+      ? "Weekly Plan"
+      : status === "gold"
+        ? "Monthly Plan"
+        : status === "platinum"
+          ? "Annual Plan"
+          : isPaid
+            ? "Paid subscription"
+            : "No active plan";
   const checkoutSuccess = resolvedSearchParams?.checkout === "success";
   const superLoginPlan = resolvedSearchParams?.superLoginPlan;
   const superLoginError = resolvedSearchParams?.superLoginError;
@@ -51,7 +61,7 @@ export default async function DashboardPage({
         ) : null}
         {superLoginPlan === "free" || superLoginPlan === "active" ? (
           <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-            Super login is now testing {superLoginPlan === "active" ? "paid" : "free"} access.
+            Super login is now testing {superLoginPlan === "active" ? "paid" : "unsubscribed"} access.
           </div>
         ) : null}
         {superLoginError === "not-configured" ? (
@@ -77,8 +87,8 @@ export default async function DashboardPage({
             <CreditCard className="h-5 w-5 text-brand-600" aria-hidden="true" />
             <p className="mt-4 text-sm font-semibold text-ink-500">Subscription</p>
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-2xl font-semibold capitalize text-ink-900">{status}</span>
-              <Badge tone={status === "free" ? "gray" : "green"}>{status === "free" ? "Limited" : "Unlimited"}</Badge>
+              <span className="text-2xl font-semibold text-ink-900">{subscriptionLabel}</span>
+              <Badge tone={isPaid ? "green" : "gray"}>{isPaid ? "Active" : "Unsubscribed"}</Badge>
             </div>
             <Link className="mt-3 inline-flex text-sm font-semibold text-brand-700" href="/account/subscription">
               Manage billing
@@ -117,14 +127,14 @@ export default async function DashboardPage({
               <div>
                 <h2 className="text-lg font-semibold text-ink-900">Super login test mode</h2>
                 <p className="mt-1 text-sm leading-6 text-ink-600">
-                  Switch this account between free limits and paid access without touching Stripe.
+                  Switch this account between unsubscribed limits and paid access without touching Stripe.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <form action={updateSuperLoginPlanAction}>
                   <input name="subscriptionStatus" type="hidden" value="free" />
                   <Button disabled={status === "free"} type="submit" variant="outline">
-                    Test free
+                    Test unsubscribed
                   </Button>
                 </form>
                 <form action={updateSuperLoginPlanAction}>
@@ -143,7 +153,7 @@ export default async function DashboardPage({
             <div>
               <h2 className="text-lg font-semibold text-ink-900">Unlock unlimited hidden jobs</h2>
               <p className="mt-1 text-sm leading-6 text-ink-500">
-                Free users can view 10 job detail pages per day and save 5 jobs.
+                Unsubscribed accounts can preview 10 job detail pages per day and save 5 jobs.
               </p>
             </div>
             <Button asChild href="/pricing">

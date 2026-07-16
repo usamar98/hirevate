@@ -43,7 +43,7 @@ Freshness controls:
 - Tailwind CSS
 - Supabase database, auth, and RLS
 - Stripe Checkout and webhooks
-- Advanced resume builder with free testing-mode export
+- Advanced resume builder with paid-plan export
 - Zod validation
 - React Hook Form
 
@@ -246,17 +246,17 @@ Freshness scoring starts at 50:
 - +10 when the title includes software/dev/engineer/frontend/backend/fullstack/AI/data
 - Max 100
 
-## Free Plan Limits
+## Public Preview Limits
 
-- Free users can view 10 job detail pages per UTC day.
-- Free users can save 5 jobs.
-- Paid Silver, Gold, and Platinum users have unlimited job views and saved jobs.
+- Unsubscribed accounts can preview 10 job detail pages per UTC day.
+- Unsubscribed accounts can save up to 5 jobs.
+- Weekly, Monthly, and Annual subscribers have unlimited job views and saved jobs.
 
 ## Resume Builder
 
 The resume builder at `/resume-builder` lets users create a role-targeted resume with ATS scoring,
 keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
-Resume export is currently free for testing.
+Resume export is included with every active paid subscription.
 
 ## Application Tracker And Cover Letters
 
@@ -267,7 +267,7 @@ the employer page.
 
 ## Admin User Analytics
 
-Admins can open `/admin/users` to see registered users, paid vs freemium counts, recent signups,
+Admins can open `/admin/users` to see registered users, paid vs unsubscribed counts, recent signups,
 and country breakdowns. Run `supabase/migrations/003_profile_geography.sql` to persist country and
 last-seen data on profiles. Country data is captured from production request headers such as
 `x-vercel-ip-country`, so existing users may show as unknown until they log in again.
@@ -277,7 +277,7 @@ Editor after replacing `you@example.com` with your login email.
 
 ## Super Login Test Account
 
-The app supports one username-based super login for testing free and paid behavior without storing a
+The app supports one username-based super login for testing unsubscribed and paid behavior without storing a
 test password in the repository.
 
 Set these environment variables in the environment where you run the setup script:
@@ -298,7 +298,7 @@ The script creates or updates the Supabase auth user, confirms the email, upsert
 profile as `role = 'admin'`, and starts the account with `subscription_status = 'active'`.
 
 On `/login`, enter the username instead of the mapped email. After login, the dashboard shows a
-`Super login test mode` panel where this account can switch between free limits and paid access
+`Super login test mode` panel where this account can switch between unsubscribed limits and paid access
 without touching Stripe.
 
 In production, the server can also create/update the super login automatically during login when

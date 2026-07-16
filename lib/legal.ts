@@ -16,8 +16,8 @@ export type LegalDocument = {
   sections: LegalSection[];
 };
 
-export const legalEffectiveDate = "2026-07-13";
-export const legalEffectiveDateLabel = "July 13, 2026";
+export const legalEffectiveDate = "2026-07-16";
+export const legalEffectiveDateLabel = "July 16, 2026";
 
 export const legalIdentity = {
   operatorName: env.legalOperatorName || "Hirevate",
@@ -83,12 +83,12 @@ export const legalDocuments: LegalDocument[] = [
     slug: "subscription-terms",
     shortTitle: "Subscriptions",
     title: "Hirevate Subscription and Cancellation Terms",
-    description: "Hirevate weekly and monthly recurring billing, automatic renewal, cancellation at period end, paid access, refunds, and price changes.",
+    description: "Hirevate weekly, monthly, and annual recurring billing, automatic renewal, cancellation at period end, paid access, refunds, and price changes.",
     summary: "Paid plans renew for the selected billing period until the subscriber cancels.",
     sections: [
       {
         title: "Plans and renewal",
-        text: [pricingSummary, "The selected price and interval are shown before payment. Stripe processes card details and recurring charges. A subscription renews weekly or monthly until cancellation."]
+        text: [pricingSummary, "The selected price and interval are shown before payment. Stripe processes card details and recurring charges. A subscription renews weekly, monthly, or annually until cancellation."]
       },
       {
         title: "Cancellation",

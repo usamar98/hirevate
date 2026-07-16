@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ResumeBuilder } from "@/components/resume/resume-builder";
 import { JsonLd } from "@/components/seo/json-ld";
+import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
@@ -33,6 +35,8 @@ const resumeBuilderInternalLinks = [
   { href: "/pricing", label: "Pricing" }
 ];
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Resume Builder",
   description: resumeBuilderDescription,
@@ -54,6 +58,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ResumeBuilderPage() {
+  const user = await getCurrentUser();
+  const profile = user ? await getProfile(user.id) : null;
+  const canExport = isPaidSubscription(profile?.subscription_status);
+
   return (
     <>
       <JsonLd
@@ -72,12 +80,13 @@ export default async function ResumeBuilderPage() {
               "Role-targeted resume editing",
               "Print-ready resume export"
             ],
-            offers: {
+            offers: publicPricingFacts.map((plan) => ({
               "@type": "Offer",
-              name: "Resume builder testing-mode export",
-              price: "0",
-              priceCurrency: "USD"
-            }
+              name: plan.plan,
+              price: plan.priceValue,
+              priceCurrency: "USD",
+              url: absoluteUrl("/pricing")
+            }))
           },
           {
             "@context": "https://schema.org",
@@ -111,7 +120,7 @@ export default async function ResumeBuilderPage() {
           }
         ]}
       />
-      <ResumeBuilder />
+      <ResumeBuilder canExport={canExport} isAuthenticated={Boolean(user)} />
       <section className="border-t border-gray-100 bg-white py-10">
         <div className="container-shell">
           <h2 className="text-2xl font-semibold text-ink-900">Use this with fresh job pages</h2>

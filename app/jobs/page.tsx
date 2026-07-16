@@ -383,7 +383,7 @@ export default async function JobsPage({
             <div className="mt-8 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 md:flex-row md:items-center md:justify-between">
               <span className="inline-flex items-center gap-2 font-medium">
                 <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-                Free plan preview: showing 10 jobs from {totalCount.toLocaleString()} matching roles.
+                Public preview: showing 10 jobs from {totalCount.toLocaleString()} matching roles.
               </span>
               <Button asChild href="/pricing" size="sm" variant="outline">
                 Upgrade

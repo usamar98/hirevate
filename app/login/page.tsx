@@ -29,7 +29,7 @@ export default function LoginPage() {
           <p className="mt-5 text-center text-sm text-ink-500">
             Need an account?{" "}
             <Link className="font-semibold text-brand-600" href="/signup">
-              Start free
+              Create account
             </Link>
           </p>
         </Card>

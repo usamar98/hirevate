@@ -154,7 +154,7 @@ function UserTable({ users }: { users: AdminUserRow[] }) {
               </td>
               <td className="px-5 py-4">
                 <Badge tone={subscriptionTone(user)}>{user.subscriptionLabel}</Badge>
-                <p className="mt-2 text-xs text-ink-500">Status: {user.subscription_status || "free"}</p>
+                <p className="mt-2 text-xs text-ink-500">Status: {user.subscription_status || "unsubscribed"}</p>
               </td>
               <td className="px-5 py-4 text-ink-600">
                 <p>{shortenStripeId(user.stripe_subscription_id)}</p>
@@ -203,7 +203,7 @@ export default async function AdminHirevatePage({
             <Badge tone="blue">Private dashboard</Badge>
             <h1 className="mt-3 text-4xl font-semibold text-ink-900">Hirevate admin overview</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-ink-500">
-              See who logged in, which users are freemium or paid, and which subscription tier was
+              See who logged in, which users are unsubscribed or paid, and which subscription tier was
               purchased when Stripe checkout metadata is available.
             </p>
           </div>
@@ -229,15 +229,15 @@ export default async function AdminHirevatePage({
             value={dashboard.totalUsers}
           />
           <StatCard
-            detail="Users with Job Search, Career Pro, or legacy paid status"
+            detail="Users with Weekly, Monthly, Annual, or legacy paid status"
             icon={ShieldCheck}
             label="Paid users"
             value={dashboard.paidUsers}
           />
           <StatCard
-            detail="Free accounts and unpaid users"
+            detail="Accounts without an active paid plan"
             icon={UserCheck}
-            label="Freemium users"
+            label="Unsubscribed users"
             value={dashboard.freemiumUsers}
           />
           <StatCard
@@ -277,7 +277,7 @@ export default async function AdminHirevatePage({
                     <div>
                       <p className="font-semibold text-ink-900">{item.label}</p>
                       <p className="text-xs text-ink-500">
-                        {item.paid} paid / {item.freemium} freemium
+                        {item.paid} paid / {item.freemium} unsubscribed
                       </p>
                     </div>
                     <Badge tone={item.paid > 0 ? "green" : "gray"}>{item.total}</Badge>
@@ -304,7 +304,7 @@ export default async function AdminHirevatePage({
                       <div>
                         <p className="font-semibold text-ink-900">{country.name}</p>
                         <p className="text-ink-500">
-                          {country.paid} paid / {country.freemium} freemium
+                          {country.paid} paid / {country.freemium} unsubscribed
                         </p>
                       </div>
                       <span className="font-semibold text-ink-900">{country.total}</span>

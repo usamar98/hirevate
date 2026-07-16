@@ -58,7 +58,7 @@ export async function canViewJob(userId: string, jobId?: string) {
     return {
       allowed: false,
       remaining: 0,
-      reason: "Free plan daily job detail view limit reached."
+      reason: "Public preview daily job detail limit reached."
     };
   }
 

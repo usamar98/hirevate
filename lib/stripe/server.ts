@@ -19,7 +19,7 @@ export const stripePlans = Object.fromEntries(
     plan.options.map((option) => [
       option.key,
       {
-        name: option.schemaName,
+        name: plan.name,
         amount: option.amountCents,
         interval: option.interval,
         subscriptionStatus: plan.key
@@ -31,7 +31,7 @@ export const stripePlans = Object.fromEntries(
   {
     name: string;
     amount: number;
-    interval: "week" | "month";
+    interval: "week" | "month" | "year";
     subscriptionStatus: "silver" | "gold" | "platinum";
   }
 >;

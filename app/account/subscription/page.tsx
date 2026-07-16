@@ -17,11 +17,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 function planLabel(status: string | null | undefined) {
-  if (status === "silver") return "Job Search";
-  if (status === "gold") return "Career Pro";
-  if (status === "platinum") return "Legacy plan";
-  if (status === "free") return "Free";
-  return status ? "Paid subscription" : "Free";
+  if (status === "silver") return "Weekly Plan";
+  if (status === "gold") return "Monthly Plan";
+  if (status === "platinum") return "Annual Plan";
+  if (status === "free") return "No active plan";
+  return status ? "Paid subscription" : "No active plan";
 }
 
 function formatBillingDate(timestamp: number | null) {
@@ -71,7 +71,7 @@ export default async function AccountSubscriptionPage() {
               </div>
               <p className="mt-2 text-sm text-ink-500">{user.email}</p>
             </div>
-            <Badge tone={isPaid ? "green" : "gray"}>{stripeStatus ?? profile?.subscription_status ?? "free"}</Badge>
+            <Badge tone={isPaid ? "green" : "gray"}>{isPaid ? stripeStatus ?? "active" : "unsubscribed"}</Badge>
           </div>
 
           {periodEnd ? (

@@ -5,21 +5,11 @@ import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { checkoutPlanKeys } from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import {
-  getStripe,
-  resumeBuilderProduct,
-  stripePlans,
-  type StripePlanKey
-} from "@/lib/stripe/server";
+import { getStripe, stripePlans, type StripePlanKey } from "@/lib/stripe/server";
 
-const checkoutSchema = z.union([
-  z.object({
-    plan: z.enum([...checkoutPlanKeys] as [StripePlanKey, ...StripePlanKey[]])
-  }),
-  z.object({
-    product: z.literal("resume_builder")
-  })
-]);
+const checkoutSchema = z.object({
+  plan: z.enum([...checkoutPlanKeys] as [StripePlanKey, ...StripePlanKey[]])
+});
 
 async function getReusableCustomerId(stripe: Stripe, customerId: string | null | undefined) {
   if (!customerId) return undefined;
@@ -77,37 +67,6 @@ export async function POST(request: Request) {
 
   const profile = await getProfile(user.id);
   const customerId = await getReusableCustomerId(stripe, profile?.stripe_customer_id);
-
-  if ("product" in parsed.data) {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      client_reference_id: user.id,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "usd",
-            unit_amount: resumeBuilderProduct.amount,
-            product_data: {
-              name: resumeBuilderProduct.name
-            }
-          }
-        }
-      ],
-      metadata: {
-        userId: user.id,
-        product: resumeBuilderProduct.key
-      },
-      success_url: `${env.appUrl}/resume-builder?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${env.appUrl}/resume-builder?checkout=cancelled`
-    });
-
-    await saveCheckoutCustomer(user.id, session.customer, profile?.stripe_customer_id);
-
-    return NextResponse.json({ url: session.url });
-  }
 
   const plan = stripePlans[parsed.data.plan];
   const session = await stripe.checkout.sessions.create({

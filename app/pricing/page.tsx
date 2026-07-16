@@ -7,22 +7,22 @@ import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate Job Search and Career Pro plans for fresh job discovery, resume matching, cover letters, and application tracking.";
+  "Compare Hirevate weekly, monthly, and annual paid plans for fresh job discovery, resume matching, cover letters, and application tracking.";
 
 const pricingFaqItems = [
   {
     question: "Which Hirevate plan is best for an active job search?",
     answer:
-      "Career Pro is the best fit for most active searches because it combines fresh job discovery with resume matching and application tracking."
+      "The Monthly Plan is recommended for most active searches because it covers a full search cycle with resume matching and application tracking."
   },
   {
     question: "What are the current Hirevate prices?",
     answer: pricingSummary
   },
   {
-    question: "Does the free plan include public-source job search?",
+    question: "Can I preview jobs before subscribing?",
     answer:
-      "Yes. The free plan lets job seekers browse a preview of roles from company career pages, public ATS boards, and trusted hiring sources."
+      "Yes. Public job pages provide a limited discovery preview. A paid subscription is required for the complete job feed and Apply now links."
   },
   {
     question: "Do paid plans include resume and cover letter tools?",
@@ -162,8 +162,8 @@ export default function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Choose Job Search for a focused weekly sprint or Career Pro for a complete application
-              workflow. Career Pro includes a monthly option with 30% off compared with weekly billing.
+              Choose weekly access for a short sprint, monthly access for a complete search cycle,
+              or annual access for the lowest equivalent weekly price.
             </p>
           </div>
           <div className="mt-8">
@@ -177,8 +177,8 @@ export default function PricingPage() {
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
             Public job pages can be previewed for discovery. Opening plan access from this page
             requires an account, and a paid plan unlocks the complete job feed and Apply now links.
-            Both plans include the same job inventory; Career Pro adds resume matching and
-            application tracking.
+            All three paid plans unlock the complete job inventory. Monthly and Annual add the
+            matching and tracking workflow listed in their plan points.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             {pricingInternalLinks.map((item) => (

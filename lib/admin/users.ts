@@ -3,7 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/types/database";
 
 export type AdminUserRow = Profile & {
-  planLabel: "Paid" | "Freemium";
+  planLabel: "Paid" | "Unsubscribed";
   subscriptionLabel: string;
 };
 
@@ -33,12 +33,12 @@ export function getSubscriptionLabel(status: string | null | undefined) {
     active: "Paid subscription",
     annual: "Annual legacy plan",
     canceled: "Canceled",
-    free: "Free account",
-    gold: "Career Pro",
+    free: "Unsubscribed",
+    gold: "Monthly Plan",
     past_due: "Past due",
-    platinum: "Legacy Platinum",
+    platinum: "Annual Plan",
     pro: "Pro legacy plan",
-    silver: "Job Search",
+    silver: "Weekly Plan",
     trialing: "Trialing paid plan",
     unpaid: "Unpaid"
   };
@@ -124,7 +124,7 @@ export async function getAdminUsersDashboard() {
   const authMetadata = await listAuthUserMetadata(admin);
   const users = ((data ?? []) as Profile[]).map((profile) => {
     const metadata = authMetadata.get(profile.id);
-    const planLabel = isPaidSubscription(profile.subscription_status) ? "Paid" : "Freemium";
+    const planLabel = isPaidSubscription(profile.subscription_status) ? "Paid" : "Unsubscribed";
 
     return {
       ...profile,

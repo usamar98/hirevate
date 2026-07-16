@@ -156,7 +156,7 @@ const workflowLinks = [
   {
     href: "/pricing",
     label: "Pricing",
-    description: "Compare Job Search and Career Pro weekly and monthly options."
+    description: "Compare Hirevate weekly, monthly, and annual paid plans."
   },
   {
     href: "/about",
@@ -217,16 +217,7 @@ export default async function LandingPage() {
             offers: {
               "@type": "OfferCatalog",
               name: "Hirevate plans",
-              itemListElement: [
-                {
-                  "@type": "Offer",
-                  name: "Free job search preview",
-                  price: "0",
-                  priceCurrency: "USD",
-                  url: absoluteUrl("/signup")
-                },
-                ...homeOfferItems
-              ]
+              itemListElement: homeOfferItems
             }
           },
           {
@@ -258,8 +249,8 @@ export default async function LandingPage() {
                 Browse Hidden Jobs
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button asChild href="/signup" size="lg" variant="outline">
-                Start Free
+              <Button asChild href="/pricing" size="lg" variant="outline">
+                View Plans
               </Button>
             </div>
           </div>
@@ -418,22 +409,31 @@ export default async function LandingPage() {
       </section>
 
       <section className="below-fold-section bg-white py-16">
-        <div className="container-shell grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="container-shell grid items-center gap-8 lg:grid-cols-[0.7fr_1.3fr]">
           <div>
             <h2 className="text-3xl font-semibold text-ink-900">Simple pricing for serious search</h2>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Start free, then unlock unlimited job views and career workflow tools when the search gets active.
+              Choose weekly, monthly, or annual access for the complete job feed and career workflow tools.
             </p>
             <Button asChild href="/pricing" className="mt-6" variant="secondary">
               View pricing
             </Button>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             {publicPricingPlans.map((plan) => (
-              <Card className="p-5" key={plan.key}>
-                <h3 className="font-semibold text-ink-900">{plan.name}</h3>
-                <p className="mt-5 text-3xl font-semibold text-ink-900">{plan.homepagePrice}</p>
-                <p className="mt-2 text-sm text-ink-500">{plan.homepageDetail}</p>
+              <Card
+                className={
+                  plan.highlighted
+                    ? "border-black bg-black p-5 text-white"
+                    : "border-gray-200 bg-white p-5 text-ink-900"
+                }
+                key={plan.key}
+              >
+                <h3 className="font-semibold">{plan.name}</h3>
+                <p className="mt-5 text-3xl font-semibold">{plan.homepagePrice}</p>
+                <p className={plan.highlighted ? "mt-2 text-sm text-gray-300" : "mt-2 text-sm text-ink-500"}>
+                  {plan.homepageDetail}
+                </p>
               </Card>
             ))}
           </div>

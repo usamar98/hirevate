@@ -222,7 +222,7 @@ export default async function JobDetailPage({
             />
             {!access.allowed ? (
               <Card className="border-amber-200 bg-amber-50 p-5">
-                <h2 className="text-lg font-semibold text-amber-950">Free view limit reached</h2>
+                <h2 className="text-lg font-semibold text-amber-950">Public preview limit reached</h2>
                 <p className="mt-2 text-sm leading-6 text-amber-800">
                   You can still read public job pages. Upgrade when you want unlimited saved jobs
                   and search workflow tracking.
@@ -236,11 +236,11 @@ export default async function JobDetailPage({
               <Card className="p-5">
                 <h2 className="text-lg font-semibold text-ink-900">Track this role</h2>
                 <p className="mt-2 text-sm leading-6 text-ink-500">
-                  Create a free account to save this job and compare resume versions against
+                  Create an account to save this job and compare resume versions against
                   interview outcomes.
                 </p>
                 <Button asChild href={`/signup?redirect=${encodeURIComponent(canonicalPath)}`} className="mt-5 w-full" variant="outline">
-                  Start free
+                  Create account
                 </Button>
               </Card>
             ) : null}
