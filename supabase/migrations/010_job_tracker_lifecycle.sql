@@ -139,14 +139,14 @@ create or replace function public.set_job_application_status_changed_at()
 returns trigger
 language plpgsql
 set search_path = public
-as $
+as $$
 begin
   if old.status is distinct from new.status then
     new.status_changed_at := now();
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists set_job_application_status_changed_at_trigger on public.job_applications;
 create trigger set_job_application_status_changed_at_trigger
