@@ -66,7 +66,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $job_tracker$
 declare
   source_status text;
   source_checked_at timestamp with time zone;
@@ -97,7 +97,7 @@ begin
 
   return new;
 end;
-$$;
+$job_tracker$;
 
 drop trigger if exists set_job_application_listing_state_trigger on public.job_applications;
 create trigger set_job_application_listing_state_trigger
@@ -111,7 +111,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $job_tracker$
 begin
   update public.job_applications
   set
@@ -126,7 +126,7 @@ begin
 
   return new;
 end;
-$$;
+$job_tracker$;
 
 drop trigger if exists sync_tracked_job_listing_state_trigger on public.jobs;
 create trigger sync_tracked_job_listing_state_trigger
@@ -139,14 +139,14 @@ create or replace function public.set_job_application_status_changed_at()
 returns trigger
 language plpgsql
 set search_path = public
-as $$
+as $job_tracker$
 begin
   if old.status is distinct from new.status then
     new.status_changed_at := now();
   end if;
   return new;
 end;
-$$;
+$job_tracker$;
 
 drop trigger if exists set_job_application_status_changed_at_trigger on public.job_applications;
 create trigger set_job_application_status_changed_at_trigger
@@ -160,7 +160,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $job_tracker$
 declare
   event_name text;
 begin
@@ -193,7 +193,7 @@ begin
 
   return new;
 end;
-$$;
+$job_tracker$;
 
 drop trigger if exists log_job_application_event_trigger on public.job_applications;
 create trigger log_job_application_event_trigger
