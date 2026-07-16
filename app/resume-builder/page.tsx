@@ -7,7 +7,7 @@ import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
-  "Build an ATS-friendly, role-targeted resume with keyword coverage, impact suggestions, templates, and print-ready export.";
+  "Build an ATS-friendly resume with six professional templates, role targeting, secure AI writing, impact checks, and print-ready PDF export.";
 
 const resumeBuilderFaqItems = [
   {
@@ -18,7 +18,7 @@ const resumeBuilderFaqItems = [
   {
     question: "Can I target a resume to a specific job?",
     answer:
-      "Yes. Users can compare their resume against a target role, identify missing keywords, and rewrite experience bullets around the role's requirements."
+      "Yes. Users can compare their resume against a target role, identify missing keywords, and use paid AI writing tools to improve summaries and bullets without inventing facts."
   },
   {
     question: "Does the resume builder export to PDF?",
@@ -76,6 +76,8 @@ export default async function ResumeBuilderPage() {
             description: resumeBuilderDescription,
             featureList: [
               "ATS keyword coverage",
+              "Six professional resume templates",
+              "Secure AI summary and bullet editing",
               "Impact bullet suggestions",
               "Role-targeted resume editing",
               "Print-ready resume export"
@@ -120,7 +122,7 @@ export default async function ResumeBuilderPage() {
           }
         ]}
       />
-      <ResumeBuilder canExport={canExport} isAuthenticated={Boolean(user)} />
+      <ResumeBuilder canExport={canExport} canUseAi={canExport} isAuthenticated={Boolean(user)} />
       <section className="border-t border-gray-100 bg-white py-10">
         <div className="container-shell">
           <h2 className="text-2xl font-semibold text-ink-900">Use this with fresh job pages</h2>

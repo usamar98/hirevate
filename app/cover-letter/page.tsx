@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CoverLetterBuilder } from "@/components/cover-letter/cover-letter-builder";
+import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { publicPricingFacts } from "@/lib/pricing";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const coverLetterDescription =
-  "Create a focused cover letter for a specific company and role, with proof points, keywords, copy, and download.";
+  "Create a job-specific cover letter with secure AI writing, proof points, role keywords, copy, and download tools.";
 
 const coverLetterFaqItems = [
   {
     question: "What does the Hirevate cover letter builder create?",
     answer:
-      "It helps users turn a target company, role, proof points, and keywords into a focused cover letter they can copy or download."
+      "It turns a target company, role, proof points, and keywords into a focused live draft. Paid users can also create a job-specific AI-assisted draft for review."
   },
   {
     question: "Can the cover letter target a specific job description?",
@@ -33,6 +35,8 @@ const coverLetterInternalLinks = [
   { href: "/pricing", label: "Pricing" }
 ];
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Cover Letter Builder",
   description: coverLetterDescription,
@@ -53,7 +57,11 @@ export const metadata: Metadata = {
   }
 };
 
-export default function CoverLetterPage() {
+export default async function CoverLetterPage() {
+  const user = await getCurrentUser();
+  const profile = user ? await getProfile(user.id) : null;
+  const canUseAi = isPaidSubscription(profile?.subscription_status);
+
   return (
     <>
       <JsonLd
@@ -68,16 +76,18 @@ export default function CoverLetterPage() {
             description: coverLetterDescription,
             featureList: [
               "Company-specific cover letter drafting",
+              "Secure AI-assisted writing for paid users",
               "Role keyword targeting",
               "Proof point organization",
               "Copy and download workflow"
             ],
-            offers: {
+            offers: publicPricingFacts.map((plan) => ({
               "@type": "Offer",
-              name: "Cover letter builder",
-              price: "0",
-              priceCurrency: "USD"
-            }
+              name: plan.plan,
+              price: plan.priceValue,
+              priceCurrency: "USD",
+              url: absoluteUrl("/pricing")
+            }))
           },
           {
             "@context": "https://schema.org",
@@ -111,7 +121,7 @@ export default function CoverLetterPage() {
           }
         ]}
       />
-      <CoverLetterBuilder />
+      <CoverLetterBuilder canUseAi={canUseAi} isAuthenticated={Boolean(user)} />
       <section className="border-t border-gray-100 bg-white py-10">
         <div className="container-shell">
           <h2 className="text-2xl font-semibold text-ink-900">Pair cover letters with job pages</h2>

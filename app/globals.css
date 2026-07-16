@@ -104,3 +104,16 @@ a {
     animation: none;
   }
 }
+
+
+/* Hirevate resume template variants */
+.resume-preview-executive { font-family: Georgia, "Times New Roman", serif; }
+.resume-preview-executive h1 { font-size: 2.5rem; }
+.resume-preview-executive h2 { border-color: #111827 !important; color: #111827 !important; }
+.resume-preview-minimal { border-top-width: 1px !important; padding-left: 3.25rem; padding-right: 3.25rem; }
+.resume-preview-minimal h2 { border-color: #d1d5db !important; color: #111827 !important; }
+.resume-preview-modern { border-top-width: 0 !important; border-left: 8px solid var(--resume-accent, #2563eb); }
+.resume-preview-compact { line-height: 1.35; padding: 2rem; }
+.resume-preview-compact main { gap: 1rem; }
+.resume-preview-technical h2 { border-bottom-style: dashed; font-family: "Courier New", monospace; letter-spacing: 0; }
+.resume-preview-technical aside span { border: 1px solid #d1d5db; background: #fff; font-family: "Courier New", monospace; }

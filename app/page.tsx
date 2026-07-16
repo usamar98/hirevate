@@ -8,7 +8,9 @@ import {
   Clock3,
   Filter,
   Link2,
+  ListChecks,
   Search,
+  Sparkles,
   XCircle
 } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
@@ -23,7 +25,7 @@ import { absoluteUrl, defaultDescription, siteName, defaultOgImagePath } from "@
 import type { JobWithCompany } from "@/types/database";
 
 const landingDescription =
-  "Hirevate helps job seekers find fresh jobs from company career pages, public ATS boards, and trusted hiring sources, then build targeted resumes and track applications.";
+  "Find fresh hidden jobs, build job-specific resumes and cover letters with secure AI assistance, and manage every application from interest to decision.";
 
 export const metadata: Metadata = {
   description: landingDescription,
@@ -64,6 +66,16 @@ const features = [
     title: "Freshness score",
     description: "Rank roles by recency, location quality, apply URL presence, and role relevance.",
     icon: BadgeCheck
+  },
+  {
+    title: "AI application writing",
+    description: "Improve resume summaries, experience bullets, and job-specific cover letters using only facts you provide.",
+    icon: Sparkles
+  },
+  {
+    title: "Application command center",
+    description: "Track stage, priority, next action, follow-ups, listing health, and outcomes in one pipeline.",
+    icon: ListChecks
   }
 ];
 
@@ -81,7 +93,7 @@ const homeFaqItems = [
   {
     question: "What is Hirevate?",
     answer:
-      "Hirevate is a web SaaS for finding fresh roles from company career pages, public ATS boards, and trusted hiring sources, then using resume, cover letter, saved job, and tracker tools around those roles."
+      "Hirevate is a career workflow SaaS for finding fresh roles from company career pages, public ATS boards, and trusted hiring sources, then building targeted resumes, cover letters, and an application plan around those roles."
   },
   {
     question: "Who is Hirevate for?",
@@ -106,6 +118,16 @@ const homeFaqItems = [
     question: "What does freshness score mean?",
     answer:
       "It combines recent updates, location completeness, apply URL availability, and role relevance."
+  },
+  {
+    question: "How does Hirevate use AI for applications?",
+    answer:
+      "Paid users can ask Hirevate to improve resume summaries and experience bullets or draft a job-specific cover letter. The AI is instructed to use only user-provided facts, and every suggestion should be reviewed before applying."
+  },
+  {
+    question: "What happens when a tracked job listing closes?",
+    answer:
+      "Hirevate marks linked listings as closed or unavailable while preserving the application stage, notes, next actions, and history until the user archives or deletes the record."
   }
 ];
 
@@ -146,12 +168,12 @@ const workflowLinks = [
   {
     href: "/resume-builder",
     label: "Resume builder",
-    description: "Build a role-targeted resume with ATS checks and export."
+    description: "Choose from six professional templates, target a role, improve content with AI, and export to PDF."
   },
   {
     href: "/cover-letter",
     label: "Cover letter builder",
-    description: "Create a targeted cover letter for a specific company and role."
+    description: "Create a focused live draft or a paid AI-assisted cover letter for a specific role."
   },
   {
     href: "/pricing",
@@ -238,19 +260,18 @@ export default async function LandingPage() {
         <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
             <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
-              Find hidden career opportunities before they get crowded
+              Find hidden jobs and turn them into stronger applications
             </h1>
             <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
-              Hirevate scans company career pages, public ATS boards, and trusted hiring sources for
-              fresh roles.
+              Discover fresh roles from company career pages, public ATS boards, and trusted hiring sources. Then tailor your resume, write a focused cover letter, and manage every next step.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild href="/jobs#results" size="lg">
-                Browse Hidden Jobs
+                Find fresh jobs
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button asChild href="/pricing" size="lg" variant="outline">
-                View Plans
+              <Button asChild href="/resume-builder" size="lg" variant="outline">
+                Build my resume
               </Button>
             </div>
           </div>
@@ -316,7 +337,7 @@ export default async function LandingPage() {
                 "Fresh roles before they become heavily promoted everywhere.",
                 "Clear freshness signals instead of recycled listings.",
                 "Cleaner apply paths without social-feed noise.",
-                "Resume, cover letter, and tracker tools connected to the search."
+                "Resume, cover letter, and application planning connected to the search."
               ].map((item) => (
                 <li className="flex gap-3" key={item}>
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />
@@ -337,7 +358,7 @@ export default async function LandingPage() {
                 "Company career pages, public ATS boards, and trusted hiring sources.",
                 "Search filters for role, company, location, work mode, and freshness.",
                 "Neutral apply buttons that send users to the available hiring source.",
-                "A focused workflow for saving, preparing, and tracking applications."
+                "AI-assisted application writing and a lifecycle tracker with next actions."
               ].map((item) => (
                 <li className="flex gap-3" key={item}>
                   <span className="mt-0.5 text-emerald-600">
@@ -351,6 +372,38 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      <section className="below-fold-section border-y border-gray-100 bg-white py-16">
+        <div className="container-shell">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase text-brand-700">One connected workflow</p>
+            <h2 className="mt-3 text-3xl font-semibold text-ink-900">From fresh job to final decision</h2>
+            <p className="mt-3 text-base leading-7 text-ink-500">
+              Hirevate connects discovery, application writing, and follow-up planning without auto-applying on your behalf.
+            </p>
+          </div>
+          <div className="mt-9 grid border-y border-gray-200 md:grid-cols-3">
+            <div className="py-7 md:pr-7">
+              <span className="text-sm font-semibold text-brand-700">01</span>
+              <h3 className="mt-3 text-xl font-semibold text-ink-900">Find a current role</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">Search latest, remote, and category pages with source and freshness context.</p>
+              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/jobs/latest">Explore latest jobs <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            </div>
+            <div className="border-t border-gray-200 py-7 md:border-l md:border-t-0 md:px-7">
+              <span className="text-sm font-semibold text-brand-700">02</span>
+              <h3 className="mt-3 text-xl font-semibold text-ink-900">Tailor the application</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">Use professional resume templates, role targeting, and reviewable AI writing.</p>
+              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/resume-builder">Open resume builder <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            </div>
+            <div className="border-t border-gray-200 py-7 md:border-l md:border-t-0 md:pl-7">
+              <span className="text-sm font-semibold text-brand-700">03</span>
+              <h3 className="mt-3 text-xl font-semibold text-ink-900">Run the follow-up plan</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">Track stages, priorities, next actions, listing health, interviews, and outcomes.</p>
+              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/pricing">Compare full-access plans <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="below-fold-section bg-white py-16">
         <div className="container-shell">
           <div className="max-w-2xl">
@@ -360,7 +413,7 @@ export default async function LandingPage() {
               application tools.
             </p>
           </div>
-          <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
               <Card className="p-5" key={feature.title}>
                 <feature.icon className="h-5 w-5 text-brand-600" aria-hidden="true" />

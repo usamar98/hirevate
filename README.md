@@ -7,8 +7,8 @@ Production-ready MVP SaaS for discovering fresh direct-apply roles from official
 This MVP started with hidden job discovery from Greenhouse public boards and now supports multiple
 hiring sources.
 
-It includes hidden job discovery, resume building, cover letters, application tracking, admin
-analytics, and Stripe subscriptions. It does not use LinkedIn scraping, Indeed scraping,
+It includes hidden job discovery, six professional resume templates, secure AI-assisted resume and
+cover-letter writing, application lifecycle tracking, admin analytics, and Stripe subscriptions. It does not use LinkedIn scraping, Indeed scraping,
 protected-site scraping, or auto-apply flows.
 
 ## Daily job sync
@@ -252,18 +252,26 @@ Freshness scoring starts at 50:
 - Unsubscribed accounts can save up to 5 jobs.
 - Weekly, Monthly, and Annual subscribers have unlimited job views and saved jobs.
 
+## AI writing configuration
+
+Set `OPENAI_API_KEY` in Vercel and local development. `OPENAI_MODEL` is optional and defaults to `gpt-5-mini`.
+AI calls use the server-side Responses API with structured output and `store: false`; never expose the key with a `NEXT_PUBLIC_` prefix.
+
+Run `supabase/migrations/010_job_tracker_lifecycle.sql` in the Supabase SQL Editor before using the upgraded tracker.
+
 ## Resume Builder
 
 The resume builder at `/resume-builder` lets users create a role-targeted resume with ATS scoring,
-keyword coverage checks, impact suggestions, templates, accent colors, and print-ready export.
-Resume export is included with every active paid subscription.
+keyword coverage checks, impact suggestions, six professional templates, accent colors, and print-ready export.
+Paid users can request AI help for summaries and experience bullets when `OPENAI_API_KEY` is configured.
+Resume export and AI writing are included with every active paid subscription.
 
 ## Application Tracker And Cover Letters
 
-Users can open `/dashboard/job-tracker` to track interested, applied, interview, offer, rejected,
-and withdrawn roles with notes, follow-up dates, salary range, and source URLs. The public
-`/cover-letter` tool helps users create role-targeted cover letters before they apply directly on
-the employer page.
+Users can open `/dashboard/job-tracker` to track application stages, priorities, next actions,
+follow-up dates, listing health, outcomes, and activity history. Linked listing closure does not
+remove the application record. The public `/cover-letter` tool offers a structured live draft and
+paid AI-assisted writing before users apply on the available employer, ATS, or partner source.
 
 ## Admin User Analytics
 

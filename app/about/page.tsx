@@ -14,7 +14,7 @@ import {
 import { absoluteUrl, defaultDescription, siteName, defaultOgImagePath } from "@/lib/seo";
 
 const aboutDescription =
-  "Learn what Hirevate is, how it finds fresh jobs from public hiring sources, and how its resume, cover letter, and job tracker tools support job seekers.";
+  "Learn how Hirevate finds fresh jobs, provides professional resume templates and AI writing, and tracks applications from interest to decision.";
 
 const sourceCards = [
   {
@@ -32,7 +32,7 @@ const sourceCards = [
   {
     title: "Application workflow",
     description:
-      "Resume building, cover letters, saved jobs, and application tracking help users act on the roles they find.",
+      "Professional resume templates, reviewable AI writing, cover letters, and lifecycle tracking help users act on the roles they find.",
     icon: FileText
   },
   {
@@ -86,7 +86,8 @@ export default function AboutPage() {
                 "hidden job discovery",
                 "resume building",
                 "cover letters",
-                "application tracking"
+                "application lifecycle tracking",
+                "AI-assisted career writing"
               ]
             }
           },
@@ -133,7 +134,7 @@ export default function AboutPage() {
             </h1>
             <p className="mt-5 text-base leading-8 text-ink-500">
               Hirevate is built for job seekers who want useful roles earlier, cleaner apply links,
-              and a simple workflow for resumes, cover letters, saved jobs, and follow-ups.
+              and a connected workflow for professional resumes, cover letters, next actions, and follow-ups.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild href="/jobs#results">

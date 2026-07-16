@@ -7,6 +7,7 @@ import {
   Download,
   FileText,
   GraduationCap,
+  Loader2,
   Palette,
   Plus,
   Sparkles,
@@ -45,8 +46,10 @@ type Education = {
   dates: string;
 };
 
+type ResumeTemplate = "precision" | "modern" | "executive" | "minimal" | "compact" | "technical";
+
 type ResumeDraft = {
-  template: "precision" | "modern" | "compact";
+  template: ResumeTemplate;
   accent: string;
   fullName: string;
   headline: string;
@@ -65,6 +68,20 @@ type ResumeDraft = {
 };
 
 const storageKey = "hirevate-resume-builder-draft-v1";
+
+const resumeTemplates: Array<{
+  value: ResumeTemplate;
+  label: string;
+  description: string;
+  bestFor: string;
+}> = [
+  { value: "precision", label: "Precision", description: "Balanced hierarchy with clean ATS-safe sections.", bestFor: "Most professional roles" },
+  { value: "modern", label: "Modern", description: "Structured sidebar for skills and contact details.", bestFor: "Product, design, and technology" },
+  { value: "executive", label: "Executive", description: "Confident typography and restrained leadership styling.", bestFor: "Leadership and senior roles" },
+  { value: "minimal", label: "Minimal", description: "Quiet, editorial layout with maximum readability.", bestFor: "Consulting and operations" },
+  { value: "compact", label: "Compact", description: "Dense layout that keeps substantial experience concise.", bestFor: "Experienced candidates" },
+  { value: "technical", label: "Technical", description: "Crisp labels and a project-forward technical rhythm.", bestFor: "Engineering and data roles" }
+];
 
 const initialDraft: ResumeDraft = {
   template: "precision",
@@ -263,7 +280,7 @@ function ResumePreview({ draft }: { draft: ResumeDraft }) {
   return (
     <div
       id="resume-preview"
-      className={`mx-auto min-h-[980px] w-full max-w-[760px] bg-white p-10 text-ink-900 shadow-soft ${
+      className={`resume-preview resume-preview-${draft.template} mx-auto min-h-[980px] w-full max-w-[760px] bg-white p-10 text-ink-900 shadow-soft ${
         draft.template === "compact" ? "text-[12px]" : "text-[13px]"
       }`}
       style={{ borderTop: `6px solid ${draft.accent}` }}
@@ -476,6 +493,20 @@ function buildPrintableHtml(draft: ResumeDraft) {
     li { margin-top: 3px; }
     .skill-list { display: flex; flex-wrap: wrap; gap: 6px; }
     .skill { background: #f3f4f6; border-radius: 4px; padding: 5px 7px; font-size: 11.5px; }
+    .template-modern .page { border-top: 0; border-left: 9px solid ${escapeHtml(draft.accent)}; }
+    .template-executive .page { border-top-width: 3px; font-family: Georgia, "Times New Roman", serif; }
+    .template-executive h1 { font-size: 38px; }
+    .template-executive h2 { border-color: #111827; color: #111827; letter-spacing: 0.12em; }
+    .template-minimal .page { border-top: 1px solid #d1d5db; padding-left: 56px; padding-right: 56px; }
+    .template-minimal .headline, .template-minimal h2 { color: #111827; }
+    .template-minimal h2 { border-color: #d1d5db; }
+    .template-compact .page { padding: 34px 42px; }
+    .template-compact section.block { margin-top: 16px; }
+    .template-compact .item { margin-top: 10px; }
+    .template-compact ul { line-height: 1.42; }
+    .template-technical h2, .template-technical .dates { font-family: "Courier New", monospace; }
+    .template-technical h2 { border-style: dashed; letter-spacing: 0.1em; }
+    .template-technical .skill { border: 1px solid #d1d5db; background: #fff; font-family: "Courier New", monospace; }
     a { color: inherit; }
     @media print {
       body { background: #fff; }
@@ -483,7 +514,7 @@ function buildPrintableHtml(draft: ResumeDraft) {
     }
   </style>
 </head>
-<body>
+<body class="template-${draft.template}">
   <main class="page">
     <header>
       <h1>${escapeHtml(draft.fullName)}</h1>
@@ -516,14 +547,18 @@ function buildPrintableHtml(draft: ResumeDraft) {
 
 export function ResumeBuilder({
   canExport,
+  canUseAi,
   isAuthenticated
 }: {
   canExport: boolean;
+  canUseAi: boolean;
   isAuthenticated: boolean;
 }) {
   const [draft, setDraft] = useState<ResumeDraft>(initialDraft);
   const [activeTab, setActiveTab] = useState("profile");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState<"summary" | string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const analysis = useMemo(() => scoreResume(draft), [draft]);
 
@@ -565,6 +600,76 @@ export function ResumeBuilder({
       ...current,
       education: current.education.map((item) => (item.id === id ? { ...item, ...partial } : item))
     }));
+  }
+
+  function requireAiAccess() {
+    if (canUseAi) return true;
+    window.location.assign(isAuthenticated ? "/pricing" : "/login?redirect=%2Fresume-builder");
+    return false;
+  }
+
+  async function callCareerAi(payload: unknown) {
+    const response = await fetch("/api/ai/career-writing", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = (await response.json().catch(() => null)) as
+      | { error?: string; result?: { text?: string; bullets?: string[] } }
+      | null;
+    if (!response.ok || !data?.result) {
+      throw new Error(data?.error || "AI writing could not finish. Try again.");
+    }
+    return data.result;
+  }
+
+  async function improveSummary() {
+    if (!requireAiAccess()) return;
+    setAiError(null);
+    setAiLoading("summary");
+    try {
+      const result = await callCareerAi({
+        task: "resume_summary",
+        context: {
+          headline: draft.headline,
+          targetRole: draft.targetRole,
+          targetKeywords: draft.targetKeywords,
+          currentSummary: draft.summary,
+          skills: draft.skills,
+          experience: draft.experience
+            .map((item) => [item.role, item.company, ...item.bullets].join(" | "))
+            .join("\n")
+        }
+      });
+      if (result.text) updateDraft({ summary: result.text });
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "AI writing could not finish.");
+    } finally {
+      setAiLoading(null);
+    }
+  }
+
+  async function improveExperienceBullets(item: Experience) {
+    if (!requireAiAccess()) return;
+    setAiError(null);
+    setAiLoading(item.id);
+    try {
+      const result = await callCareerAi({
+        task: "resume_bullets",
+        context: {
+          role: item.role,
+          company: item.company,
+          targetRole: draft.targetRole,
+          targetKeywords: draft.targetKeywords,
+          bullets: item.bullets.filter(Boolean)
+        }
+      });
+      if (result.bullets?.length) updateExperience(item.id, { bullets: result.bullets });
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "AI writing could not finish.");
+    } finally {
+      setAiLoading(null);
+    }
   }
 
   function exportResume() {
@@ -661,6 +766,14 @@ export function ResumeBuilder({
                 <Field label="Location" value={draft.location} onChange={(location) => updateDraft({ location })} />
                 <Field label="Website" value={draft.website} onChange={(website) => updateDraft({ website })} />
                 <TextArea label="Professional summary" value={draft.summary} onChange={(summary) => updateDraft({ summary })} />
+                <Button className="w-full" disabled={Boolean(aiLoading)} onClick={improveSummary} type="button" variant="outline">
+                  {aiLoading === "summary" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {canUseAi ? "Improve summary with AI" : "Unlock AI summary"}
+                </Button>
                 <TextArea label="Skills" value={draft.skills} onChange={(skills) => updateDraft({ skills })} />
               </>
             ) : null}
@@ -713,6 +826,20 @@ export function ResumeBuilder({
                         value={item.bullets.join("\n")}
                         onChange={(value) => updateExperience(item.id, { bullets: value.split("\n") })}
                       />
+                      <Button
+                        className="w-full"
+                        disabled={Boolean(aiLoading) || item.bullets.filter(Boolean).length === 0}
+                        onClick={() => improveExperienceBullets(item)}
+                        type="button"
+                        variant="outline"
+                      >
+                        {aiLoading === item.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" aria-hidden="true" />
+                        )}
+                        {canUseAi ? "Strengthen bullets with AI" : "Unlock AI bullet editor"}
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -821,18 +948,20 @@ export function ResumeBuilder({
               <>
                 <SectionTitle icon={Palette} title="Template" />
                 <div className="grid gap-2">
-                  {(["precision", "modern", "compact"] as const).map((template) => (
+                  {resumeTemplates.map((template) => (
                     <button
-                      className={`rounded-md border px-3 py-2 text-left text-sm font-semibold capitalize ${
-                        draft.template === template
-                          ? "border-brand-200 bg-brand-50 text-brand-700"
-                          : "border-gray-200 text-ink-700 hover:bg-gray-50"
+                      className={`border px-3 py-3 text-left transition ${
+                        draft.template === template.value
+                          ? "border-brand-300 bg-brand-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
-                      key={template}
-                      onClick={() => updateDraft({ template })}
+                      key={template.value}
+                      onClick={() => updateDraft({ template: template.value })}
                       type="button"
                     >
-                      {template}
+                      <span className="block text-sm font-semibold text-ink-900">{template.label}</span>
+                      <span className="mt-1 block text-xs leading-5 text-ink-500">{template.description}</span>
+                      <span className="mt-2 block text-[11px] font-semibold uppercase text-brand-700">{template.bestFor}</span>
                     </button>
                   ))}
                 </div>
@@ -920,6 +1049,12 @@ export function ResumeBuilder({
             </ul>
           </Card>
 
+          {aiError ? (
+            <div className="rounded-md border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+              {aiError}
+            </div>
+          ) : null}
+
           <Card className="border-brand-100 bg-brand-50 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">Paid plan export</p>
             <h2 className="mt-2 text-xl font-semibold text-ink-900">
@@ -927,8 +1062,8 @@ export function ResumeBuilder({
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink-600">
               {canExport
-                ? "Print or save your finished resume as a PDF from your browser."
-                : "Resume export is included with every Hirevate paid plan."}
+                ? "Print or save your finished resume as a PDF. AI suggestions use only the facts you provide and should be reviewed before applying."
+                : "Resume export and AI writing are included with every Hirevate paid plan."}
             </p>
             {checkoutError ? (
               <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">

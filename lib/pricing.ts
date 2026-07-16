@@ -42,16 +42,16 @@ export type PublicPricingPlan = {
 const jobSearchFeatures = [
   "Fresh public-source job search",
   "Advanced role, company, location, and freshness filters",
-  "Resume builder with role targeting and export",
-  "Company-specific cover letter builder",
+  "Six professional resume templates with AI writing and export",
+  "Company-specific cover letters with AI writing",
   "Best for one active search week"
 ];
 
 const careerProFeatures = [
   "Everything in Job Search",
   "Resume-to-job match score and keyword gaps",
-  "Application tracker with follow-up dates",
-  "Track interested, applied, interview, offer, and rejected roles",
+  "Application command center with follow-ups and next actions",
+  "Track listing health, application stages, interviews, and outcomes",
   "Best for a steady weekly application routine"
 ];
 

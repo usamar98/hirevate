@@ -30,6 +30,8 @@ export const env = {
   stripeSecretKey: readEnv("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: readEnv("STRIPE_WEBHOOK_SECRET"),
   stripePublishableKey: readEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
+  openAiApiKey: readEnv("OPENAI_API_KEY"),
+  openAiModel: readEnv("OPENAI_MODEL") || "gpt-5-mini",
   jobSyncSecret: readEnv("JOB_SYNC_SECRET"),
   cronSecret: readEnv("CRON_SECRET"),
   adzunaAppId: readEnv("ADZUNA_APP_ID"),

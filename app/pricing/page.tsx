@@ -7,7 +7,7 @@ import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate weekly, monthly, and annual paid plans for fresh job discovery, resume matching, cover letters, and application tracking.";
+  "Compare Hirevate paid plans for fresh job discovery, six professional resume templates, AI writing, resume matching, and lifecycle tracking.";
 
 const pricingFaqItems = [
   {
@@ -27,7 +27,7 @@ const pricingFaqItems = [
   {
     question: "Do paid plans include resume and cover letter tools?",
     answer:
-      "Yes. Paid Hirevate plans include the resume builder, cover letter builder, and the application workflow tools listed on the pricing page."
+      "Yes. All paid plans include six professional resume templates, resume export, and AI-assisted resume and cover-letter writing. Monthly and Annual plans add resume matching and the full lifecycle tracker."
   },
   {
     question: "How do I cancel a Hirevate subscription?",

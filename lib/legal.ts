@@ -44,7 +44,7 @@ export const legalDocuments: LegalDocument[] = [
       },
       {
         title: "Resume and document data",
-        text: ["Resume-builder drafts and resume-match text are processed in the browser and saved in local browser storage unless a user chooses to share them with Hirevate for support."]
+        text: ["Resume-builder drafts and resume-match text are saved in local browser storage by default. When a user explicitly requests AI writing, the relevant resume or cover-letter inputs are sent through Hirevate servers to the configured AI provider to produce the requested suggestion."]
       },
       {
         title: "Use, sharing, and retention",
@@ -209,12 +209,16 @@ export const legalDocuments: LegalDocument[] = [
     slug: "ai-resume-match-disclosure",
     shortTitle: "Resume matching",
     title: "AI and Resume-Match Disclosure",
-    description: "How Hirevate resume matching compares job and resume text, what its score means, browser storage, limitations, and user responsibility.",
+    description: "How Hirevate resume matching and AI writing work, what scores and suggestions mean, data processing, limitations, and user responsibility.",
     summary: "Hirevate resume matching is an advisory editing aid, not an employer ATS score or hiring decision.",
     sections: [
       {
-        title: "How matching works",
-        text: ["The current tool uses rules-based text comparison for role terms, skills, action language, and measurable outcomes. Processing occurs in the user's browser."]
+        title: "How matching and AI writing work",
+        text: ["Resume-match scoring uses rules-based text comparison for role terms, skills, action language, and measurable outcomes in the browser. AI writing runs only after a user requests it and sends the relevant inputs through Hirevate servers to the configured AI provider."]
+      },
+      {
+        title: "AI safeguards and data",
+        text: ["AI writing is instructed to use only user-provided facts and not invent employers, qualifications, metrics, or outcomes. AI requests are configured not to be stored by the model API, but provider processing and limited security retention may still apply under the provider terms."]
       },
       {
         title: "Limits of the score",
@@ -222,7 +226,7 @@ export const legalDocuments: LegalDocument[] = [
       },
       {
         title: "User responsibility",
-        text: ["Users must add only truthful experience and qualifications and review every suggestion. Hirevate does not auto-apply or make employment decisions for employers."]
+        text: ["Users must add only truthful experience and qualifications, avoid sending unnecessary sensitive information, and review every AI suggestion. Hirevate does not auto-apply, guarantee hiring outcomes, or make employment decisions for employers."]
       }
     ]
   },

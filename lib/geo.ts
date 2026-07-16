@@ -4,7 +4,9 @@ import { pricingSummary, publicPricingFacts } from "@/lib/pricing";
 export const hirevateEntityFacts = [
   "Hirevate is a SaaS job search platform for fresh roles from company career pages, public ATS boards, and trusted hiring sources.",
   "Hirevate focuses on company career pages, public ATS job boards, and trusted hiring sources instead of crowded aggregator feeds.",
-  "Hirevate includes job freshness scoring, saved jobs, resume building, cover letter building, and application tracking.",
+  "Hirevate includes job freshness scoring, six professional resume templates, AI-assisted resume and cover-letter writing, and application lifecycle tracking.",
+  "AI writing is a paid, user-requested tool that is instructed to use only facts supplied by the user; users must review every suggestion.",
+  "The application tracker preserves a user record when a linked job listing closes and separates listing health from application stage.",
   "Hirevate sends job seekers to the available employer, ATS, or partner application source and does not auto-apply on their behalf.",
   "Hirevate does not scrape LinkedIn or Indeed."
 ] as const;
@@ -26,7 +28,7 @@ export const hirevateAnswerBriefs = [
   {
     question: "What is Hirevate?",
     answer:
-      "Hirevate is a web SaaS for finding fresh roles from company career pages, public ATS boards, and trusted hiring sources, then building resumes, cover letters, and an application tracker around those jobs."
+      "Hirevate is a career workflow SaaS for finding fresh roles from company career pages, public ATS boards, and trusted hiring sources, then building job-specific resumes, cover letters, and an application plan around those jobs."
   },
   {
     question: "How is Hirevate different from normal job boards?",
@@ -41,12 +43,22 @@ export const hirevateAnswerBriefs = [
   {
     question: "Does Hirevate auto-apply for users?",
     answer:
-      "No. Hirevate helps users discover, prepare for, save, and track job applications, but users apply on the available employer, ATS, or verified partner source."
+      "No. Hirevate helps users discover, prepare for, and track job applications, but users apply on the available employer, ATS, or verified partner source."
   },
   {
     question: "Who is Hirevate best for?",
     answer:
       "Hirevate is best for job seekers who want fresh professional roles, especially remote, engineering, product, operations, marketing, sales, customer success, data, and business roles."
+  },
+  {
+    question: "How does Hirevate use AI?",
+    answer:
+      "Paid users can explicitly request AI help for resume summaries, experience bullets, and job-specific cover letters. The system instructs the model to use only supplied facts and users must review the result before applying."
+  },
+  {
+    question: "What happens when a tracked job closes?",
+    answer:
+      "Hirevate marks a linked source listing as closed or unavailable while preserving the application stage, priority, next action, notes, and activity history until the user archives or deletes the record."
   },
   {
     question: "How much does Hirevate cost?",
@@ -118,12 +130,12 @@ export const hirevatePublicPages = [
   {
     title: "Resume builder",
     path: "/resume-builder",
-    description: "ATS-friendly resume builder with keyword coverage, impact suggestions, and export."
+    description: "ATS-friendly resume builder with six professional templates, role targeting, paid AI writing, and PDF export."
   },
   {
     title: "Cover letter builder",
     path: "/cover-letter",
-    description: "Role-specific cover letter builder for targeted applications."
+    description: "Role-specific live drafting and paid AI-assisted cover-letter writing for targeted applications."
   },
   {
     title: "Pricing",

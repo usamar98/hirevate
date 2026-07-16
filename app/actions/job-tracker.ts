@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  archiveJobApplicationSchema,
   createJobApplicationSchema,
   deleteJobApplicationSchema,
   updateJobApplicationStatusSchema
@@ -22,8 +23,14 @@ function redirectWith(key: "trackerError" | "trackerSuccess", value: string): ne
   redirect(`${trackerPath}?${key}=${encodeURIComponent(value)}`);
 }
 
-function isMissingTableError(error: { code?: string; message?: string } | null) {
-  return error?.code === "42P01" || /job_applications/i.test(error?.message ?? "");
+function isMissingLifecycleError(error: { code?: string; message?: string } | null) {
+  return (
+    error?.code === "42P01" ||
+    error?.code === "42703" ||
+    /job_applications|job_application_events|archived_at|listing_status|priority/i.test(
+      error?.message ?? ""
+    )
+  );
 }
 
 export async function createJobApplicationAction(formData: FormData) {
@@ -35,11 +42,13 @@ export async function createJobApplicationAction(formData: FormData) {
     location: readFormValue(formData, "location"),
     jobUrl: readFormValue(formData, "jobUrl"),
     status: readFormValue(formData, "status"),
+    priority: readFormValue(formData, "priority"),
     contactName: readFormValue(formData, "contactName"),
     contactEmail: readFormValue(formData, "contactEmail"),
     salaryRange: readFormValue(formData, "salaryRange"),
     appliedAt: readFormValue(formData, "appliedAt"),
     nextFollowUpAt: readFormValue(formData, "nextFollowUpAt"),
+    nextAction: readFormValue(formData, "nextAction"),
     notes: readFormValue(formData, "notes")
   });
 
@@ -60,12 +69,15 @@ export async function createJobApplicationAction(formData: FormData) {
     location: parsed.data.location,
     job_url: parsed.data.jobUrl,
     status: parsed.data.status,
+    priority: parsed.data.priority,
     contact_name: parsed.data.contactName,
     contact_email: parsed.data.contactEmail,
     salary_range: parsed.data.salaryRange,
     applied_at: parsed.data.appliedAt,
     next_follow_up_at: parsed.data.nextFollowUpAt,
+    next_action: parsed.data.nextAction,
     notes: parsed.data.notes,
+    status_changed_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
 
@@ -79,19 +91,19 @@ export async function createJobApplicationAction(formData: FormData) {
 
     if (existingError) {
       console.error("Failed to check tracked job", existingError);
-      redirectWith("trackerError", isMissingTableError(existingError) ? "setup" : "save");
+      redirectWith("trackerError", isMissingLifecycleError(existingError) ? "setup" : "save");
     }
 
     if (existing) {
       const { error } = await supabase
         .from("job_applications")
-        .update(row)
+        .update({ ...row, archived_at: null })
         .eq("user_id", user.id)
         .eq("id", existing.id);
 
       if (error) {
         console.error("Failed to update tracked job", error);
-        redirectWith("trackerError", "save");
+        redirectWith("trackerError", isMissingLifecycleError(error) ? "setup" : "save");
       }
 
       revalidatePath(trackerPath);
@@ -103,7 +115,7 @@ export async function createJobApplicationAction(formData: FormData) {
 
   if (error) {
     console.error("Failed to create tracked job", error);
-    redirectWith("trackerError", isMissingTableError(error) ? "setup" : "save");
+    redirectWith("trackerError", isMissingLifecycleError(error) ? "setup" : "save");
   }
 
   revalidatePath(trackerPath);
@@ -115,7 +127,9 @@ export async function updateJobApplicationStatusAction(formData: FormData) {
   const parsed = updateJobApplicationStatusSchema.safeParse({
     applicationId: readFormValue(formData, "applicationId"),
     status: readFormValue(formData, "status"),
-    nextFollowUpAt: readFormValue(formData, "nextFollowUpAt")
+    priority: readFormValue(formData, "priority"),
+    nextFollowUpAt: readFormValue(formData, "nextFollowUpAt"),
+    nextAction: readFormValue(formData, "nextAction")
   });
 
   if (!parsed.success) {
@@ -131,7 +145,9 @@ export async function updateJobApplicationStatusAction(formData: FormData) {
     .from("job_applications")
     .update({
       status: parsed.data.status,
+      priority: parsed.data.priority,
       next_follow_up_at: parsed.data.nextFollowUpAt,
+      next_action: parsed.data.nextAction,
       updated_at: new Date().toISOString()
     })
     .eq("user_id", user.id)
@@ -139,11 +155,48 @@ export async function updateJobApplicationStatusAction(formData: FormData) {
 
   if (error) {
     console.error("Failed to update tracked job status", error);
-    redirectWith("trackerError", isMissingTableError(error) ? "setup" : "update");
+    redirectWith("trackerError", isMissingLifecycleError(error) ? "setup" : "update");
   }
 
   revalidatePath(trackerPath);
   redirectWith("trackerSuccess", "updated");
+}
+
+export async function archiveJobApplicationAction(formData: FormData) {
+  const user = await requireUser(trackerPath);
+  const parsed = archiveJobApplicationSchema.safeParse({
+    applicationId: readFormValue(formData, "applicationId"),
+    archiveAction: readFormValue(formData, "archiveAction")
+  });
+
+  if (!parsed.success) {
+    redirectWith("trackerError", "invalid");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    redirectWith("trackerError", "setup");
+  }
+
+  const { error } = await supabase
+    .from("job_applications")
+    .update({
+      archived_at: parsed.data.archiveAction === "archive" ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString()
+    })
+    .eq("user_id", user.id)
+    .eq("id", parsed.data.applicationId);
+
+  if (error) {
+    console.error("Failed to archive tracked job", error);
+    redirectWith("trackerError", isMissingLifecycleError(error) ? "setup" : "update");
+  }
+
+  revalidatePath(trackerPath);
+  redirectWith(
+    "trackerSuccess",
+    parsed.data.archiveAction === "archive" ? "archived" : "restored"
+  );
 }
 
 export async function deleteJobApplicationAction(formData: FormData) {
@@ -169,7 +222,7 @@ export async function deleteJobApplicationAction(formData: FormData) {
 
   if (error) {
     console.error("Failed to delete tracked job", error);
-    redirectWith("trackerError", isMissingTableError(error) ? "setup" : "delete");
+    redirectWith("trackerError", isMissingLifecycleError(error) ? "setup" : "delete");
   }
 
   revalidatePath(trackerPath);

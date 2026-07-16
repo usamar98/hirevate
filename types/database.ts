@@ -6,6 +6,21 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+export type JobApplicationStatus =
+  | "interested"
+  | "applied"
+  | "screening"
+  | "interview"
+  | "assessment"
+  | "final_interview"
+  | "offer"
+  | "accepted"
+  | "rejected"
+  | "withdrawn";
+
+export type JobListingStatus = "active" | "closed" | "unavailable" | "unknown";
+export type JobApplicationPriority = "low" | "medium" | "high";
+
 export type Database = {
   public: {
     Tables: {
@@ -301,13 +316,20 @@ export type Database = {
           company: string;
           location: string | null;
           job_url: string | null;
-          status: "interested" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+          status: JobApplicationStatus;
           contact_name: string | null;
           contact_email: string | null;
           salary_range: string | null;
           applied_at: string | null;
           next_follow_up_at: string | null;
           notes: string | null;
+          priority: JobApplicationPriority;
+          next_action: string | null;
+          listing_status: JobListingStatus;
+          listing_last_checked_at: string | null;
+          listing_closed_at: string | null;
+          status_changed_at: string;
+          archived_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -319,13 +341,20 @@ export type Database = {
           company: string;
           location?: string | null;
           job_url?: string | null;
-          status?: "interested" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+          status?: JobApplicationStatus;
           contact_name?: string | null;
           contact_email?: string | null;
           salary_range?: string | null;
           applied_at?: string | null;
           next_follow_up_at?: string | null;
           notes?: string | null;
+          priority?: JobApplicationPriority;
+          next_action?: string | null;
+          listing_status?: JobListingStatus;
+          listing_last_checked_at?: string | null;
+          listing_closed_at?: string | null;
+          status_changed_at?: string;
+          archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -337,13 +366,20 @@ export type Database = {
           company?: string;
           location?: string | null;
           job_url?: string | null;
-          status?: "interested" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+          status?: JobApplicationStatus;
           contact_name?: string | null;
           contact_email?: string | null;
           salary_range?: string | null;
           applied_at?: string | null;
           next_follow_up_at?: string | null;
           notes?: string | null;
+          priority?: JobApplicationPriority;
+          next_action?: string | null;
+          listing_status?: JobListingStatus;
+          listing_last_checked_at?: string | null;
+          listing_closed_at?: string | null;
+          status_changed_at?: string;
+          archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -353,6 +389,44 @@ export type Database = {
             columns: ["job_id"];
             isOneToOne: false;
             referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      job_application_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          application_id: string;
+          event_type: "created" | "stage_changed" | "archived" | "restored";
+          from_status: string | null;
+          to_status: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          application_id: string;
+          event_type: "created" | "stage_changed" | "archived" | "restored";
+          from_status?: string | null;
+          to_status?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          application_id?: string;
+          event_type?: "created" | "stage_changed" | "archived" | "restored";
+          from_status?: string | null;
+          to_status?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_application_events_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "job_applications";
             referencedColumns: ["id"];
           }
         ];
@@ -496,6 +570,7 @@ export type Company = Database["public"]["Tables"]["companies"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type SavedJob = Database["public"]["Tables"]["saved_jobs"]["Row"];
 export type JobApplication = Database["public"]["Tables"]["job_applications"]["Row"];
+export type JobApplicationEvent = Database["public"]["Tables"]["job_application_events"]["Row"];
 export type JobSourceUsage = Database["public"]["Tables"]["job_source_usage"]["Row"];
 export type JobSourceHealth = Database["public"]["Tables"]["job_source_health"]["Row"];
 export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applications"]["Row"];

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Clipboard, Download, FileText, Wand2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Clipboard, Download, FileText, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -89,7 +89,13 @@ function buildLetter({
   ].join("\n");
 }
 
-export function CoverLetterBuilder() {
+export function CoverLetterBuilder({
+  canUseAi,
+  isAuthenticated
+}: {
+  canUseAi: boolean;
+  isAuthenticated: boolean;
+}) {
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState("");
   const [company, setCompany] = useState("");
@@ -99,8 +105,11 @@ export function CoverLetterBuilder() {
   const [jobDescription, setJobDescription] = useState("");
   const [tone, setTone] = useState<Tone>("focused");
   const [copied, setCopied] = useState(false);
+  const [aiLetter, setAiLetter] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
-  const letter = useMemo(
+  const localLetter = useMemo(
     () =>
       buildLetter({
         achievements,
@@ -114,6 +123,12 @@ export function CoverLetterBuilder() {
       }),
     [achievements, company, experience, fullName, jobDescription, role, skills, tone]
   );
+  const letter = aiLetter ?? localLetter;
+
+  useEffect(() => {
+    setAiLetter(null);
+  }, [achievements, company, experience, fullName, jobDescription, role, skills, tone]);
+
   const score = Math.min(
     100,
     35 +
@@ -123,6 +138,46 @@ export function CoverLetterBuilder() {
       (skills ? 15 : 0) +
       (achievements ? 15 : 0)
   );
+
+  async function writeWithAi() {
+    if (!canUseAi) {
+      window.location.assign(isAuthenticated ? "/pricing" : "/login?redirect=%2Fcover-letter");
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const response = await fetch("/api/ai/career-writing", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          task: "cover_letter",
+          context: {
+            fullName,
+            role,
+            company,
+            tone,
+            experience,
+            skills,
+            achievements,
+            jobDescription
+          }
+        })
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { error?: string; result?: { text?: string } }
+        | null;
+      if (!response.ok || !data?.result?.text) {
+        throw new Error(data?.error || "AI writing could not finish. Try again.");
+      }
+      setAiLetter(data.result.text);
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "AI writing could not finish.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   async function copyLetter() {
     await navigator.clipboard.writeText(letter);
@@ -231,6 +286,14 @@ export function CoverLetterBuilder() {
                 <h2 className="text-xl font-semibold text-ink-900">Draft</h2>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button disabled={aiLoading} type="button" onClick={writeWithAi} variant="outline">
+                  {aiLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {canUseAi ? "Write with AI" : "Unlock AI writing"}
+                </Button>
                 <Button type="button" onClick={copyLetter} variant="outline">
                   <Clipboard className="h-4 w-4" aria-hidden="true" />
                   {copied ? "Copied" : "Copy"}
@@ -241,9 +304,26 @@ export function CoverLetterBuilder() {
                 </Button>
               </div>
             </div>
-            <pre className="mt-5 min-h-[640px] whitespace-pre-wrap rounded-lg border border-gray-200 bg-white p-5 text-sm leading-7 text-ink-800 shadow-sm">
+            {aiError ? (
+              <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                {aiError}
+              </div>
+            ) : null}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-500">
+              <span>{aiLetter ? "AI-assisted draft" : "Live structured draft"}</span>
+              {aiLetter ? (
+                <button className="font-semibold text-brand-700 hover:text-brand-800" onClick={() => setAiLetter(null)} type="button">
+                  Return to live draft
+                </button>
+              ) : null}
+            </div>
+            <pre className="mt-3 min-h-[640px] whitespace-pre-wrap rounded-lg border border-gray-200 bg-white p-5 text-sm leading-7 text-ink-800 shadow-sm">
               {letter}
             </pre>
+            <p className="mt-3 text-xs leading-5 text-ink-500">
+              Review every AI suggestion before applying. Hirevate instructs the model to use only
+              your facts and never invent employers, skills, or achievements.
+            </p>
           </Card>
         </div>
       </div>
