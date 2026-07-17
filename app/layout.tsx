@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { VisitorTracker } from "@/components/analytics/visitor-tracker";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { CookieConsent } from "@/components/legal/cookie-consent";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -202,6 +203,7 @@ export default function RootLayout({
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <VisitorTracker />
         <CookieConsent />
       </body>
     </html>

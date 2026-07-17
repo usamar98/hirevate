@@ -1,5 +1,6 @@
 import { absoluteUrl } from "@/lib/seo";
 import { pricingSummary, publicPricingFacts } from "@/lib/pricing";
+import { jobCountries } from "@/lib/jobs/countries";
 
 export const hirevateEntityFacts = [
   "Hirevate is a SaaS job search platform for fresh roles from company career pages, public ATS boards, and trusted hiring sources.",
@@ -92,11 +93,11 @@ export const hirevatePublicPages = [
     path: "/jobs/remote",
     description: "Remote jobs from company career pages, public ATS boards, and trusted hiring sources."
   },
-  {
-    title: "UK jobs",
-    path: "/jobs/uk",
-    description: "Fresh United Kingdom roles across major cities and UK-specific remote or hybrid listings."
-  },
+  ...jobCountries.map((country) => ({
+    title: `${country.name} jobs`,
+    path: country.path,
+    description: `Fresh roles connected to ${country.name} from company career pages, public ATS boards, and trusted hiring sources.`
+  })),
   {
     title: "London jobs",
     path: "/jobs/london",

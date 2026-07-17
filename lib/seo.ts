@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { jobCountries } from "@/lib/jobs/countries";
 
 function removeTrailingSlash(value: string) {
   return value.replace(/\/+$/, "");
@@ -51,7 +52,11 @@ export const publicSeoRoutes = [
   { path: "/jobs", changeFrequency: "hourly", priority: 0.95 },
   { path: "/jobs/latest", changeFrequency: "hourly", priority: 0.92 },
   { path: "/jobs/remote", changeFrequency: "hourly", priority: 0.9 },
-  { path: "/jobs/uk", changeFrequency: "hourly", priority: 0.89 },
+  ...jobCountries.map((country) => ({
+    path: country.path,
+    changeFrequency: "hourly" as const,
+    priority: 0.89
+  })),
   { path: "/jobs/london", changeFrequency: "hourly", priority: 0.88 },
   { path: "/jobs/engineering", changeFrequency: "hourly", priority: 0.88 },
   { path: "/jobs/software-engineer", changeFrequency: "hourly", priority: 0.87 },

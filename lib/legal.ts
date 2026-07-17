@@ -16,8 +16,8 @@ export type LegalDocument = {
   sections: LegalSection[];
 };
 
-export const legalEffectiveDate = "2026-07-16";
-export const legalEffectiveDateLabel = "July 16, 2026";
+export const legalEffectiveDate = "2026-07-17";
+export const legalEffectiveDateLabel = "July 17, 2026";
 
 export const legalIdentity = {
   operatorName: env.legalOperatorName || "Hirevate",
@@ -38,7 +38,7 @@ export const legalDocuments: LegalDocument[] = [
       {
         title: "Information we handle",
         bullets: [
-          "Account details, authentication records, approximate country signals, subscription references, tracker entries, support messages, and limited service activity.",
+          "Account details, authentication records, approximate country signals, subscription references, tracker entries, support messages, pseudonymous consented visitor measurements, and limited service activity.",
           "Public job information from company career pages, public ATS boards, and trusted job sources."
         ]
       },
@@ -125,8 +125,8 @@ export const legalDocuments: LegalDocument[] = [
     slug: "cookie-policy",
     shortTitle: "Cookies",
     title: "Hirevate Cookie and Local Storage Policy",
-    description: "How Hirevate uses essential authentication cookies, consent preferences, and local browser storage for resume drafts and matching.",
-    summary: "Hirevate uses essential browser technologies for sign-in, security, preferences, and user-requested local features.",
+    description: "How Hirevate uses essential authentication cookies, consent preferences, optional visitor measurement, and local browser storage.",
+    summary: "Hirevate uses essential browser technologies and, with permission, privacy-conscious visitor measurement.",
     sections: [
       {
         title: "Essential cookies",
@@ -138,7 +138,7 @@ export const legalDocuments: LegalDocument[] = [
       },
       {
         title: "Optional cookies and choices",
-        text: ["Optional measurement or advertising cookies are not activated unless introduced and permitted by consent. Rejecting optional cookies does not block essential account functions. Clearing the consent preference causes Hirevate to ask again."]
+        text: ["When a user permits optional measurement, Hirevate stores a pseudonymous visitor identifier to count daily visitors and page views. It does not store the visitor's IP address. Rejecting optional cookies does not block essential account functions. Clearing the consent preference causes Hirevate to ask again."]
       }
     ]
   },

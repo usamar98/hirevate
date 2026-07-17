@@ -3,20 +3,25 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  cookieConsentEvent,
+  cookieConsentKey,
+  type CookieConsentChoice
+} from "@/lib/analytics/consent";
 
-type ConsentChoice = "essential" | "optional";
-const consentKey = "hirevate-cookie-consent-v1";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setVisible(!window.localStorage.getItem(consentKey));
+    setVisible(!window.localStorage.getItem(cookieConsentKey));
   }, []);
 
-  function saveChoice(choice: ConsentChoice) {
-    window.localStorage.setItem(consentKey, choice);
-    document.cookie = `${consentKey}=${choice}; Max-Age=15552000; Path=/; SameSite=Lax; Secure`;
+  function saveChoice(choice: CookieConsentChoice) {
+    const secureSuffix = window.location.protocol === "https:" ? "; Secure" : "";
+    window.localStorage.setItem(cookieConsentKey, choice);
+    document.cookie = `${cookieConsentKey}=${choice}; Max-Age=15552000; Path=/; SameSite=Lax${secureSuffix}`;
+    window.dispatchEvent(new CustomEvent(cookieConsentEvent, { detail: choice }));
     setVisible(false);
   }
 
@@ -30,7 +35,8 @@ export function CookieConsent() {
     >
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <p className="text-sm leading-6 text-ink-600">
-          Hirevate uses essential cookies for sign-in and security. Optional measurement cookies are not currently enabled and require permission if introduced.{" "}
+          Hirevate uses essential cookies for sign-in and security. With permission, optional
+          measurement helps count daily visitors and page views.{" "}
           <Link className="font-semibold text-brand-700" href="/legal/cookie-policy">
             Cookie policy
           </Link>

@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
-import { Clock3, CreditCard, Globe2, KeyRound, LockKeyhole, LogOut, ShieldCheck, UserCheck, Users } from "lucide-react";
+import {
+  BarChart3,
+  Clock3,
+  CreditCard,
+  Eye,
+  Globe2,
+  KeyRound,
+  LockKeyhole,
+  LogOut,
+  MousePointerClick,
+  ShieldCheck,
+  UserCheck,
+  Users
+} from "lucide-react";
 import { signInAdminHirevateAction, signOutAdminHirevateAction } from "@/app/actions/adminhirevate01";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +70,12 @@ function subscriptionTone(user: Pick<AdminUserRow, "planLabel" | "subscription_s
   if (status === "trialing") return "amber";
   if (user.planLabel === "Paid") return "green";
 
+  return "gray";
+}
+
+function accountTypeTone(user: Pick<AdminUserRow, "accountType">): BadgeTone {
+  if (user.accountType === "Administrator") return "blue";
+  if (user.accountType === "Paid user") return "green";
   return "gray";
 }
 
@@ -138,7 +157,9 @@ function UserTable({ users }: { users: AdminUserRow[] }) {
         <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">
           <tr>
             <th className="px-5 py-3">User</th>
+            <th className="px-5 py-3">Account type</th>
             <th className="px-5 py-3">Subscription</th>
+            <th className="px-5 py-3">Sign-in</th>
             <th className="px-5 py-3">Stripe</th>
             <th className="px-5 py-3">Country</th>
             <th className="px-5 py-3">Joined</th>
@@ -153,9 +174,14 @@ function UserTable({ users }: { users: AdminUserRow[] }) {
                 <p className="text-ink-500">{user.email ?? "No email"}</p>
               </td>
               <td className="px-5 py-4">
+                <Badge tone={accountTypeTone(user)}>{user.accountType}</Badge>
+                <p className="mt-2 text-xs text-ink-500">Role: {user.role || "user"}</p>
+              </td>
+              <td className="px-5 py-4">
                 <Badge tone={subscriptionTone(user)}>{user.subscriptionLabel}</Badge>
                 <p className="mt-2 text-xs text-ink-500">Status: {user.subscription_status || "unsubscribed"}</p>
               </td>
+              <td className="px-5 py-4 text-ink-600">{user.authProvider}</td>
               <td className="px-5 py-4 text-ink-600">
                 <p>{shortenStripeId(user.stripe_subscription_id)}</p>
                 <p className="mt-1 text-xs text-ink-400">{shortenStripeId(user.stripe_customer_id)}</p>
@@ -169,7 +195,7 @@ function UserTable({ users }: { users: AdminUserRow[] }) {
           ))}
           {users.length === 0 ? (
             <tr>
-              <td className="px-5 py-8 text-center text-ink-500" colSpan={6}>
+              <td className="px-5 py-8 text-center text-ink-500" colSpan={8}>
                 No users found yet.
               </td>
             </tr>
@@ -194,6 +220,8 @@ export default async function AdminHirevatePage({
 
   const dashboard = await getAdminUsersDashboard();
   const maxCountryCount = Math.max(...dashboard.countryStats.map((country) => country.total), 1);
+  const recentVisitorDays = dashboard.dailyVisitors.slice(0, 14);
+  const maxDailyVisitors = Math.max(...recentVisitorDays.map((day) => day.visitors), 1);
 
   return (
     <section className="bg-gray-50 py-10">
@@ -203,8 +231,8 @@ export default async function AdminHirevatePage({
             <Badge tone="blue">Private dashboard</Badge>
             <h1 className="mt-3 text-4xl font-semibold text-ink-900">Hirevate admin overview</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-ink-500">
-              See who logged in, which users are unsubscribed or paid, and which subscription tier was
-              purchased when Stripe checkout metadata is available.
+              See every Supabase Auth account, including users without profile rows, alongside
+              account types, subscriptions, login activity, countries, and consented daily visitors.
             </p>
           </div>
           <form action={signOutAdminHirevateAction}>
@@ -220,16 +248,22 @@ export default async function AdminHirevatePage({
             Supabase service role is not configured, so user and subscription analytics cannot load yet.
           </Card>
         ) : null}
+        {dashboard.configured && !dashboard.visitorTrackingConfigured ? (
+          <Card className="border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
+            Daily visitor tracking will appear after migration 013 is applied to Supabase.
+          </Card>
+        ) : null}
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <StatCard
-            detail="Profiles created through Supabase auth"
+            detail="All Supabase Auth accounts"
             icon={Users}
             label="Registered users"
             value={dashboard.totalUsers}
           />
           <StatCard
-            detail="Users with Weekly, Monthly, Annual, or legacy paid status"
+            detail="Weekly, Monthly, Annual, or legacy paid status"
             icon={ShieldCheck}
             label="Paid users"
             value={dashboard.paidUsers}
@@ -241,13 +275,62 @@ export default async function AdminHirevatePage({
             value={dashboard.freemiumUsers}
           />
           <StatCard
-            detail="Users with a tracked last login timestamp"
+            detail="Accounts with a recorded sign-in"
             icon={Clock3}
             label="Logged in users"
             value={dashboard.loggedInUsers}
           />
+          <StatCard
+            detail="Unique consented visitors today (UTC)"
+            icon={Eye}
+            label="Visitors today"
+            value={dashboard.todayVisitors}
+          />
+          <StatCard
+            detail="Consented page views recorded today"
+            icon={MousePointerClick}
+            label="Page views today"
+            value={dashboard.todayPageViews}
+          />
         </div>
 
+        <Card className="p-5">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <h2 className="text-xl font-semibold text-ink-900">Daily visitors</h2>
+              <p className="mt-1 text-sm leading-6 text-ink-500">
+                Unique anonymous and registered visitors who allowed optional measurement.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand-700">
+              <BarChart3 className="h-5 w-5" aria-hidden="true" />
+              Last 14 days
+            </div>
+          </div>
+
+          {recentVisitorDays.length ? (
+            <div className="mt-6 grid gap-3">
+              {recentVisitorDays.map((day) => (
+                <div className="grid gap-2 sm:grid-cols-[110px_minmax(0,1fr)_220px] sm:items-center" key={day.date}>
+                  <span className="text-sm font-semibold text-ink-700">{day.date}</span>
+                  <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full bg-brand-600"
+                      style={{ width: `${Math.max(6, (day.visitors / maxDailyVisitors) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs leading-5 text-ink-500 sm:text-right">
+                    {day.visitors} visitors / {day.pageViews} views / {day.registeredVisitors} signed in
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-6 text-sm leading-6 text-ink-500">
+              No consented visitor activity has been recorded yet.
+            </p>
+          )}
+        </Card>
         <div className="grid gap-5 xl:grid-cols-[1.25fr_0.85fr]">
           <Card className="overflow-hidden">
             <div className="border-b border-gray-100 p-5">
@@ -329,8 +412,8 @@ export default async function AdminHirevatePage({
 
         <Card className="overflow-hidden">
           <div className="border-b border-gray-100 p-5">
-            <h2 className="text-xl font-semibold text-ink-900">Recently registered users</h2>
-            <p className="mt-1 text-sm text-ink-500">Latest 50 profiles, newest first.</p>
+            <h2 className="text-xl font-semibold text-ink-900">All registered users</h2>
+            <p className="mt-1 text-sm text-ink-500">Every Supabase Auth account, newest first.</p>
           </div>
           <UserTable users={dashboard.recentUsers} />
         </Card>

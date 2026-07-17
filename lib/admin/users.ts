@@ -1,8 +1,11 @@
+import type { User } from "@supabase/supabase-js";
 import { isPaidSubscription } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/types/database";
 
 export type AdminUserRow = Profile & {
+  accountType: "Administrator" | "Paid user" | "Registered user";
+  authProvider: string;
   planLabel: "Paid" | "Unsubscribed";
   subscriptionLabel: string;
 };
@@ -21,6 +24,14 @@ export type SubscriptionStat = {
   total: number;
   paid: number;
   freemium: number;
+};
+
+export type DailyVisitorStat = {
+  date: string;
+  visitors: number;
+  anonymousVisitors: number;
+  registeredVisitors: number;
+  pageViews: number;
 };
 
 function normalizeSubscriptionStatus(status: string | null | undefined) {
@@ -69,30 +80,42 @@ function getTimestamp(value: string | null | undefined) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-async function listAuthUserMetadata(admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>) {
-  const metadata = new Map<string, { countryCode: string | null; countryName: string | null }>();
+function getMetadataString(metadata: Record<string, unknown>, key: string) {
+  const value = metadata[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getAuthProvider(appMetadata: Record<string, unknown>) {
+  const provider = getMetadataString(appMetadata, "provider");
+  return provider ? provider.charAt(0).toUpperCase() + provider.slice(1) : "Email";
+}
+
+function getAccountType(role: string, planLabel: AdminUserRow["planLabel"]): AdminUserRow["accountType"] {
+  const normalizedRole = role.trim().toLowerCase();
+  if (["admin", "superadmin", "super_admin"].includes(normalizedRole)) return "Administrator";
+  return planLabel === "Paid" ? "Paid user" : "Registered user";
+}
+
+async function listAuthUsers(admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>) {
+  const users: User[] = [];
   let page = 1;
 
-  while (page <= 10) {
+  while (true) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) break;
+    if (error) throw error;
 
-    for (const user of data.users) {
-      metadata.set(user.id, {
-        countryCode:
-          typeof user.user_metadata.country_code === "string"
-            ? user.user_metadata.country_code.toUpperCase()
-            : null,
-        countryName:
-          typeof user.user_metadata.country_name === "string" ? user.user_metadata.country_name : null
-      });
-    }
-
+    users.push(...data.users);
     if (data.users.length < 1000) break;
     page += 1;
   }
 
-  return metadata;
+  return users;
+}
+
+function getVisitorDate(daysAgo: number) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() - daysAgo);
+  return date.toISOString().slice(0, 10);
 }
 
 export async function getAdminUsersDashboard() {
@@ -107,33 +130,75 @@ export async function getAdminUsersDashboard() {
       knownCountryUsers: 0,
       countryStats: [] as CountryStat[],
       subscriptionStats: [] as SubscriptionStat[],
+      dailyVisitors: [] as DailyVisitorStat[],
+      visitorTrackingConfigured: false,
+      todayVisitors: 0,
+      todayPageViews: 0,
       recentUsers: [] as AdminUserRow[],
       recentLogins: [] as AdminUserRow[]
     };
   }
 
-  const { data, error } = await admin
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [profilesResult, authUsers, visitorResult] = await Promise.all([
+    admin.from("profiles").select("*").order("created_at", { ascending: false }),
+    listAuthUsers(admin),
+    admin
+      .from("daily_visitors")
+      .select("visit_date,page_views,user_id")
+      .gte("visit_date", getVisitorDate(29))
+      .order("visit_date", { ascending: false })
+  ]);
 
-  if (error) {
-    throw error;
+  if (profilesResult.error) {
+    throw profilesResult.error;
   }
 
-  const authMetadata = await listAuthUserMetadata(admin);
-  const users = ((data ?? []) as Profile[]).map((profile) => {
-    const metadata = authMetadata.get(profile.id);
-    const planLabel = isPaidSubscription(profile.subscription_status) ? "Paid" : "Unsubscribed";
+  const profiles = (profilesResult.data ?? []) as Profile[];
+  const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
+  const authUserIds = new Set(authUsers.map((user) => user.id));
+  const users = authUsers.map((authUser) => {
+    const profile = profileMap.get(authUser.id);
+    const userMetadata = authUser.user_metadata as Record<string, unknown>;
+    const appMetadata = authUser.app_metadata as Record<string, unknown>;
+    const countryCode = getMetadataString(userMetadata, "country_code")?.toUpperCase() ?? null;
+    const role = profile?.role ?? getMetadataString(appMetadata, "role") ?? "user";
+    const subscriptionStatus = profile?.subscription_status ?? "free";
+    const planLabel = isPaidSubscription(subscriptionStatus) ? "Paid" : "Unsubscribed";
+    const accountType = getAccountType(role, planLabel);
 
     return {
-      ...profile,
-      country_code: profile.country_code ?? metadata?.countryCode ?? null,
-      country_name: profile.country_name ?? metadata?.countryName ?? null,
+      id: authUser.id,
+      email: profile?.email ?? authUser.email ?? null,
+      full_name: profile?.full_name || getMetadataString(userMetadata, "full_name"),
+      role,
+      subscription_status: subscriptionStatus,
+      stripe_customer_id: profile?.stripe_customer_id ?? null,
+      stripe_subscription_id: profile?.stripe_subscription_id ?? null,
+      country_code: profile?.country_code ?? countryCode,
+      country_name: profile?.country_name ?? getMetadataString(userMetadata, "country_name"),
+      last_seen_at: profile?.last_seen_at ?? authUser.last_sign_in_at ?? null,
+      created_at: profile?.created_at ?? authUser.created_at,
+      accountType,
+      authProvider: getAuthProvider(appMetadata),
       planLabel,
-      subscriptionLabel: getSubscriptionLabel(profile.subscription_status)
+      subscriptionLabel: getSubscriptionLabel(subscriptionStatus)
     };
   }) satisfies AdminUserRow[];
+
+  for (const profile of profiles) {
+    if (authUserIds.has(profile.id)) continue;
+
+    const planLabel = isPaidSubscription(profile.subscription_status) ? "Paid" : "Unsubscribed";
+    users.push({
+      ...profile,
+      accountType: getAccountType(profile.role, planLabel),
+      authProvider: "Unknown",
+      planLabel,
+      subscriptionLabel: getSubscriptionLabel(profile.subscription_status)
+    });
+  }
+
+  users.sort((a, b) => getTimestamp(b.created_at) - getTimestamp(a.created_at));
 
   const paidUsers = users.filter((user) => user.planLabel === "Paid").length;
   const countryMap = new Map<string, CountryStat>();
@@ -142,8 +207,7 @@ export async function getAdminUsersDashboard() {
   for (const user of users) {
     const code = user.country_code ?? "unknown";
     const existingCountry =
-      countryMap.get(code) ??
-      {
+      countryMap.get(code) ?? {
         code,
         name: getCountryName(user.country_code, user.country_name),
         total: 0,
@@ -157,13 +221,11 @@ export async function getAdminUsersDashboard() {
     } else {
       existingCountry.freemium += 1;
     }
-
     countryMap.set(code, existingCountry);
 
     const status = normalizeSubscriptionStatus(user.subscription_status);
     const existingSubscription =
-      subscriptionMap.get(status) ??
-      {
+      subscriptionMap.get(status) ?? {
         status,
         label: user.subscriptionLabel,
         total: 0,
@@ -177,27 +239,53 @@ export async function getAdminUsersDashboard() {
     } else {
       existingSubscription.freemium += 1;
     }
-
     subscriptionMap.set(status, existingSubscription);
+  }
+
+  const visitorMap = new Map<string, DailyVisitorStat>();
+
+  for (const visit of visitorResult.data ?? []) {
+    const existing = visitorMap.get(visit.visit_date) ?? {
+      date: visit.visit_date,
+      visitors: 0,
+      anonymousVisitors: 0,
+      registeredVisitors: 0,
+      pageViews: 0
+    };
+
+    existing.visitors += 1;
+    existing.pageViews += visit.page_views;
+    if (visit.user_id) {
+      existing.registeredVisitors += 1;
+    } else {
+      existing.anonymousVisitors += 1;
+    }
+    visitorMap.set(visit.visit_date, existing);
   }
 
   const countryStats = [...countryMap.values()].sort((a, b) => b.total - a.total);
   const subscriptionStats = [...subscriptionMap.values()].sort((a, b) => b.total - a.total);
-  const recentLogins = users
+  const dailyVisitors = [...visitorMap.values()].sort((a, b) => b.date.localeCompare(a.date));
+  const today = visitorMap.get(getVisitorDate(0));
+  const loggedInUsers = users
     .filter((user) => Boolean(user.last_seen_at))
-    .sort((a, b) => getTimestamp(b.last_seen_at) - getTimestamp(a.last_seen_at))
-    .slice(0, 100);
+    .sort((a, b) => getTimestamp(b.last_seen_at) - getTimestamp(a.last_seen_at));
+  const recentLogins = loggedInUsers.slice(0, 100);
 
   return {
     configured: true,
     totalUsers: users.length,
     paidUsers,
     freemiumUsers: users.length - paidUsers,
-    loggedInUsers: recentLogins.length,
+    loggedInUsers: loggedInUsers.length,
     knownCountryUsers: users.filter((user) => Boolean(user.country_code)).length,
     countryStats,
     subscriptionStats,
-    recentUsers: users.slice(0, 50),
+    dailyVisitors,
+    visitorTrackingConfigured: !visitorResult.error,
+    todayVisitors: today?.visitors ?? 0,
+    todayPageViews: today?.pageViews ?? 0,
+    recentUsers: users,
     recentLogins
   };
 }

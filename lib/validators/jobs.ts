@@ -4,6 +4,7 @@ export const jobSearchSchema = z.object({
   keyword: z.string().trim().max(120).optional().default(""),
   company: z.string().trim().max(120).optional().default(""),
   location: z.string().trim().max(120).optional().default(""),
+  country: z.string().trim().toLowerCase().max(40).optional().default("all"),
   workMode: z.enum(["any", "remote", "hybrid", "onsite"]).optional().default("any"),
   postedWithin: z.enum(["all", "24h", "7d", "14d", "30d"]).optional().default("all"),
   remote: z.enum(["on", "true"]).optional(),

@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ChevronLeft, ChevronRight, LockKeyhole } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe2, LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
+import { CountryPreferenceLink } from "@/components/jobs/country-preference-select";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
+import { getJobCountryBySlug, jobCountries } from "@/lib/jobs/countries";
+import { resolveJobCountryPreference } from "@/lib/jobs/country-preference";
 import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
 import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
@@ -88,6 +91,7 @@ function buildJobsPageHref(
   if (nextFilters.keyword) params.set("keyword", nextFilters.keyword);
   if (nextFilters.company) params.set("company", nextFilters.company);
   if (nextFilters.location) params.set("location", nextFilters.location);
+  if (nextFilters.country !== "all") params.set("country", nextFilters.country);
   if (nextFilters.workMode !== "any") params.set("workMode", nextFilters.workMode);
   if (nextFilters.postedWithin !== "all") {
     params.set("postedWithin", nextFilters.postedWithin);
@@ -101,6 +105,8 @@ function buildJobsPageHref(
 }
 
 function getActiveFilterChips(filters: JobSearchInput) {
+  const selectedCountry = getJobCountryBySlug(filters.country);
+
   return [
     filters.keyword
       ? { label: `Role: ${filters.keyword}`, href: buildJobsPageHref(filters, 1, { keyword: "" }) }
@@ -112,6 +118,12 @@ function getActiveFilterChips(filters: JobSearchInput) {
       ? {
           label: `Location: ${filters.location}`,
           href: buildJobsPageHref(filters, 1, { location: "" })
+        }
+      : null,
+    filters.country !== "all" && selectedCountry
+      ? {
+          label: `Country: ${selectedCountry.name}`,
+          href: buildJobsPageHref(filters, 1, { country: "all" })
         }
       : null,
     filters.workMode !== "any"
@@ -148,6 +160,7 @@ function hasFacetedSearch(filters: JobSearchInput) {
       filters.location ||
       filters.workMode !== "any" ||
       filters.postedWithin !== "all" ||
+      filters.country !== "all" ||
       filters.freshness !== "all" ||
       filters.sort !== "newest" ||
       filters.page > 1
@@ -161,16 +174,22 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const resolvedSearchParams = await searchParams;
   const filters = parseJobSearchParams(resolvedSearchParams);
+  const selectedCountry = getJobCountryBySlug(filters.country);
+  const locationName = filters.location || selectedCountry?.name;
   const titleParts = [
     filters.workMode !== "any" ? workModeLabels[filters.workMode] : null,
     filters.keyword || "Hidden",
     "Jobs",
     filters.company ? `at ${filters.company}` : null,
-    filters.location ? `in ${filters.location}` : null
+    locationName ? `in ${locationName}` : null
   ].filter(Boolean);
   const title = titleParts.join(" ");
   const description =
-    filters.keyword || filters.location || filters.company || filters.workMode !== "any"
+    filters.keyword ||
+    filters.location ||
+    filters.company ||
+    selectedCountry ||
+    filters.workMode !== "any"
       ? `Search fresh ${title.toLowerCase()} from company career pages, public ATS boards, and trusted hiring sources. Clear source and freshness signals, without a noisy social feed.`
       : jobsDescription;
 
@@ -210,9 +229,15 @@ export default async function JobsPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = await searchParams;
+  const countryPreference = await resolveJobCountryPreference(resolvedSearchParams);
+  const userPromise = getCurrentUser();
+  const effectiveSearchParams = {
+    ...(resolvedSearchParams ?? {}),
+    country: countryPreference.slug
+  };
   const [{ configured, filters, jobs, page, pageSize, totalCount, totalPages }, user] = await Promise.all([
-    getJobs(resolvedSearchParams),
-    getCurrentUser()
+    getJobs(effectiveSearchParams),
+    userPromise
   ]);
   const [savedJobIds, profile] = await Promise.all([
     user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>()),
@@ -238,6 +263,12 @@ export default async function JobsPage({
   const hasNextPage = totalPages > page;
   const activeFilterChips = getActiveFilterChips(filters);
   const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
+  const countryPreferenceMessage =
+    countryPreference.source === "detected"
+      ? "Based on your approximate request country; no precise location is stored."
+      : countryPreference.source === "saved"
+        ? "Using your saved country preference."
+        : "Using the country you selected.";
   const visibleJobItemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -310,6 +341,32 @@ export default async function JobsPage({
               View plans
             </Button>
           </div>
+          {countryPreference.country ? (
+            <div className="mt-6 flex flex-col gap-3 rounded-lg border border-brand-100 bg-brand-50 p-4 text-sm md:flex-row md:items-center">
+              <Globe2 className="h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-ink-900">
+                  Showing jobs connected to {countryPreference.country.name}
+                </p>
+                <p className="mt-1 leading-6 text-ink-500">
+                  {countryPreferenceMessage} Location matching uses public job text, so verify work
+                  eligibility before applying.
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-3">
+                <Link className="font-semibold text-brand-700" href={countryPreference.country.path}>
+                  Country page
+                </Link>
+                <CountryPreferenceLink
+                  className="font-semibold text-ink-600 transition hover:text-brand-700"
+                  href="/jobs?country=all"
+                  slug="all"
+                >
+                  All countries
+                </CountryPreferenceLink>
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-8">
             <JobFilters filters={filters} />
@@ -330,6 +387,18 @@ export default async function JobsPage({
                 key={page.href}
               >
                 {page.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-ink-700">Browse by country:</span>
+            {jobCountries.map((country) => (
+              <Link
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 font-medium text-ink-700 transition hover:border-brand-200 hover:text-brand-700"
+                href={country.path}
+                key={country.slug}
+              >
+                {country.name}
               </Link>
             ))}
           </div>
@@ -359,9 +428,13 @@ export default async function JobsPage({
                   {chip.label}
                 </Link>
               ))}
-              <Link className="font-semibold text-ink-500 transition hover:text-brand-700" href="/jobs">
+              <CountryPreferenceLink
+                className="font-semibold text-ink-500 transition hover:text-brand-700"
+                href="/jobs?country=all"
+                slug="all"
+              >
                 Clear all
-              </Link>
+              </CountryPreferenceLink>
             </div>
           ) : null}
 

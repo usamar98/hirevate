@@ -4,6 +4,11 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { env, hasSupabaseBrowserConfig } from "@/lib/env";
 import { dedupeJobs } from "@/lib/jobs/dedupe";
+import {
+  getCountryLocationFilter,
+  getJobCountryBySlug,
+  type JobCountry
+} from "@/lib/jobs/countries";
 import { getJobSlug, getJobSlugToken, isUuidLike, jobMatchesSlug } from "@/lib/jobs/seo";
 import type { JobWithCompany, SavedJobWithJob } from "@/types/database";
 import type { Database } from "@/types/database";
@@ -41,6 +46,7 @@ export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchIn
     keyword: readParam(searchParams, "keyword") ?? "",
     company: readParam(searchParams, "company") ?? "",
     location: readParam(searchParams, "location") ?? "",
+    country: readParam(searchParams, "country") ?? "all",
     workMode: readParam(searchParams, "workMode") ?? (remote ? "remote" : "any"),
     postedWithin: readParam(searchParams, "postedWithin") ?? "all",
     remote,
@@ -143,6 +149,11 @@ export async function getJobs(searchParams: RawSearchParams) {
 
   if (filters.location) {
     query = query.ilike("location", `%${filters.location}%`);
+  }
+
+  const selectedCountry = getJobCountryBySlug(filters.country);
+  if (selectedCountry) {
+    query = query.or(getCountryLocationFilter(selectedCountry));
   }
 
   if (matchingCompanyIds) {
@@ -355,43 +366,33 @@ export async function getLocationJobs(location: string, limit = 40) {
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
-export async function getUkJobs(limit = 40) {
+export async function getCountryJobs(country: JobCountry, limit = 40) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
-
-  const ukLocations = [
-    "United Kingdom",
-    "England",
-    "Scotland",
-    "Wales",
-    "Northern Ireland",
-    "London",
-    "Manchester",
-    "Birmingham",
-    "Edinburgh",
-    "Glasgow",
-    "Bristol",
-    "Leeds",
-    "Belfast",
-    "Cardiff"
-  ];
 
   const { data, error } = await supabase
     .from("jobs")
     .select(jobListWithCompanySelect)
     .eq("status", "active")
-    .or(ukLocations.map((location) => `location.ilike.%${location}%`).join(","))
+    .or(getCountryLocationFilter(country))
     .order("freshness_score", { ascending: false })
     .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load UK jobs", error);
+    console.error(`Failed to load ${country.name} jobs`, error);
     return { jobs: [] as JobWithCompany[], configured: true };
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
+}
+
+export async function getUkJobs(limit = 40) {
+  const country = getJobCountryBySlug("united-kingdom");
+  if (!country) return { jobs: [] as JobWithCompany[], configured: true };
+
+  return getCountryJobs(country, limit);
 }
 
 export async function getEngineeringJobs(limit = 40) {

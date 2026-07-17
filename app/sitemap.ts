@@ -9,7 +9,7 @@ import { absoluteUrl, publicSeoRoutes } from "@/lib/seo";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const contentLastModified = new Date("2026-07-16T00:00:00.000Z");
+  const contentLastModified = new Date("2026-07-17T00:00:00.000Z");
   const jobs = await getSitemapJobs();
 
   const publicRoutes = publicSeoRoutes.map((route) => ({

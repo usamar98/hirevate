@@ -1,6 +1,8 @@
 import { RotateCcw, Search } from "lucide-react";
+import { CountryPreferenceSelect } from "@/components/jobs/country-preference-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { jobCountries } from "@/lib/jobs/countries";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const fieldLabelClassName = "text-xs font-semibold uppercase text-ink-500";
@@ -29,7 +31,18 @@ export function JobFilters({ filters }: { filters: JobSearchInput }) {
         </label>
       </div>
 
-      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
+      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto]">
+        <label className="space-y-1.5">
+          <span className={fieldLabelClassName}>Country</span>
+          <CountryPreferenceSelect className={selectClassName} defaultValue={filters.country}>
+            <option value="all">All countries</option>
+            {jobCountries.map((country) => (
+              <option key={country.slug} value={country.slug}>
+                {country.name}
+              </option>
+            ))}
+          </CountryPreferenceSelect>
+        </label>
         <label className="space-y-1.5">
           <span className={fieldLabelClassName}>Work mode</span>
           <select className={selectClassName} defaultValue={filters.workMode} name="workMode">

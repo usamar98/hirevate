@@ -275,9 +275,14 @@ paid AI-assisted writing before users apply on the available employer, ATS, or p
 
 ## Admin User Analytics
 
-Admins can open `/admin/users` to see registered users, paid vs unsubscribed counts, recent signups,
-and country breakdowns. Run `supabase/migrations/003_profile_geography.sql` to persist country and
-last-seen data on profiles. Country data is captured from production request headers such as
+Admins can open `/admin/users` or the password-protected `/adminhirevate01` portal to see
+every Supabase Auth account, including accounts without profile rows, plus account types,
+subscriptions, recent logins, and country breakdowns. Run
+`supabase/migrations/003_profile_geography.sql` to persist country and last-seen profile data.
+
+Run `supabase/migrations/013_daily_visitors.sql` to enable daily unique-visitor and page-view
+counts. Visitor measurement runs only after optional cookie consent and stores a pseudonymous
+identifier rather than an IP address. Country data comes from production request headers such as
 `x-vercel-ip-country`, so existing users may show as unknown until they log in again.
 
 If `/admin/users` shows the admin access page, run `supabase/admin_set_admin.sql` in Supabase SQL

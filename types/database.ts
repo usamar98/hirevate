@@ -66,6 +66,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      daily_visitors: {
+        Row: {
+          id: string;
+          visitor_hash: string;
+          visit_date: string;
+          user_id: string | null;
+          entry_path: string;
+          last_path: string;
+          country_code: string | null;
+          country_name: string | null;
+          page_views: number;
+          first_seen_at: string;
+          last_seen_at: string;
+        };
+        Insert: {
+          id?: string;
+          visitor_hash: string;
+          visit_date: string;
+          user_id?: string | null;
+          entry_path: string;
+          last_path: string;
+          country_code?: string | null;
+          country_name?: string | null;
+          page_views?: number;
+          first_seen_at?: string;
+          last_seen_at?: string;
+        };
+        Update: {
+          id?: string;
+          visitor_hash?: string;
+          visit_date?: string;
+          user_id?: string | null;
+          entry_path?: string;
+          last_path?: string;
+          country_code?: string | null;
+          country_name?: string | null;
+          page_views?: number;
+          first_seen_at?: string;
+          last_seen_at?: string;
+        };
+        Relationships: [];
+      };
       companies: {
         Row: {
           id: string;
@@ -543,6 +585,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      record_daily_visit: {
+        Args: {
+          p_visitor_hash: string;
+          p_visit_date: string;
+          p_user_id: string | null;
+          p_path: string;
+          p_country_code: string | null;
+          p_country_name: string | null;
+        };
+        Returns: undefined;
+      };
       reserve_job_source_searches: {
         Args: {
           source_name: string;
@@ -566,6 +619,7 @@ export type Database = {
 };
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type DailyVisitor = Database["public"]["Tables"]["daily_visitors"]["Row"];
 export type Company = Database["public"]["Tables"]["companies"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type SavedJob = Database["public"]["Tables"]["saved_jobs"]["Row"];

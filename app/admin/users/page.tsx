@@ -66,7 +66,7 @@ export default async function AdminUsersPage() {
             icon={Users}
             label="Registered users"
             value={dashboard.totalUsers}
-            detail="Profiles created from Supabase auth"
+            detail="All Supabase Auth accounts"
           />
           <StatCard
             icon={ShieldCheck}
@@ -129,8 +129,8 @@ export default async function AdminUsersPage() {
 
           <Card className="overflow-hidden">
             <div className="border-b border-gray-100 p-5">
-              <h2 className="text-xl font-semibold text-ink-900">Recent registered users</h2>
-              <p className="mt-1 text-sm text-ink-500">Latest 50 profiles, newest first.</p>
+              <h2 className="text-xl font-semibold text-ink-900">All registered users</h2>
+              <p className="mt-1 text-sm text-ink-500">Every Supabase Auth account, newest first.</p>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100 text-sm">
