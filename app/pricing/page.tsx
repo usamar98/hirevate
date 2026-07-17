@@ -13,7 +13,7 @@ const pricingFaqItems = [
   {
     question: "Which Hirevate plan is best for an active job search?",
     answer:
-      "The Monthly Plan is recommended for most active searches because it covers a full search cycle with resume matching and application tracking."
+      "Every paid plan includes the same Hirevate features. Choose Weekly for a short sprint, Monthly for an active search cycle, or Annual for the lowest equivalent weekly price."
   },
   {
     question: "What are the current Hirevate prices?",
@@ -27,7 +27,7 @@ const pricingFaqItems = [
   {
     question: "Do paid plans include resume and cover letter tools?",
     answer:
-      "Yes. All paid plans include six professional resume templates, resume export, and AI-assisted resume and cover-letter writing. Monthly and Annual plans add resume matching and the full lifecycle tracker."
+      "Yes. All paid plans include six professional resume templates, PDF export, AI-assisted resume and cover-letter writing, resume matching, and the application tracker."
   },
   {
     question: "How do I cancel a Hirevate subscription?",
@@ -61,7 +61,7 @@ const pricingInternalLinks = [
   { href: "/jobs?keyword=product%20manager", label: "Product manager jobs", requiresAccount: true },
   { href: "/jobs?keyword=data%20analyst", label: "Data analyst jobs", requiresAccount: true },
   { href: "/jobs?keyword=customer%20success", label: "Customer success jobs", requiresAccount: true },
-  { href: "/resume-builder", label: "Resume builder", requiresAccount: true },
+  { href: "/resume-builder", label: "Preview resume templates", requiresAccount: false },
   { href: "/cover-letter", label: "Cover letter builder", requiresAccount: true },
   { href: "/legal/subscription-terms", label: "Subscription terms", requiresAccount: false },
   { href: "/legal/eu-withdrawal-refund-policy", label: "EU refund policy", requiresAccount: false }
@@ -177,8 +177,8 @@ export default function PricingPage() {
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
             Public job pages can be previewed for discovery. Opening plan access from this page
             requires an account, and a paid plan unlocks the complete job feed and Apply now links.
-            All three paid plans unlock the complete job inventory. Monthly and Annual add the
-            matching and tracking workflow listed in their plan points.
+            All three paid plans unlock the same job, resume, cover-letter, matching, and tracking
+            features. Choose a plan based on how long you want access.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             {pricingInternalLinks.map((item) => (

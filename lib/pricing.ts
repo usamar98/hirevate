@@ -39,20 +39,13 @@ export type PublicPricingPlan = {
   features: string[];
 };
 
-const jobSearchFeatures = [
-  "Fresh public-source job search",
+const includedPaidFeatures = [
+  "Complete job feed with Apply now links",
   "Advanced role, company, location, and freshness filters",
-  "Six professional resume templates with AI writing and export",
-  "Company-specific cover letters with AI writing",
-  "Best for one active search week"
-];
-
-const careerProFeatures = [
-  "Everything in Job Search",
+  "Six professional resume templates with PDF export",
+  "AI-assisted resume and company-specific cover-letter writing",
   "Resume-to-job match score and keyword gaps",
-  "Application command center with follow-ups and next actions",
-  "Track listing health, application stages, interviews, and outcomes",
-  "Best for a steady weekly application routine"
+  "Application tracker for stages, follow-ups, interviews, and outcomes"
 ];
 
 export const publicPricingPlans: PublicPricingPlan[] = [
@@ -81,7 +74,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         schemaName: "Hirevate Weekly Plan"
       }
     ],
-    features: jobSearchFeatures
+    features: includedPaidFeatures
   },
   {
     key: "gold",
@@ -108,7 +101,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         schemaName: "Hirevate Monthly Plan"
       }
     ],
-    features: careerProFeatures,
+    features: includedPaidFeatures,
     highlighted: true
   },
   {
@@ -136,7 +129,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         schemaName: "Hirevate Annual Plan"
       }
     ],
-    features: careerProFeatures
+    features: includedPaidFeatures
   }
 ];
 
