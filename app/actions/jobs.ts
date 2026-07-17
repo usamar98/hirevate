@@ -40,6 +40,7 @@ function revalidateJobSurfaces(jobId: string, redirectPath?: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/saved");
+  revalidatePath("/account/saved-jobs");
 }
 
 export async function saveJobAction(formData: FormData) {

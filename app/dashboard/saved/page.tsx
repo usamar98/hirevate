@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SavedJobsPage() {
-  const user = await requireUser();
+  const user = await requireUser("/account/saved-jobs");
   const [savedJobs, profile] = await Promise.all([
     getSavedJobs(user.id),
     getProfile(user.id)

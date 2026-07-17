@@ -338,7 +338,7 @@ function CreateApplicationForm({
             Set the stage, priority, next action, and follow-up date from the start.
           </p>
         </div>
-        <Button asChild href="/cover-letter" variant="outline">
+        <Button asChild href="/account/cover-letters" variant="outline">
           Cover letter
           <FileText className="h-4 w-4" aria-hidden="true" />
         </Button>
@@ -463,7 +463,7 @@ export default async function JobTrackerPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const user = await requireUser("/dashboard/job-tracker");
+  const user = await requireUser("/account/job-tracker");
   const view: JobTrackerView =
     readParam(resolvedSearchParams, "view") === "archived" ? "archived" : "active";
   const dashboard = await getJobTrackerDashboard(user.id, view);
@@ -520,7 +520,7 @@ export default async function JobTrackerPage({
                     ? "border-b-2 border-brand-600 text-brand-700"
                     : "text-ink-500 hover:text-ink-900")
                 }
-                href="/dashboard/job-tracker"
+                href="/account/job-tracker"
               >
                 Active pipeline
               </Link>
@@ -531,7 +531,7 @@ export default async function JobTrackerPage({
                     ? "border-b-2 border-brand-600 text-brand-700"
                     : "text-ink-500 hover:text-ink-900")
                 }
-                href="/dashboard/job-tracker?view=archived"
+                href="/account/job-tracker?view=archived"
               >
                 Archived ({dashboard.archivedCount})
               </Link>
@@ -625,7 +625,7 @@ export default async function JobTrackerPage({
                   }
                   action={
                     view === "archived" ? (
-                      <Button asChild href="/dashboard/job-tracker">
+                      <Button asChild href="/account/job-tracker">
                         Return to pipeline
                       </Button>
                     ) : (

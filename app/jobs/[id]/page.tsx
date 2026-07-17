@@ -209,7 +209,7 @@ export default async function JobDetailPage({
                   jobId={job.id}
                   redirectPath={canonicalPath}
                 />
-                <Button asChild href={`/dashboard/job-tracker?${trackerParams.toString()}`} variant="outline" className="w-full">
+                <Button asChild href={`/account/job-tracker?${trackerParams.toString()}`} variant="outline" className="w-full">
                   Track job
                 </Button>
               </div>

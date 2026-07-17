@@ -12,7 +12,7 @@ import {
 } from "@/lib/validators/job-tracker";
 import type { Database } from "@/types/database";
 
-const trackerPath = "/dashboard/job-tracker";
+const trackerPath = "/account/job-tracker";
 
 function readFormValue(formData: FormData, key: string) {
   const value = formData.get(key);

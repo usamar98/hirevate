@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { signOutAction } from "@/app/actions/auth";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
 import { AUTH_STATUS_CHANGED_EVENT } from "@/lib/auth/client-events";
@@ -66,9 +65,6 @@ export function SiteHeader() {
           <Link className="transition hover:text-ink-900" href="/resume-builder">
             Resume
           </Link>
-          <Link className="transition hover:text-ink-900" href="/cover-letter">
-            Cover Letter
-          </Link>
           <Link className="transition hover:text-ink-900" href="/about">
             About
           </Link>
@@ -76,14 +72,9 @@ export function SiteHeader() {
             Guides
           </Link>
           {authStatus.authenticated ? (
-            <>
-              <Link className="transition hover:text-ink-900" href="/dashboard">
-                Dashboard
-              </Link>
-              <Link className="transition hover:text-ink-900" href="/dashboard/job-tracker">
-                Tracker
-              </Link>
-            </>
+            <Link className="transition hover:text-ink-900" href="/dashboard">
+              Dashboard
+            </Link>
           ) : null}
           {authStatus.isAdmin ? (
             <>
@@ -113,13 +104,7 @@ export function SiteHeader() {
           >
             Pricing
           </Button>
-          {authStatus.authenticated ? (
-            <form action={signOutAction}>
-              <Button aria-label="Sign out" size="icon" type="submit" variant="ghost">
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            </form>
-          ) : null}
+          {authStatus.authenticated ? <AccountMenu /> : null}
         </div>
       </div>
     </header>
