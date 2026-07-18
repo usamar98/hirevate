@@ -18,8 +18,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getFeaturedJobs } from "@/lib/jobs/queries";
+import { getJobCompensationLabel } from "@/lib/jobs/compensation";
+import { getSalaryFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
+import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultDescription, siteName, defaultOgImagePath } from "@/lib/seo";
 import type { JobWithCompany } from "@/types/database";
@@ -85,7 +87,10 @@ const emptyPreviewJobs = [
     company: "Hirevate public job index",
     location: "Browse the latest available roles",
     score: null,
-    href: "/jobs/latest"
+    href: "/jobs/latest",
+    compensation: null,
+    sourceLabel: "Verified source",
+    website: null
   }
 ];
 
@@ -214,7 +219,7 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
 export const revalidate = 3600;
 
 export default async function LandingPage() {
-  const featuredJobs = await getFeaturedJobs(12);
+  const featuredJobs = await getSalaryFeaturedJobs(12);
   const trackedCompanyItems = getTrackedCompanyItems(featuredJobs);
   const companySliderItems = [...trackedCompanyItems, ...trackedCompanyItems];
 
@@ -535,7 +540,10 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
           company: job.companies?.name ?? "Company",
           location: job.location ?? "Location not listed",
           score: job.freshness_score,
-          href: getJobPath(job)
+          href: getJobPath(job),
+          compensation: getJobCompensationLabel(job),
+          sourceLabel: getJobSourceTrust(job).label,
+          website: job.companies?.website ?? null
         }))
       : emptyPreviewJobs;
 
@@ -565,7 +573,8 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
             className="rounded-md border border-gray-100 bg-white p-4 shadow-sm"
             key={`${job.company}-${job.title}`}
           >
-            <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <CompanyLogo companyName={job.company} website={job.website} />
               <div className="min-w-0">
                 <Link href={job.href} className="font-semibold text-ink-900 hover:text-brand-600">
                   {job.title}
@@ -573,11 +582,18 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
                 <p className="mt-1 text-sm text-ink-500">
                   {job.company} - {job.location}
                 </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {job.compensation ? (
+                    <span className="inline-flex items-center rounded-full bg-black px-2.5 py-1 text-xs font-semibold leading-none text-white">
+                      {job.compensation}
+                    </span>
+                  ) : null}
+                  {job.score === null ? null : <Badge tone="green">Score {job.score}</Badge>}
+                </div>
               </div>
-              {job.score === null ? null : <Badge tone="green">Score {job.score}</Badge>}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
-              <Badge tone="blue">Verified source</Badge>
+              <Badge tone="blue">{job.sourceLabel}</Badge>
               <Link href={job.href} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
                 <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
                 Apply now

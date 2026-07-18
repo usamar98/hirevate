@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { env, hasSupabaseBrowserConfig } from "@/lib/env";
+import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { dedupeJobs } from "@/lib/jobs/dedupe";
 import {
   getCountryLocationFilter,
@@ -18,6 +19,8 @@ type PublicJobsReadClient = SupabaseClient<Database>;
 
 const jobListWithCompanySelect =
   "id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)";
+const featuredJobWithCompanySelect =
+  "id, company_id, external_id, title, description, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, raw_data, companies:company_id(id, name, greenhouse_slug, website)";
 const jobDetailWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
 const JOBS_PAGE_SIZE = 50;
 const JOB_SLUG_LOOKUP_LIMIT = 5000;
@@ -294,6 +297,33 @@ export async function getFeaturedJobs(limit = 3) {
   }
 
   return dedupeJobs((data ?? []) as JobWithCompany[]);
+}
+
+export async function getSalaryFeaturedJobs(limit = 3) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return [] as JobWithCompany[];
+
+  const candidateLimit = Math.min(Math.max(limit * 10, 120), 500);
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .select(featuredJobWithCompanySelect)
+    .eq("status", "active")
+    .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
+    .order("discovered_at", { ascending: false })
+    .limit(candidateLimit);
+
+  if (error) {
+    console.error("Failed to load salary-listed featured jobs", error);
+    return [] as JobWithCompany[];
+  }
+
+  const jobs = dedupeJobs((data ?? []) as JobWithCompany[]);
+
+  return jobs
+    .filter((job) => Boolean(getJobCompensationLabel(job)))
+    .slice(0, limit);
 }
 
 export async function getSitemapJobs(limit = 2000) {
