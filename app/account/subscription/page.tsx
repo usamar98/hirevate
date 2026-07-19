@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 function planLabel(status: string | null | undefined) {
+  if (status === "starter") return "Daily Plan";
   if (status === "silver") return "Weekly Plan";
   if (status === "gold") return "Monthly Plan";
   if (status === "platinum") return "Annual Plan";

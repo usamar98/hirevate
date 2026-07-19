@@ -263,7 +263,7 @@ export default async function AdminHirevatePage({
             value={dashboard.totalUsers}
           />
           <StatCard
-            detail="Weekly, Monthly, Annual, or legacy paid status"
+            detail="Daily, Weekly, Monthly, Annual, or legacy paid status"
             icon={ShieldCheck}
             label="Paid users"
             value={dashboard.paidUsers}

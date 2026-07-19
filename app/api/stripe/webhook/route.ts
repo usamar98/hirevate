@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { env } from "@/lib/env";
-import { checkoutPlanKeys } from "@/lib/pricing";
+import { checkoutPlanKeys, type SubscriptionTier } from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getStripe,
@@ -17,7 +17,7 @@ function isPlanKey(value: unknown): value is StripePlanKey {
   return typeof value === "string" && checkoutPlanKeys.includes(value as StripePlanKey);
 }
 
-const legacySubscriptionStatuses: Record<string, "silver" | "gold" | "platinum"> = {
+const legacySubscriptionStatuses: Record<string, SubscriptionTier> = {
   gold_weekly: "gold"
 };
 

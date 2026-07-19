@@ -83,12 +83,12 @@ export const legalDocuments: LegalDocument[] = [
     slug: "subscription-terms",
     shortTitle: "Subscriptions",
     title: "Hirevate Subscription and Cancellation Terms",
-    description: "Hirevate weekly, monthly, and annual recurring billing, automatic renewal, cancellation at period end, paid access, refunds, and price changes.",
+    description: "Hirevate daily, weekly, monthly, and annual recurring billing, automatic renewal, cancellation at period end, paid access, refunds, and price changes.",
     summary: "Paid plans renew for the selected billing period until the subscriber cancels.",
     sections: [
       {
         title: "Plans and renewal",
-        text: [pricingSummary, "The selected price and interval are shown before payment. Stripe processes card details and recurring charges. A subscription renews weekly, monthly, or annually until cancellation."]
+        text: [pricingSummary, "The selected price and interval are shown before payment. Stripe processes card details and recurring charges. A subscription renews daily, weekly, monthly, or annually until cancellation."]
       },
       {
         title: "Cancellation",

@@ -13,7 +13,7 @@ const pricingFaqItems = [
   {
     question: "Which Hirevate plan is best for an active job search?",
     answer:
-      "Every paid plan includes the same Hirevate features. Choose Weekly for a short sprint, Monthly for an active search cycle, or Annual for the lowest equivalent weekly price."
+      "Every paid plan includes the same Hirevate features. Choose Daily for the lowest commitment, Weekly for a short sprint, Monthly for an active search cycle, or Annual for the lowest equivalent weekly price."
   },
   {
     question: "What are the current Hirevate prices?",
@@ -162,8 +162,9 @@ export default function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Choose weekly access for a short sprint, monthly access for a complete search cycle,
-              or annual access for the lowest equivalent weekly price.
+              Choose daily access for the lowest commitment, weekly access for a short sprint,
+              monthly access for a complete search cycle, or annual access for the lowest
+              equivalent weekly price.
             </p>
           </div>
           <div className="mt-8">
@@ -177,7 +178,7 @@ export default function PricingPage() {
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
             Public job pages can be previewed for discovery. Opening plan access from this page
             requires an account, and a paid plan unlocks the complete job feed and Apply now links.
-            All three paid plans unlock the same job, resume, cover-letter, matching, and tracking
+            All four paid plans unlock the same job, resume, cover-letter, matching, and tracking
             features. Choose a plan based on how long you want access.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">

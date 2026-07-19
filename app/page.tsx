@@ -186,7 +186,7 @@ const workflowLinks = [
   {
     href: "/pricing",
     label: "Pricing",
-    description: "Compare Hirevate weekly, monthly, and annual paid plans."
+    description: "Compare Hirevate daily, weekly, monthly, and annual paid plans."
   },
   {
     href: "/about",
@@ -483,7 +483,7 @@ export default async function LandingPage() {
               {copy.pricing.cta}
             </Button>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             {publicPricingPlans.map((plan) => (
               <Card
                 className={

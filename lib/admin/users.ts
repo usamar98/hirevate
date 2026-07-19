@@ -49,6 +49,7 @@ export function getSubscriptionLabel(status: string | null | undefined) {
     past_due: "Past due",
     platinum: "Annual Plan",
     pro: "Pro legacy plan",
+    starter: "Daily Plan",
     silver: "Weekly Plan",
     trialing: "Trialing paid plan",
     unpaid: "Unpaid"

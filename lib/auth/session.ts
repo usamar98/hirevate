@@ -53,5 +53,5 @@ export async function requireAdmin(redirectTo = "/admin") {
 }
 
 export function isPaidSubscription(status: string | null | undefined) {
-  return ["active", "trialing", "pro", "annual", "silver", "gold", "platinum"].includes(status ?? "");
+  return ["active", "trialing", "pro", "annual", "starter", "silver", "gold", "platinum"].includes(status ?? "");
 }

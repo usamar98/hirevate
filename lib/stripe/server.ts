@@ -31,8 +31,8 @@ export const stripePlans = Object.fromEntries(
   {
     name: string;
     amount: number;
-    interval: "week" | "month" | "year";
-    subscriptionStatus: "silver" | "gold" | "platinum";
+    interval: "day" | "week" | "month" | "year";
+    subscriptionStatus: "starter" | "silver" | "gold" | "platinum";
   }
 >;
 

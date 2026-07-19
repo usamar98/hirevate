@@ -1,23 +1,24 @@
 export const checkoutPlanKeys = [
+  "starter_daily",
   "silver_weekly",
   "gold_monthly",
   "platinum_annual"
 ] as const;
 
 export type CheckoutPlanKey = (typeof checkoutPlanKeys)[number];
-export type SubscriptionTier = "silver" | "gold" | "platinum";
+export type SubscriptionTier = "starter" | "silver" | "gold" | "platinum";
 export type PublicSubscriptionTier = SubscriptionTier;
-export type BillingInterval = "week" | "month" | "year";
+export type BillingInterval = "day" | "week" | "month" | "year";
 
 export type PublicPricingOption = {
   key: CheckoutPlanKey;
-  label: "Weekly" | "Monthly" | "Annual";
+  label: "Daily" | "Weekly" | "Monthly" | "Annual";
   price: string;
   displayPrice: string;
-  displayCadence: "/week";
+  displayCadence: "/day" | "/week";
   priceValue: string;
   amountCents: number;
-  cadence: "/week" | "/month" | "/year";
+  cadence: "/day" | "/week" | "/month" | "/year";
   interval: BillingInterval;
   cta: string;
   billingDetail: string;
@@ -28,7 +29,7 @@ export type PublicPricingOption = {
 
 export type PublicPricingPlan = {
   key: PublicSubscriptionTier;
-  name: "Weekly Plan" | "Monthly Plan" | "Annual Plan";
+  name: "Daily Plan" | "Weekly Plan" | "Monthly Plan" | "Annual Plan";
   service: string;
   description: string;
   badge: string;
@@ -49,6 +50,33 @@ const includedPaidFeatures = [
 ];
 
 export const publicPricingPlans: PublicPricingPlan[] = [
+  {
+    key: "starter",
+    name: "Daily Plan",
+    service: "One-day access",
+    description: "For trying the complete Hirevate workflow with a low daily commitment.",
+    badge: "Low commitment",
+    homepagePrice: "$0.50/day",
+    homepageDetail: "Billed daily. Cancel anytime.",
+    options: [
+      {
+        key: "starter_daily",
+        label: "Daily",
+        price: "$0.50",
+        displayPrice: "$0.50",
+        displayCadence: "/day",
+        priceValue: "0.50",
+        amountCents: 50,
+        cadence: "/day",
+        interval: "day",
+        cta: "Try 1 day - $0.50",
+        billingDetail: "Billed $0.50 per day. Cancel anytime.",
+        summary: "$0.50 per day",
+        schemaName: "Hirevate Daily Plan"
+      }
+    ],
+    features: includedPaidFeatures
+  },
   {
     key: "silver",
     name: "Weekly Plan",
@@ -148,7 +176,7 @@ export const publicPricingFacts = publicPricingPlans.flatMap((plan) =>
 );
 
 export const pricingSummary =
-  "Hirevate costs $7.99 per week, $24.99 per month, or $69.99 per year. All plans are paid subscriptions and renew for the selected billing period until canceled.";
+  "Hirevate costs $0.50 per day, $7.99 per week, $24.99 per month, or $69.99 per year. All plans are paid subscriptions and renew for the selected billing period until canceled.";
 
 export function getPricingPlanForOption(key: CheckoutPlanKey) {
   const plan = publicPricingPlans.find((item) => item.options.some((option) => option.key === key));

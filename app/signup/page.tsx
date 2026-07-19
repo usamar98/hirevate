@@ -19,7 +19,7 @@ export default function SignupPage() {
         <Card className="p-6">
           <h1 className="text-3xl font-semibold text-ink-900">Create account</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            Create your account, then choose weekly, monthly, or annual paid access.
+            Create your account, then choose daily, weekly, monthly, or annual paid access.
           </p>
           <div className="mt-6">
             <Suspense>

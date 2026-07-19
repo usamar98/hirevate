@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Check, Loader2, Trophy, Zap } from "lucide-react";
+import { CalendarDays, Check, Clock3, Loader2, Trophy, Zap } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
 } from "@/lib/pricing";
 
 const planIcons = {
+  starter: Clock3,
   silver: Zap,
   gold: CalendarDays,
   platinum: Trophy
@@ -60,7 +61,7 @@ export function PricingCards() {
           {error}
         </div>
       ) : null}
-      <div className="grid items-stretch gap-4 lg:grid-cols-3 lg:pt-2">
+      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4 xl:pt-2">
         {publicPricingPlans.map((plan) => {
           const option = plan.options[0];
           const PlanIcon = planIcons[plan.key];

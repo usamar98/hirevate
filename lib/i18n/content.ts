@@ -248,7 +248,7 @@ export const landingCopy = {
       },
       {
         label: "Pricing",
-        description: "Compare Hirevate weekly, monthly, and annual paid plans."
+        description: "Compare Hirevate daily, weekly, monthly, and annual paid plans."
       },
       {
         label: "About Hirevate",
@@ -266,9 +266,10 @@ export const landingCopy = {
     pricing: {
       title: "Simple pricing for serious search",
       description:
-        "Choose weekly, monthly, or annual access for the complete job feed and career workflow tools.",
+        "Choose daily, weekly, monthly, or annual access for the complete job feed and career workflow tools.",
       cta: "View pricing",
       plans: {
+        starter: { name: "Daily Plan", detail: "Billed daily. Cancel anytime." },
         silver: { name: "Weekly Plan", detail: "Billed weekly. Cancel anytime." },
         gold: { name: "Monthly Plan", detail: "About $5.75 per week." },
         platinum: { name: "Annual Plan", detail: "About $1.35 per week." }
@@ -462,7 +463,7 @@ export const landingCopy = {
       },
       {
         label: "Preise",
-        description: "Vergleichen Sie die wöchentlichen, monatlichen und jährlichen Hirevate-Tarife."
+        description: "Vergleichen Sie die täglichen, wöchentlichen, monatlichen und jährlichen Hirevate-Tarife."
       },
       {
         label: "Über Hirevate",
@@ -480,9 +481,10 @@ export const landingCopy = {
     pricing: {
       title: "Einfache Preise für eine ernsthafte Jobsuche",
       description:
-        "Wählen Sie wöchentlichen, monatlichen oder jährlichen Zugriff auf den vollständigen Jobfeed und alle Karriere-Workflow-Tools.",
+        "Wählen Sie täglichen, wöchentlichen, monatlichen oder jährlichen Zugriff auf den vollständigen Jobfeed und alle Karriere-Workflow-Tools.",
       cta: "Preise ansehen",
       plans: {
+        starter: { name: "Tagestarif", detail: "Tägliche Abrechnung. Jederzeit kündbar." },
         silver: { name: "Wochentarif", detail: "Wöchentliche Abrechnung. Jederzeit kündbar." },
         gold: { name: "Monatstarif", detail: "Etwa 5,75 $ pro Woche." },
         platinum: { name: "Jahrestarif", detail: "Etwa 1,35 $ pro Woche." }

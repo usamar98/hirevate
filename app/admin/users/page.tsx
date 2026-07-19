@@ -72,7 +72,7 @@ export default async function AdminUsersPage() {
             icon={ShieldCheck}
             label="Paid users"
             value={dashboard.paidUsers}
-            detail="Active Weekly, Monthly, Annual, or legacy paid statuses"
+            detail="Active Daily, Weekly, Monthly, Annual, or legacy paid statuses"
           />
           <StatCard
             icon={UserCheck}
