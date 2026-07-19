@@ -7,6 +7,8 @@ import { AccountMenu } from "@/components/layout/account-menu";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
 import { AUTH_STATUS_CHANGED_EVENT } from "@/lib/auth/client-events";
+import { getSiteCopy } from "@/lib/i18n/content";
+import type { SupportedLanguage } from "@/lib/i18n/config";
 
 type AuthStatus = {
   authenticated: boolean;
@@ -18,9 +20,10 @@ const anonymousStatus: AuthStatus = {
   isAdmin: false
 };
 
-export function SiteHeader() {
+export function SiteHeader({ language }: { language: SupportedLanguage }) {
   const pathname = usePathname();
   const [authStatus, setAuthStatus] = useState<AuthStatus>(anonymousStatus);
+  const copy = getSiteCopy(language).navigation;
 
   const refreshAuthStatus = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -60,32 +63,32 @@ export function SiteHeader() {
         <Logo />
         <nav className="hidden items-center gap-6 text-sm font-medium text-ink-700 md:flex">
           <Link className="transition hover:text-ink-900" href="/jobs#results">
-            Find Jobs
+            {copy.findJobs}
           </Link>
           <Link className="transition hover:text-ink-900" href="/resume-builder">
-            Resume
+            {copy.resume}
           </Link>
           <Link className="transition hover:text-ink-900" href="/about">
-            About
+            {copy.about}
           </Link>
           <Link className="transition hover:text-ink-900" href="/guides">
-            Guides
+            {copy.guides}
           </Link>
           {authStatus.authenticated ? (
             <Link className="transition hover:text-ink-900" href="/dashboard">
-              Dashboard
+              {copy.dashboard}
             </Link>
           ) : null}
           {authStatus.isAdmin ? (
             <>
               <Link className="transition hover:text-ink-900" href="/admin/users">
-                Users
+                {copy.users}
               </Link>
               <Link className="transition hover:text-ink-900" href="/admin/stripe">
                 Stripe
               </Link>
               <Link className="transition hover:text-ink-900" href="/admin/jobs-sync">
-                Admin
+                {copy.admin}
               </Link>
             </>
           ) : null}
@@ -93,7 +96,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           {!authStatus.authenticated ? (
             <Button asChild href="/login" variant="ghost">
-              Log in
+              {copy.login}
             </Button>
           ) : null}
           <Button
@@ -102,9 +105,9 @@ export function SiteHeader() {
             href="/pricing"
             variant="secondary"
           >
-            Pricing
+            {copy.pricing}
           </Button>
-          {authStatus.authenticated ? <AccountMenu /> : null}
+          {authStatus.authenticated ? <AccountMenu language={language} /> : null}
         </div>
       </div>
     </header>

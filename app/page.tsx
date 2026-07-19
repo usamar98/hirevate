@@ -22,8 +22,11 @@ import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getSalaryFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
+import { getLandingCopy } from "@/lib/i18n/content";
+import type { SupportedLanguage } from "@/lib/i18n/config";
+import { resolveLanguagePreference } from "@/lib/i18n/server";
 import { publicPricingPlans } from "@/lib/pricing";
-import { absoluteUrl, defaultDescription, siteName, defaultOgImagePath } from "@/lib/seo";
+import { absoluteUrl, siteName, defaultOgImagePath } from "@/lib/seo";
 import type { JobWithCompany } from "@/types/database";
 
 const landingDescription =
@@ -219,9 +222,24 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
 export const revalidate = 3600;
 
 export default async function LandingPage() {
+  const { language } = await resolveLanguagePreference();
+  const copy = getLandingCopy(language);
   const featuredJobs = await getSalaryFeaturedJobs(12);
   const trackedCompanyItems = getTrackedCompanyItems(featuredJobs);
   const companySliderItems = [...trackedCompanyItems, ...trackedCompanyItems];
+  const localizedFeatures =
+    language === "en"
+      ? features
+      : copy.features.map((feature, index) => ({ ...feature, icon: features[index].icon }));
+  const localizedFaqItems = language === "en" ? homeFaqItems : copy.faqItems;
+  const localizedDiscoveryLinks =
+    language === "en"
+      ? discoveryLinks
+      : copy.discoveryLinks.map((item, index) => ({ ...item, href: discoveryLinks[index].href }));
+  const localizedWorkflowLinks =
+    language === "en"
+      ? workflowLinks
+      : copy.workflowLinks.map((item, index) => ({ ...item, href: workflowLinks[index].href }));
 
   return (
     <>
@@ -235,8 +253,8 @@ export default async function LandingPage() {
             applicationCategory: "BusinessApplication",
             applicationSubCategory: "Job search and career management",
             operatingSystem: "Web",
-            description: defaultDescription,
-            featureList: features.map((feature) => `${feature.title}: ${feature.description}`),
+            description: copy.landingDescription,
+            featureList: localizedFeatures.map((feature) => `${feature.title}: ${feature.description}`),
             audience: {
               "@type": "Audience",
               audienceType: "Job seekers"
@@ -250,7 +268,7 @@ export default async function LandingPage() {
           {
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: homeFaqItems.map((item) => ({
+            mainEntity: localizedFaqItems.map((item) => ({
               "@type": "Question",
               name: item.question,
               acceptedAnswer: {
@@ -265,22 +283,22 @@ export default async function LandingPage() {
         <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
             <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
-              Find hidden jobs and turn them into stronger applications
+              {copy.hero.title}
             </h1>
             <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
-              Discover fresh roles from company career pages, public ATS boards, and trusted hiring sources. Then tailor your resume, write a focused cover letter, and manage every next step.
+              {copy.hero.description}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild href="/jobs#results" size="lg">
-                Find fresh jobs
+                {copy.hero.jobsCta}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button asChild href="/resume-builder" size="lg" variant="outline">
-                Build my resume
+                {copy.hero.resumeCta}
               </Button>
             </div>
           </div>
-          <HeroProductPreview jobs={featuredJobs.slice(0, 3)} />
+          <HeroProductPreview jobs={featuredJobs.slice(0, 3)} language={language} />
         </div>
       </section>
 
@@ -289,13 +307,13 @@ export default async function LandingPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm font-semibold text-ink-900">Companies in current listings</p>
+                <p className="text-sm font-semibold text-ink-900">{copy.companies.title}</p>
                 <p className="mt-1 text-sm leading-6 text-ink-500">
-                  Company logos are drawn from jobs currently returned by the Hirevate index.
+                  {copy.companies.description}
                 </p>
               </div>
               <p className="text-xs font-semibold uppercase tracking-normal text-brand-600">
-                Live company jobs
+                {copy.companies.eyebrow}
               </p>
             </div>
             {companySliderItems.length > 0 ? (
@@ -321,7 +339,7 @@ export default async function LandingPage() {
               </div>
             ) : (
               <p className="mt-5 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-ink-500">
-                Current company listings will appear after the next successful job index refresh.
+                {copy.companies.empty}
               </p>
             )}
           </div>
@@ -335,15 +353,10 @@ export default async function LandingPage() {
               <XCircle className="h-5 w-5" aria-hidden="true" />
             </div>
             <h2 className="mt-5 text-2xl font-semibold text-ink-900">
-              What crowded boards usually miss
+              {copy.comparison.crowdedTitle}
             </h2>
             <ul className="mt-5 space-y-3 text-sm leading-6 text-ink-500">
-              {[
-                "Fresh roles before they become heavily promoted everywhere.",
-                "Clear freshness signals instead of recycled listings.",
-                "Cleaner apply paths without social-feed noise.",
-                "Resume, cover letter, and application planning connected to the search."
-              ].map((item) => (
+              {copy.comparison.crowdedItems.map((item) => (
                 <li className="flex gap-3" key={item}>
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />
                   <span>{item}</span>
@@ -356,15 +369,10 @@ export default async function LandingPage() {
               <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             </div>
             <h2 className="mt-5 text-2xl font-semibold text-ink-900">
-              What Hirevate gives you instead
+              {copy.comparison.hirevateTitle}
             </h2>
             <ul className="mt-5 space-y-3 text-sm leading-6 text-ink-500">
-              {[
-                "Company career pages, public ATS boards, and trusted hiring sources.",
-                "Search filters for role, company, location, work mode, and freshness.",
-                "Neutral apply buttons that send users to the available hiring source.",
-                "AI-assisted application writing and a lifecycle tracker with next actions."
-              ].map((item) => (
+              {copy.comparison.hirevateItems.map((item) => (
                 <li className="flex gap-3" key={item}>
                   <span className="mt-0.5 text-emerald-600">
                     <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
@@ -380,30 +388,30 @@ export default async function LandingPage() {
       <section className="below-fold-section border-y border-gray-100 bg-white py-16">
         <div className="container-shell">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase text-brand-700">One connected workflow</p>
-            <h2 className="mt-3 text-3xl font-semibold text-ink-900">From fresh job to final decision</h2>
+            <p className="text-sm font-semibold uppercase text-brand-700">{copy.workflow.eyebrow}</p>
+            <h2 className="mt-3 text-3xl font-semibold text-ink-900">{copy.workflow.title}</h2>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Hirevate connects discovery, application writing, and follow-up planning without auto-applying on your behalf.
+              {copy.workflow.description}
             </p>
           </div>
           <div className="mt-9 grid border-y border-gray-200 md:grid-cols-3">
             <div className="py-7 md:pr-7">
               <span className="text-sm font-semibold text-brand-700">01</span>
-              <h3 className="mt-3 text-xl font-semibold text-ink-900">Find a current role</h3>
-              <p className="mt-2 text-sm leading-6 text-ink-500">Search latest, remote, and category pages with source and freshness context.</p>
-              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/jobs/latest">Explore latest jobs <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <h3 className="mt-3 text-xl font-semibold text-ink-900">{copy.workflow.steps[0].title}</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">{copy.workflow.steps[0].description}</p>
+              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/jobs/latest">{copy.workflow.steps[0].cta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </div>
             <div className="border-t border-gray-200 py-7 md:border-l md:border-t-0 md:px-7">
               <span className="text-sm font-semibold text-brand-700">02</span>
-              <h3 className="mt-3 text-xl font-semibold text-ink-900">Tailor the application</h3>
-              <p className="mt-2 text-sm leading-6 text-ink-500">Use professional resume templates, role targeting, and reviewable AI writing.</p>
-              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/resume-builder">Open resume builder <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <h3 className="mt-3 text-xl font-semibold text-ink-900">{copy.workflow.steps[1].title}</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">{copy.workflow.steps[1].description}</p>
+              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/resume-builder">{copy.workflow.steps[1].cta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </div>
             <div className="border-t border-gray-200 py-7 md:border-l md:border-t-0 md:pl-7">
               <span className="text-sm font-semibold text-brand-700">03</span>
-              <h3 className="mt-3 text-xl font-semibold text-ink-900">Run the follow-up plan</h3>
-              <p className="mt-2 text-sm leading-6 text-ink-500">Track stages, priorities, next actions, listing health, interviews, and outcomes.</p>
-              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/pricing">Compare full-access plans <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <h3 className="mt-3 text-xl font-semibold text-ink-900">{copy.workflow.steps[2].title}</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">{copy.workflow.steps[2].description}</p>
+              <Link className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700" href="/pricing">{copy.workflow.steps[2].cta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </div>
           </div>
         </div>
@@ -412,14 +420,13 @@ export default async function LandingPage() {
       <section className="below-fold-section bg-white py-16">
         <div className="container-shell">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-semibold text-ink-900">Built for focused job discovery</h2>
+            <h2 className="text-3xl font-semibold text-ink-900">{copy.featuresTitle}</h2>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Search by title, location, remote preference, and freshness without adding noisy
-              application tools.
+              {copy.featuresDescription}
             </p>
           </div>
           <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
+            {localizedFeatures.map((feature) => (
               <Card className="p-5" key={feature.title}>
                 <feature.icon className="h-5 w-5 text-brand-600" aria-hidden="true" />
                 <h3 className="mt-5 text-lg font-semibold text-ink-900">{feature.title}</h3>
@@ -433,14 +440,13 @@ export default async function LandingPage() {
       <section className="below-fold-section border-y border-gray-100 bg-gray-50 py-16">
         <div className="container-shell">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-semibold text-ink-900">Explore fresh job paths</h2>
+            <h2 className="text-3xl font-semibold text-ink-900">{copy.explore.title}</h2>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Start with the public pages crawlers can understand: latest roles, remote roles, and
-              focused category searches.
+              {copy.explore.description}
             </p>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {discoveryLinks.map((item) => (
+            {localizedDiscoveryLinks.map((item) => (
               <Link
                 className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-brand-200 hover:shadow-soft"
                 href={item.href}
@@ -452,7 +458,7 @@ export default async function LandingPage() {
             ))}
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {workflowLinks.map((item) => (
+            {localizedWorkflowLinks.map((item) => (
               <Link
                 className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-brand-200 hover:shadow-soft"
                 href={item.href}
@@ -469,12 +475,12 @@ export default async function LandingPage() {
       <section className="below-fold-section bg-white py-16">
         <div className="container-shell grid items-center gap-8 lg:grid-cols-[0.7fr_1.3fr]">
           <div>
-            <h2 className="text-3xl font-semibold text-ink-900">Simple pricing for serious search</h2>
+            <h2 className="text-3xl font-semibold text-ink-900">{copy.pricing.title}</h2>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Choose weekly, monthly, or annual access for the complete job feed and career workflow tools.
+              {copy.pricing.description}
             </p>
             <Button asChild href="/pricing" className="mt-6" variant="secondary">
-              View pricing
+              {copy.pricing.cta}
             </Button>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
@@ -487,10 +493,10 @@ export default async function LandingPage() {
                 }
                 key={plan.key}
               >
-                <h3 className="font-semibold">{plan.name}</h3>
+                <h3 className="font-semibold">{copy.pricing.plans[plan.key].name}</h3>
                 <p className="mt-5 text-3xl font-semibold">{plan.homepagePrice}</p>
                 <p className={plan.highlighted ? "mt-2 text-sm text-gray-300" : "mt-2 text-sm text-ink-500"}>
-                  {plan.homepageDetail}
+                  {copy.pricing.plans[plan.key].detail}
                 </p>
               </Card>
             ))}
@@ -500,9 +506,9 @@ export default async function LandingPage() {
 
       <section className="below-fold-section bg-white py-16">
         <div className="container-shell max-w-3xl">
-          <h2 className="text-3xl font-semibold text-ink-900">FAQ</h2>
+          <h2 className="text-3xl font-semibold text-ink-900">{copy.faqTitle}</h2>
           <div className="mt-6 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
-            {homeFaqItems.map((item) => (
+            {localizedFaqItems.map((item) => (
               <div className="p-5" key={item.question}>
                 <h3 className="font-semibold text-ink-900">{item.question}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-500">{item.answer}</p>
@@ -532,38 +538,54 @@ function getTrackedCompanyItems(jobs: JobWithCompany[]) {
   return [...items.values()].slice(0, 10);
 }
 
-function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
+function HeroProductPreview({ jobs, language }: { jobs: JobWithCompany[]; language: SupportedLanguage }) {
+  const copy = getLandingCopy(language).preview;
+  const localizedEmptyPreviewJobs =
+    language === "en"
+      ? emptyPreviewJobs
+      : [
+          {
+            title: copy.emptyTitle,
+            company: copy.emptyCompany,
+            location: copy.emptyLocation,
+            score: null,
+            href: "/jobs/latest",
+            compensation: null,
+            sourceLabel: copy.verifiedSource,
+            website: null
+          }
+        ];
   const previewJobs =
     jobs.length > 0
       ? jobs.map((job) => ({
           title: job.title,
-          company: job.companies?.name ?? "Company",
-          location: job.location ?? "Location not listed",
+          company: job.companies?.name ?? copy.companyFallback,
+          location: job.location ?? copy.locationFallback,
           score: job.freshness_score,
           href: getJobPath(job),
           compensation: getJobCompensationLabel(job),
           sourceLabel: getJobSourceTrust(job).label,
           website: job.companies?.website ?? null
         }))
-      : emptyPreviewJobs;
+      : localizedEmptyPreviewJobs;
 
   return (
     <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] overflow-hidden rounded-lg border border-gray-200 bg-white p-3 shadow-soft sm:w-full sm:max-w-full">
       <div className="rounded-md border border-gray-100 bg-gray-50 p-4">
         <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-ink-900">Hidden jobs feed</p>
-            <p className="mt-1 text-xs text-ink-500">Public sources - sorted by freshness</p>
+            <p className="text-sm font-semibold text-ink-900">{copy.title}</p>
+            <p className="mt-1 text-xs text-ink-500">{copy.subtitle}</p>
           </div>
-          <Badge tone="green">Fresh Verified</Badge>
+          <Badge tone="green">{copy.verified}</Badge>
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
           <div className="flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm text-ink-500">
             <Search className="h-4 w-4" aria-hidden="true" />
-            Backend engineer
+            {copy.searchTerm}
           </div>
           <Button asChild href="/jobs#results" className="w-full sm:w-auto">
-            Search
+            {copy.search}
           </Button>
         </div>
       </div>
@@ -588,7 +610,7 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
                       {job.compensation}
                     </span>
                   ) : null}
-                  {job.score === null ? null : <Badge tone="green">Score {job.score}</Badge>}
+                  {job.score === null ? null : <Badge tone="green">{copy.score} {job.score}</Badge>}
                 </div>
               </div>
             </div>
@@ -596,7 +618,7 @@ function HeroProductPreview({ jobs }: { jobs: JobWithCompany[] }) {
               <Badge tone="blue">{job.sourceLabel}</Badge>
               <Link href={job.href} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
                 <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
-                Apply now
+                {copy.apply}
               </Link>
             </div>
           </div>

@@ -8,10 +8,13 @@ import {
   cookieConsentKey,
   type CookieConsentChoice
 } from "@/lib/analytics/consent";
+import { getSiteCopy } from "@/lib/i18n/content";
+import type { SupportedLanguage } from "@/lib/i18n/config";
 
 
-export function CookieConsent() {
+export function CookieConsent({ language }: { language: SupportedLanguage }) {
   const [visible, setVisible] = useState(false);
+  const copy = getSiteCopy(language).cookies;
 
   useEffect(() => {
     setVisible(!window.localStorage.getItem(cookieConsentKey));
@@ -29,24 +32,23 @@ export function CookieConsent() {
 
   return (
     <div
-      aria-label="Cookie preferences"
+      aria-label={copy.label}
       className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-4 shadow-soft"
       role="region"
     >
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <p className="text-sm leading-6 text-ink-600">
-          Hirevate uses essential cookies for sign-in and security. With permission, optional
-          measurement helps count daily visitors and page views.{" "}
+          {copy.message}{" "}
           <Link className="font-semibold text-brand-700" href="/legal/cookie-policy">
-            Cookie policy
+            {copy.policy}
           </Link>
         </p>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button onClick={() => saveChoice("essential")} size="sm" type="button" variant="outline">
-            Essential only
+            {copy.essential}
           </Button>
           <Button onClick={() => saveChoice("optional")} size="sm" type="button">
-            Allow optional
+            {copy.optional}
           </Button>
         </div>
       </div>

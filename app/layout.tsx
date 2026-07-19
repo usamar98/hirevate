@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { VisitorTracker } from "@/components/analytics/visitor-tracker";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { CookieConsent } from "@/components/legal/cookie-consent";
 import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
+import { resolveLanguagePreference } from "@/lib/i18n/server";
 import { publicPricingPlans } from "@/lib/pricing";
 import {
   absoluteUrl,
@@ -191,20 +193,23 @@ const jobSearchServiceJsonLd = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { language, showGermanOption } = await resolveLanguagePreference();
+
   return (
-    <html lang="en">
+    <html lang={language}>
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd, softwareApplicationJsonLd, jobSearchServiceJsonLd]} />
-        <SiteHeader />
+        <SiteHeader language={language} />
         <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <SiteFooter language={language} />
         <VisitorTracker />
-        <CookieConsent />
+        <CookieConsent language={language} />
+        <LanguageSwitcher language={language} showGermanOption={showGermanOption} />
       </body>
     </html>
   );

@@ -13,19 +13,21 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/app/actions/auth";
+import { getSiteCopy } from "@/lib/i18n/content";
+import type { SupportedLanguage } from "@/lib/i18n/config";
 
-const accountMenuItems = [
-  { href: "/account/subscription", label: "Subscription", icon: CreditCard },
-  { href: "/account/saved-jobs", label: "Saved jobs", icon: BookmarkCheck },
-  { href: "/account/job-tracker", label: "Job tracker", icon: ClipboardList },
-  { href: "/account/cover-letters", label: "Cover letters", icon: FileText }
-] as const;
-
-export function AccountMenu() {
+export function AccountMenu({ language }: { language: SupportedLanguage }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const copy = getSiteCopy(language).account;
+  const accountMenuItems = [
+    { href: "/account/subscription", label: copy.subscription, icon: CreditCard },
+    { href: "/account/saved-jobs", label: copy.savedJobs, icon: BookmarkCheck },
+    { href: "/account/job-tracker", label: copy.jobTracker, icon: ClipboardList },
+    { href: "/account/cover-letters", label: copy.coverLetters, icon: FileText }
+  ] as const;
 
   useEffect(() => {
     setOpen(false);
@@ -68,7 +70,7 @@ export function AccountMenu() {
         type="button"
       >
         <UserCircle className="h-5 w-5" aria-hidden="true" />
-        <span>Account</span>
+        <span>{copy.trigger}</span>
         <ChevronDown
           className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
@@ -77,7 +79,7 @@ export function AccountMenu() {
 
       {open ? (
         <div
-          aria-label="Account menu"
+          aria-label={copy.menuLabel}
           className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-lg border border-gray-200 bg-white p-2 shadow-xl"
           id="account-menu"
           role="menu"
@@ -114,7 +116,7 @@ export function AccountMenu() {
               type="submit"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
-              Log out
+              {copy.logout}
             </button>
           </form>
         </div>
