@@ -68,11 +68,11 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
           <Link className="transition hover:text-ink-900" href="/resume-builder">
             {copy.resume}
           </Link>
-          <Link className="transition hover:text-ink-900" href="/about">
-            {copy.about}
+          <Link className="transition hover:text-ink-900" href="/account/job-tracker">
+            {copy.jobTracker}
           </Link>
-          <Link className="transition hover:text-ink-900" href="/guides">
-            {copy.guides}
+          <Link className="transition hover:text-ink-900" href="/account/cover-letters">
+            {copy.coverLetter}
           </Link>
           {authStatus.authenticated ? (
             <Link className="transition hover:text-ink-900" href="/dashboard">

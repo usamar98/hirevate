@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   BookmarkCheck,
   ChevronDown,
-  ClipboardList,
   CreditCard,
-  FileText,
+  Info,
   LogOut,
   UserCircle
 } from "lucide-react";
@@ -25,8 +25,8 @@ export function AccountMenu({ language }: { language: SupportedLanguage }) {
   const accountMenuItems = [
     { href: "/account/subscription", label: copy.subscription, icon: CreditCard },
     { href: "/account/saved-jobs", label: copy.savedJobs, icon: BookmarkCheck },
-    { href: "/account/job-tracker", label: copy.jobTracker, icon: ClipboardList },
-    { href: "/account/cover-letters", label: copy.coverLetters, icon: FileText }
+    { href: "/about", label: copy.about, icon: Info },
+    { href: "/guides", label: copy.guides, icon: BookOpen }
   ] as const;
 
   useEffect(() => {

@@ -7,6 +7,8 @@ export const siteCopy = {
       resume: "Resume",
       about: "About",
       guides: "Guides",
+      jobTracker: "Job Tracker",
+      coverLetter: "Cover Letter",
       dashboard: "Dashboard",
       users: "Users",
       admin: "Admin",
@@ -18,8 +20,8 @@ export const siteCopy = {
       menuLabel: "Account menu",
       subscription: "Subscription",
       savedJobs: "Saved jobs",
-      jobTracker: "Job tracker",
-      coverLetters: "Cover letters",
+      about: "About",
+      guides: "Guides",
       logout: "Log out"
     },
     footer: {
@@ -62,6 +64,8 @@ export const siteCopy = {
       resume: "Lebenslauf",
       about: "Über uns",
       guides: "Ratgeber",
+      jobTracker: "Bewerbungs-Tracker",
+      coverLetter: "Anschreiben",
       dashboard: "Dashboard",
       users: "Benutzer",
       admin: "Admin",
@@ -73,8 +77,8 @@ export const siteCopy = {
       menuLabel: "Kontomenü",
       subscription: "Abonnement",
       savedJobs: "Gespeicherte Jobs",
-      jobTracker: "Bewerbungs-Tracker",
-      coverLetters: "Anschreiben",
+      about: "Über uns",
+      guides: "Ratgeber",
       logout: "Abmelden"
     },
     footer: {
