@@ -12,7 +12,13 @@ import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/sessi
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCountryBySlug, jobCountries } from "@/lib/jobs/countries";
 import { resolveJobCountryPreference } from "@/lib/jobs/country-preference";
-import { getJobs, getSavedJobIds, parseJobSearchParams } from "@/lib/jobs/queries";
+import {
+  getJobs,
+  getSavedJobIds,
+  PAID_JOBS_PAGE_SIZE,
+  parseJobSearchParams,
+  PUBLIC_JOBS_PAGE_SIZE
+} from "@/lib/jobs/queries";
 import { getJobCompanyName, getJobPath } from "@/lib/jobs/seo";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
@@ -229,27 +235,30 @@ export default async function JobsPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const countryPreference = await resolveJobCountryPreference(resolvedSearchParams);
-  const userPromise = getCurrentUser();
+  const [countryPreference, user] = await Promise.all([
+    resolveJobCountryPreference(resolvedSearchParams),
+    getCurrentUser()
+  ]);
+  const profile = user ? await getProfile(user.id) : null;
+  const isPaid = isPaidSubscription(profile?.subscription_status);
   const effectiveSearchParams = {
     ...(resolvedSearchParams ?? {}),
     country: countryPreference.slug
   };
-  const [{ configured, filters, jobs, page, pageSize, totalCount, totalPages }, user] = await Promise.all([
-    getJobs(effectiveSearchParams),
-    userPromise
-  ]);
-  const [savedJobIds, profile] = await Promise.all([
-    user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>()),
-    user ? getProfile(user.id) : Promise.resolve(null)
-  ]);
-  const isPaid = isPaidSubscription(profile?.subscription_status);
+  const requestedFilters = parseJobSearchParams(effectiveSearchParams);
 
-  if (!isPaid && page > 1) {
-    redirect(buildJobsPageHref(filters, 1));
+  if (!isPaid && requestedFilters.page > 1) {
+    redirect(buildJobsPageHref(requestedFilters, 1));
   }
 
-  const visibleJobs = isPaid ? jobs : jobs.slice(0, 10);
+  const [{ configured, filters, jobs, page, pageSize, totalCount, totalPages }, savedJobIds] = await Promise.all([
+    getJobs(effectiveSearchParams, {
+      pageSize: isPaid ? PAID_JOBS_PAGE_SIZE : PUBLIC_JOBS_PAGE_SIZE
+    }),
+    user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>())
+  ]);
+
+  const visibleJobs = isPaid ? jobs : jobs.slice(0, PUBLIC_JOBS_PAGE_SIZE);
   const hasVisibleJobs = visibleJobs.length > 0;
   const isLimited = !isPaid && hasVisibleJobs && totalCount > visibleJobs.length;
   const pageStart = hasVisibleJobs ? (page - 1) * pageSize + 1 : 0;

@@ -17,7 +17,8 @@ export const crawlDisallowPaths = [
   "/account/",
   "/api/",
   "/auth/",
-  "/dashboard/"
+  "/dashboard/",
+  "/jobs?*"
 ] as const;
 
 export const aiSearchCrawlerUserAgents = [

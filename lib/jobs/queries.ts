@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { jobSearchSchema, type JobSearchInput } from "@/lib/validators/jobs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -22,9 +23,13 @@ const jobListWithCompanySelect =
 const featuredJobWithCompanySelect =
   "id, company_id, external_id, title, description, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, raw_data, companies:company_id(id, name, greenhouse_slug, website)";
 const jobDetailWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
-const JOBS_PAGE_SIZE = 50;
-const JOB_SLUG_LOOKUP_LIMIT = 5000;
+export const PUBLIC_JOBS_PAGE_SIZE = 10;
+export const PAID_JOBS_PAGE_SIZE = 50;
+const CATEGORY_JOB_FETCH_LIMIT = 11;
+const JOB_SLUG_LOOKUP_LIMIT = 250;
+const PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS = 30 * 60;
 const SITEMAP_FRESH_DAYS = 30;
+const SITEMAP_JOBS_LIMIT = 300;
 
 function createAnonPublicJobsClient() {
   if (!hasSupabaseBrowserConfig()) return null;
@@ -59,6 +64,21 @@ export function parseJobSearchParams(searchParams: RawSearchParams): JobSearchIn
   });
 }
 
+function normalizeSearchParams(searchParams: RawSearchParams) {
+  const normalized: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(searchParams ?? {})) {
+    const firstValue = Array.isArray(value) ? value[0] : value;
+    if (firstValue) normalized[key] = firstValue;
+  }
+
+  return Object.fromEntries(Object.entries(normalized).sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function serializeSearchParams(searchParams: RawSearchParams) {
+  return JSON.stringify(normalizeSearchParams(searchParams));
+}
+
 function getPostedWithinStart(value: JobSearchInput["postedWithin"]) {
   const daysByValue: Record<Exclude<JobSearchInput["postedWithin"], "all">, number> = {
     "24h": 1,
@@ -83,11 +103,10 @@ function createPublicJobsReadClient(): PublicJobsReadClient | null {
   return createAnonPublicJobsClient();
 }
 
-export async function getJobs(searchParams: RawSearchParams) {
+async function getJobsUncached(searchParams: RawSearchParams, pageSize = PUBLIC_JOBS_PAGE_SIZE) {
   const filters = parseJobSearchParams(searchParams);
   const supabase = createPublicJobsReadClient();
   const page = filters.page;
-  const pageSize = JOBS_PAGE_SIZE;
   const rangeStart = (page - 1) * pageSize;
   const rangeEnd = rangeStart + pageSize - 1;
 
@@ -224,7 +243,21 @@ export async function getJobs(searchParams: RawSearchParams) {
   };
 }
 
-export async function getJobById(id: string) {
+const getCachedJobs = unstable_cache(
+  async (serializedSearchParams: string, pageSize: number) =>
+    getJobsUncached(JSON.parse(serializedSearchParams) as Record<string, string>, pageSize),
+  ["public-jobs-search"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getJobs(searchParams: RawSearchParams, options?: { pageSize?: number }) {
+  return getCachedJobs(serializeSearchParams(searchParams), options?.pageSize ?? PUBLIC_JOBS_PAGE_SIZE);
+}
+
+async function getJobByIdUncached(id: string) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return null;
 
@@ -243,7 +276,26 @@ export async function getJobById(id: string) {
   return data as JobWithCompany | null;
 }
 
-export async function getJobBySlugOrId(slugOrId: string) {
+const getCachedJobById = unstable_cache(async (id: string) => getJobByIdUncached(id), ["public-job-by-id"], {
+  revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+  tags: ["public-jobs"]
+});
+
+export async function getJobById(id: string) {
+  return getCachedJobById(id);
+}
+
+function getSlugTitleProbe(slugOrId: string) {
+  const withoutToken = slugOrId.replace(/-[a-z0-9]{6}$/i, "");
+  const words = withoutToken
+    .split("-")
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 3);
+
+  return words[0] ?? null;
+}
+
+async function getJobBySlugOrIdUncached(slugOrId: string) {
   const decodedSlug = decodeURIComponent(slugOrId).toLowerCase();
 
   if (isUuidLike(decodedSlug)) {
@@ -254,10 +306,14 @@ export async function getJobBySlugOrId(slugOrId: string) {
   if (!supabase) return null;
 
   const token = getJobSlugToken(decodedSlug);
+  const titleProbe = getSlugTitleProbe(decodedSlug);
+  if (!token || !titleProbe) return null;
+
   const { data, error } = await supabase
     .from("jobs")
     .select(jobListWithCompanySelect)
     .eq("status", "active")
+    .ilike("title", `%${titleProbe}%`)
     .order("freshness_score", { ascending: false })
     .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
@@ -278,7 +334,20 @@ export async function getJobBySlugOrId(slugOrId: string) {
   return match ? getJobById(match.id) : null;
 }
 
-export async function getFeaturedJobs(limit = 3) {
+const getCachedJobBySlugOrId = unstable_cache(
+  async (slugOrId: string) => getJobBySlugOrIdUncached(slugOrId),
+  ["public-job-by-slug-or-id"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getJobBySlugOrId(slugOrId: string) {
+  return getCachedJobBySlugOrId(slugOrId);
+}
+
+async function getFeaturedJobsUncached(limit = 3) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return [] as JobWithCompany[];
 
@@ -299,11 +368,24 @@ export async function getFeaturedJobs(limit = 3) {
   return dedupeJobs((data ?? []) as JobWithCompany[]);
 }
 
-export async function getSalaryFeaturedJobs(limit = 3) {
+const getCachedFeaturedJobs = unstable_cache(
+  async (limit: number) => getFeaturedJobsUncached(limit),
+  ["public-featured-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getFeaturedJobs(limit = 3) {
+  return getCachedFeaturedJobs(limit);
+}
+
+async function getSalaryFeaturedJobsUncached(limit = 3) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return [] as JobWithCompany[];
 
-  const candidateLimit = Math.min(Math.max(limit * 10, 120), 500);
+  const candidateLimit = Math.min(Math.max(limit * 4, 24), 60);
 
   const { data, error } = await supabase
     .from("jobs")
@@ -326,9 +408,23 @@ export async function getSalaryFeaturedJobs(limit = 3) {
     .slice(0, limit);
 }
 
-export async function getSitemapJobs(limit = 2000) {
+const getCachedSalaryFeaturedJobs = unstable_cache(
+  async (limit: number) => getSalaryFeaturedJobsUncached(limit),
+  ["public-salary-featured-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getSalaryFeaturedJobs(limit = 3) {
+  return getCachedSalaryFeaturedJobs(limit);
+}
+
+async function getSitemapJobsUncached(limit = SITEMAP_JOBS_LIMIT) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return [] as JobWithCompany[];
+  const safeLimit = Math.min(Math.max(limit, 1), SITEMAP_JOBS_LIMIT);
   const freshCutoff = new Date(
     Date.now() - SITEMAP_FRESH_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
@@ -342,7 +438,7 @@ export async function getSitemapJobs(limit = 2000) {
     .order("updated_at", { ascending: false, nullsFirst: false })
     .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
-    .limit(limit);
+    .limit(safeLimit);
 
   if (error) {
     console.error("Failed to load sitemap jobs", error);
@@ -352,7 +448,20 @@ export async function getSitemapJobs(limit = 2000) {
   return dedupeJobs((data ?? []) as JobWithCompany[]);
 }
 
-export async function getRemoteJobs(limit = 40) {
+const getCachedSitemapJobs = unstable_cache(
+  async (limit: number) => getSitemapJobsUncached(limit),
+  ["public-sitemap-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getSitemapJobs(limit = SITEMAP_JOBS_LIMIT) {
+  return getCachedSitemapJobs(limit);
+}
+
+async function getRemoteJobsUncached(limit = CATEGORY_JOB_FETCH_LIMIT) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
 
@@ -374,7 +483,20 @@ export async function getRemoteJobs(limit = 40) {
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
-export async function getLocationJobs(location: string, limit = 40) {
+const getCachedRemoteJobs = unstable_cache(
+  async (limit: number) => getRemoteJobsUncached(limit),
+  ["public-remote-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getRemoteJobs(limit = CATEGORY_JOB_FETCH_LIMIT) {
+  return getCachedRemoteJobs(limit);
+}
+
+async function getLocationJobsUncached(location: string, limit = CATEGORY_JOB_FETCH_LIMIT) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
 
@@ -396,7 +518,20 @@ export async function getLocationJobs(location: string, limit = 40) {
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
-export async function getCountryJobs(country: JobCountry, limit = 40) {
+const getCachedLocationJobs = unstable_cache(
+  async (location: string, limit: number) => getLocationJobsUncached(location, limit),
+  ["public-location-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getLocationJobs(location: string, limit = CATEGORY_JOB_FETCH_LIMIT) {
+  return getCachedLocationJobs(location, limit);
+}
+
+async function getCountryJobsUncached(country: JobCountry, limit = CATEGORY_JOB_FETCH_LIMIT) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
 
@@ -418,14 +553,31 @@ export async function getCountryJobs(country: JobCountry, limit = 40) {
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
-export async function getUkJobs(limit = 40) {
+const getCachedCountryJobs = unstable_cache(
+  async (countrySlug: string, limit: number) => {
+    const country = getJobCountryBySlug(countrySlug);
+    if (!country) return { jobs: [] as JobWithCompany[], configured: true };
+    return getCountryJobsUncached(country, limit);
+  },
+  ["public-country-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getCountryJobs(country: JobCountry, limit = CATEGORY_JOB_FETCH_LIMIT) {
+  return getCachedCountryJobs(country.slug, limit);
+}
+
+export async function getUkJobs(limit = CATEGORY_JOB_FETCH_LIMIT) {
   const country = getJobCountryBySlug("united-kingdom");
   if (!country) return { jobs: [] as JobWithCompany[], configured: true };
 
   return getCountryJobs(country, limit);
 }
 
-export async function getEngineeringJobs(limit = 40) {
+async function getEngineeringJobsUncached(limit = CATEGORY_JOB_FETCH_LIMIT) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
 
@@ -449,7 +601,20 @@ export async function getEngineeringJobs(limit = 40) {
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
 }
 
-export async function getKeywordJobs(keywords: string[], limit = 40) {
+const getCachedEngineeringJobs = unstable_cache(
+  async (limit: number) => getEngineeringJobsUncached(limit),
+  ["public-engineering-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getEngineeringJobs(limit = CATEGORY_JOB_FETCH_LIMIT) {
+  return getCachedEngineeringJobs(limit);
+}
+
+async function getKeywordJobsUncached(keywords: string[], limit = CATEGORY_JOB_FETCH_LIMIT) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
 
@@ -476,6 +641,20 @@ export async function getKeywordJobs(keywords: string[], limit = 40) {
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
+}
+
+const getCachedKeywordJobs = unstable_cache(
+  async (keywordKey: string, limit: number) => getKeywordJobsUncached(keywordKey.split("|"), limit),
+  ["public-keyword-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getKeywordJobs(keywords: string[], limit = CATEGORY_JOB_FETCH_LIMIT) {
+  const keywordKey = keywords.map((keyword) => keyword.trim()).filter(Boolean).join("|");
+  return getCachedKeywordJobs(keywordKey, limit);
 }
 
 export async function getSavedJobIds(userId: string) {

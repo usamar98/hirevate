@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LatestJobsPage() {
-  const jobs = await getSitemapJobs(100);
+  const jobs = await getSitemapJobs(50);
 
   return (
     <>

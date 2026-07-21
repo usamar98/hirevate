@@ -145,7 +145,7 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
 
           {configured ? (
             <p className="mt-8 text-sm font-medium text-ink-500">
-              Showing {visibleJobs.length} of {jobs.length} fresh public-source roles.
+              Showing {visibleJobs.length} recent public-source roles{isLimited ? " with more available in the full search feed." : "."}
             </p>
           ) : null}
 
