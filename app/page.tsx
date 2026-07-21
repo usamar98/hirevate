@@ -14,6 +14,7 @@ import {
   XCircle
 } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
+import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -345,6 +346,8 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      <ProductShowcase language={language} />
 
       <section className="below-fold-section bg-gray-50 py-16">
         <div className="container-shell grid gap-8 lg:grid-cols-2">

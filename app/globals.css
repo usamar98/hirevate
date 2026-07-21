@@ -117,3 +117,109 @@ a {
 .resume-preview-compact main { gap: 1rem; }
 .resume-preview-technical h2 { border-bottom-style: dashed; font-family: "Courier New", monospace; letter-spacing: 0; }
 .resume-preview-technical aside span { border: 1px solid #d1d5db; background: #fff; font-family: "Courier New", monospace; }
+
+
+/* Homepage product showcase loops */
+.product-demo {
+  transform: translateZ(0);
+}
+
+.product-demo-scan {
+  animation: product-demo-scan 7s ease-in-out infinite;
+}
+
+.product-demo-job-card {
+  animation: product-demo-job-card 7s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.product-demo-tracker-focus {
+  animation: product-demo-tracker-focus 7s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.product-demo-template-choice {
+  animation: product-demo-template-choice 7s ease-in-out infinite;
+}
+
+.product-demo-resume-page {
+  animation: product-demo-resume-page 7s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.product-demo-resume-score {
+  width: 92%;
+  animation: product-demo-resume-score 7s ease-in-out infinite;
+}
+
+.product-demo-resume-shine {
+  left: -30%;
+  animation: product-demo-resume-shine 7s ease-in-out infinite;
+}
+
+.product-demo:hover .product-demo-scan,
+.product-demo:hover .product-demo-job-card,
+.product-demo:hover .product-demo-tracker-focus,
+.product-demo:hover .product-demo-template-choice,
+.product-demo:hover .product-demo-resume-page,
+.product-demo:hover .product-demo-resume-score,
+.product-demo:hover .product-demo-resume-shine {
+  animation-play-state: paused;
+}
+
+@keyframes product-demo-scan {
+  0%, 12%, 100% { opacity: 0; transform: translateY(-18px) scaleX(0.82); }
+  25%, 72% { opacity: 1; transform: translateY(92px) scaleX(1); }
+  86% { opacity: 0; transform: translateY(152px) scaleX(0.9); }
+}
+
+@keyframes product-demo-job-card {
+  0%, 16%, 100% { transform: translateY(7px) scale(0.985); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06); }
+  30%, 76% { transform: translateY(0) scale(1); box-shadow: 0 18px 40px rgba(37, 99, 235, 0.16); }
+}
+
+@keyframes product-demo-tracker-focus {
+  0%, 18%, 100% { transform: translateX(-5px); border-color: rgb(229 231 235); }
+  35%, 76% { transform: translateX(0); border-color: rgb(147 197 253); box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14); }
+}
+
+@keyframes product-demo-template-choice {
+  0%, 18%, 100% { transform: translateX(0); box-shadow: none; }
+  34%, 74% { transform: translateX(4px); box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12); }
+}
+
+@keyframes product-demo-resume-page {
+  0%, 18%, 100% { transform: translateY(4px) rotate(-0.35deg); }
+  36%, 76% { transform: translateY(0) rotate(0deg); }
+}
+
+@keyframes product-demo-resume-score {
+  0%, 16% { width: 34%; }
+  44%, 100% { width: 92%; }
+}
+
+@keyframes product-demo-resume-shine {
+  0%, 18% { left: -30%; opacity: 0; }
+  32% { opacity: 1; }
+  62%, 100% { left: 125%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-demo-scan,
+  .product-demo-job-card,
+  .product-demo-tracker-focus,
+  .product-demo-template-choice,
+  .product-demo-resume-page,
+  .product-demo-resume-score,
+  .product-demo-resume-shine {
+    animation: none;
+  }
+
+  .product-demo-resume-score {
+    width: 92%;
+  }
+
+  .product-demo-resume-shine {
+    display: none;
+  }
+}
