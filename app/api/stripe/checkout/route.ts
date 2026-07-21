@@ -42,10 +42,14 @@ async function saveCheckoutCustomer(
   const admin = createSupabaseAdminClient();
   if (!admin) return;
 
-  await admin
+  const { error } = await admin
     .from("profiles")
     .update({ stripe_customer_id: customerId })
     .eq("id", userId);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function POST(request: Request) {
@@ -72,6 +76,8 @@ export async function POST(request: Request) {
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
+    payment_method_types: ["card"],
+    payment_method_collection: "always",
     customer_email: customerId ? undefined : user.email,
     client_reference_id: user.id,
     line_items: [
@@ -99,7 +105,7 @@ export async function POST(request: Request) {
         plan: parsed.data.plan
       }
     },
-    success_url: `${env.appUrl}/dashboard?checkout=success`,
+    success_url: `${env.appUrl}/dashboard?checkout=processing&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.appUrl}/pricing?checkout=cancelled`
   });
 

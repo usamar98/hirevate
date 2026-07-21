@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { isSuperLoginProfile } from "@/lib/auth/super-login";
 import { getProfile, requireUser } from "@/lib/auth/session";
+import { getStripe } from "@/lib/stripe/server";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -12,6 +13,70 @@ export const metadata: Metadata = {
     index: false,
     follow: false
   }
+};
+
+function getSearchParamValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+async function getCheckoutNotice(
+  searchParams: Record<string, string | string[] | undefined> | undefined,
+  userId: string
+) {
+  const checkout = getSearchParamValue(searchParams?.checkout);
+  const sessionId = getSearchParamValue(searchParams?.session_id);
+
+  if (!checkout) return null;
+
+  if (!sessionId) {
+    return {
+      tone: "amber" as const,
+      message: "Checkout returned to Hirevate. Paid access will update after Stripe confirms payment."
+    };
+  }
+
+  const stripe = getStripe();
+  if (!stripe) {
+    return {
+      tone: "red" as const,
+      message: "Checkout returned, but subscription verification is not configured."
+    };
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.client_reference_id !== userId) return null;
+
+    if (session.payment_status === "paid") {
+      return {
+        tone: "green" as const,
+        message: "Payment received. Your paid access will appear as soon as Stripe finishes syncing."
+      };
+    }
+
+    if (session.payment_status === "no_payment_required") {
+      return {
+        tone: "amber" as const,
+        message: "Checkout completed without an immediate charge. Paid access will stay pending until Stripe pays an invoice."
+      };
+    }
+
+    return {
+      tone: "amber" as const,
+      message: "Checkout is complete, but Stripe has not marked the payment as paid yet."
+    };
+  } catch {
+    return {
+      tone: "red" as const,
+      message: "Checkout returned, but Stripe could not verify that payment was completed."
+    };
+  }
+}
+
+const checkoutNoticeClasses = {
+  amber: "border-amber-100 bg-amber-50 text-amber-800",
+  green: "border-emerald-100 bg-emerald-50 text-emerald-800",
+  red: "border-red-100 bg-red-50 text-red-700"
 };
 
 export default async function DashboardPage({
@@ -23,7 +88,7 @@ export default async function DashboardPage({
   const user = await requireUser();
   const profile = await getProfile(user.id);
   const status = profile?.subscription_status ?? "free";
-  const checkoutSuccess = resolvedSearchParams?.checkout === "success";
+  const checkoutNotice = await getCheckoutNotice(resolvedSearchParams, user.id);
   const superLoginPlan = resolvedSearchParams?.superLoginPlan;
   const superLoginError = resolvedSearchParams?.superLoginError;
   const isSuperLogin = isSuperLoginProfile(profile);
@@ -31,10 +96,11 @@ export default async function DashboardPage({
   return (
     <section className="bg-gray-50 py-10">
       <div className="container-shell space-y-8">
-        {checkoutSuccess ? (
-          <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-            Checkout complete. Your subscription status will update as soon as Stripe confirms the
-            payment.
+        {checkoutNotice ? (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm font-medium ${checkoutNoticeClasses[checkoutNotice.tone]}`}
+          >
+            {checkoutNotice.message}
           </div>
         ) : null}
         {superLoginPlan === "free" || superLoginPlan === "active" ? (

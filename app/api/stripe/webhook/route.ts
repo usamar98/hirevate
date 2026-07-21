@@ -21,30 +21,83 @@ const legacySubscriptionStatuses: Record<string, SubscriptionTier> = {
   gold_weekly: "gold"
 };
 
-async function updateProfileFromSubscription(subscription: Stripe.Subscription) {
+function getStripeObjectId(value: string | { id: string } | null | undefined) {
+  if (!value) return null;
+  return typeof value === "string" ? value : value.id;
+}
+
+function getSubscriptionPlan(subscription: Stripe.Subscription) {
+  const plan = subscription.metadata.plan;
+  return isPlanKey(plan) ? stripePlans[plan].subscriptionStatus : legacySubscriptionStatuses[plan];
+}
+
+async function getLatestInvoice(stripe: Stripe, subscription: Stripe.Subscription) {
+  if (!subscription.latest_invoice) return null;
+  if (typeof subscription.latest_invoice !== "string") return subscription.latest_invoice;
+  return stripe.invoices.retrieve(subscription.latest_invoice);
+}
+
+async function hasPaidLatestInvoice(stripe: Stripe, subscription: Stripe.Subscription) {
+  if (subscription.status === "trialing") return true;
+
+  const invoice = await getLatestInvoice(stripe, subscription);
+  if (!invoice) return false;
+
+  return invoice.paid || invoice.status === "paid";
+}
+
+async function updateProfileFromSubscription(
+  subscription: Stripe.Subscription,
+  paidStatus: SubscriptionTier | "free"
+) {
   const admin = createSupabaseAdminClient();
   if (!admin) throw new Error("Supabase service role is not configured.");
 
   const userId = subscription.metadata.userId;
-  const plan = subscription.metadata.plan;
 
   if (!userId) return;
 
-  const paidStatus =
-    subscription.status === "active" || subscription.status === "trialing"
-      ? isPlanKey(plan)
-        ? stripePlans[plan].subscriptionStatus
-        : legacySubscriptionStatuses[plan] ?? subscription.status
-      : "free";
-
-  await admin
+  const { data, error } = await admin
     .from("profiles")
     .update({
       subscription_status: paidStatus,
       stripe_customer_id: String(subscription.customer),
       stripe_subscription_id: subscription.id
     })
-    .eq("id", userId);
+    .eq("id", userId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error(`No profile found for Stripe subscription user ${userId.slice(-8)}.`);
+  }
+}
+
+async function updatePaidProfileIfInvoiceIsPaid(stripe: Stripe, subscription: Stripe.Subscription) {
+  const paidStatus = getSubscriptionPlan(subscription);
+  if (!paidStatus) return false;
+
+  if (await hasPaidLatestInvoice(stripe, subscription)) {
+    await updateProfileFromSubscription(subscription, paidStatus);
+    return true;
+  }
+
+  console.warn(
+    JSON.stringify({
+      level: "warn",
+      route: "/api/stripe/webhook",
+      message: "Stripe subscription is not backed by a paid latest invoice.",
+      subscriptionId: subscription.id,
+      status: subscription.status,
+      latestInvoiceId: getStripeObjectId(subscription.latest_invoice)
+    })
+  );
+
+  return false;
 }
 
 export async function GET() {
@@ -75,6 +128,16 @@ export async function POST(request: Request) {
   }
 
   try {
+    console.log(
+      JSON.stringify({
+        level: "info",
+        route: "/api/stripe/webhook",
+        eventId: event.id,
+        eventType: event.type,
+        livemode: event.livemode
+      })
+    );
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.product === resumeBuilderProduct.key) {
@@ -85,15 +148,58 @@ export async function POST(request: Request) {
 
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(String(subscriptionId));
-        await updateProfileFromSubscription(subscription);
+        if (session.payment_status === "paid") {
+          await updatePaidProfileIfInvoiceIsPaid(stripe, subscription);
+        } else {
+          console.warn(
+            JSON.stringify({
+              level: "warn",
+              route: "/api/stripe/webhook",
+              message: "Checkout completed without paid funds.",
+              sessionId: session.id,
+              paymentStatus: session.payment_status,
+              subscriptionId: subscription.id
+            })
+          );
+        }
+      }
+    }
+
+    if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = getStripeObjectId(invoice.subscription);
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await updatePaidProfileIfInvoiceIsPaid(stripe, subscription);
+      }
+    }
+
+    if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
+      if (subscription.status === "active" || subscription.status === "trialing") {
+        const paidInvoiceSynced = await updatePaidProfileIfInvoiceIsPaid(stripe, subscription);
+        if (!paidInvoiceSynced) {
+          await updateProfileFromSubscription(subscription, "free");
+        }
+      } else {
+        await updateProfileFromSubscription(subscription, "free");
       }
     }
 
     if (
-      event.type === "customer.subscription.updated" ||
-      event.type === "customer.subscription.deleted"
+      event.type === "customer.subscription.deleted" ||
+      event.type === "invoice.payment_failed" ||
+      event.type === "invoice.finalization_failed"
     ) {
-      await updateProfileFromSubscription(event.data.object as Stripe.Subscription);
+      const stripeObject = event.data.object as Stripe.Subscription | Stripe.Invoice;
+      const subscriptionId =
+        "subscription" in stripeObject ? getStripeObjectId(stripeObject.subscription) : stripeObject.id;
+
+      if (subscriptionId) {
+        const subscription =
+          "subscription" in stripeObject ? await stripe.subscriptions.retrieve(subscriptionId) : stripeObject;
+        await updateProfileFromSubscription(subscription, "free");
+      }
     }
 
     return NextResponse.json({ received: true });
