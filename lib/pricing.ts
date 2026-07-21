@@ -56,22 +56,22 @@ export const publicPricingPlans: PublicPricingPlan[] = [
     service: "One-day access",
     description: "For trying the complete Hirevate workflow with a low daily commitment.",
     badge: "Low commitment",
-    homepagePrice: "$0.50/day",
+    homepagePrice: "$1.50/day",
     homepageDetail: "Billed daily. Cancel anytime.",
     options: [
       {
         key: "starter_daily",
         label: "Daily",
-        price: "$0.50",
-        displayPrice: "$0.50",
+        price: "$1.50",
+        displayPrice: "$1.50",
         displayCadence: "/day",
-        priceValue: "0.50",
-        amountCents: 50,
+        priceValue: "1.50",
+        amountCents: 150,
         cadence: "/day",
         interval: "day",
-        cta: "Try 1 day - $0.50",
-        billingDetail: "Billed $0.50 per day. Cancel anytime.",
-        summary: "$0.50 per day",
+        cta: "Try 1 day - $1.50",
+        billingDetail: "Billed $1.50 per day. Cancel anytime.",
+        summary: "$1.50 per day",
         schemaName: "Hirevate Daily Plan"
       }
     ],
@@ -176,7 +176,7 @@ export const publicPricingFacts = publicPricingPlans.flatMap((plan) =>
 );
 
 export const pricingSummary =
-  "Hirevate costs $0.50 per day, $7.99 per week, $24.99 per month, or $69.99 per year. All plans are paid subscriptions and renew for the selected billing period until canceled.";
+  "Hirevate costs $1.50 per day, $7.99 per week, $24.99 per month, or $69.99 per year. All plans are paid subscriptions and renew for the selected billing period until canceled.";
 
 export function getPricingPlanForOption(key: CheckoutPlanKey) {
   const plan = publicPricingPlans.find((item) => item.options.some((option) => option.key === key));
