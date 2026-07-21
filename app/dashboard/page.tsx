@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { isSuperLoginProfile } from "@/lib/auth/super-login";
 import { getProfile, requireUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/server";
+import { syncPaidCheckoutSession } from "@/lib/stripe/subscription-sync";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -48,10 +49,16 @@ async function getCheckoutNotice(
     if (session.client_reference_id !== userId) return null;
 
     if (session.payment_status === "paid") {
-      return {
-        tone: "green" as const,
-        message: "Payment received. Your paid access will appear as soon as Stripe finishes syncing."
-      };
+      const synced = await syncPaidCheckoutSession(stripe, session, userId);
+      return synced
+        ? {
+            tone: "green" as const,
+            message: "Payment received. Your paid access is active."
+          }
+        : {
+            tone: "amber" as const,
+            message: "Payment received, but paid access is still syncing. Open Account subscription to retry."
+          };
     }
 
     if (session.payment_status === "no_payment_required") {

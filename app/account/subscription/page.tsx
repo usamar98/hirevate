@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type Stripe from "stripe";
 import Link from "next/link";
 import { CalendarClock, CreditCard } from "lucide-react";
 import { CancelSubscriptionButton } from "@/components/billing/cancel-subscription-button";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getProfile, isPaidSubscription, requireUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/server";
+import { reconcilePaidSubscriptionForUser } from "@/lib/stripe/subscription-sync";
 
 export const metadata: Metadata = {
   title: "Account Subscription",
@@ -32,18 +34,47 @@ function formatBillingDate(timestamp: number | null) {
 
 export default async function AccountSubscriptionPage() {
   const user = await requireUser("/account/subscription");
-  const profile = await getProfile(user.id);
-  const isPaid = isPaidSubscription(profile?.subscription_status);
+  let profile = await getProfile(user.id);
   const stripe = getStripe();
+  let repairedSubscription: Stripe.Subscription | null = null;
+  let subscriptionUnavailable = false;
 
+  if (
+    stripe &&
+    user.email &&
+    (!isPaidSubscription(profile?.subscription_status) || !profile?.stripe_subscription_id)
+  ) {
+    try {
+      const repaired = await reconcilePaidSubscriptionForUser(
+        stripe,
+        user.id,
+        user.email,
+        profile?.stripe_customer_id
+      );
+
+      if (repaired && profile) {
+        repairedSubscription = repaired.subscription;
+        profile = {
+          ...profile,
+          subscription_status: repaired.paidStatus,
+          stripe_customer_id: String(repaired.subscription.customer),
+          stripe_subscription_id: repaired.subscription.id
+        };
+      }
+    } catch {
+      subscriptionUnavailable = true;
+    }
+  }
+
+  const isPaid = isPaidSubscription(profile?.subscription_status);
   let cancellationScheduled = false;
   let periodEnd: string | null = null;
   let stripeStatus: string | null = null;
-  let subscriptionUnavailable = false;
 
   if (stripe && profile?.stripe_subscription_id) {
     try {
-      const subscription = await stripe.subscriptions.retrieve(profile.stripe_subscription_id);
+      const subscription =
+        repairedSubscription ?? (await stripe.subscriptions.retrieve(profile.stripe_subscription_id));
       cancellationScheduled = subscription.cancel_at_period_end;
       periodEnd = formatBillingDate(subscription.current_period_end);
       stripeStatus = subscription.status;
