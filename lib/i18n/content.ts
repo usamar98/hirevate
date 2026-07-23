@@ -1,4 +1,5 @@
 import type { SupportedLanguage } from "@/lib/i18n/config";
+import { swedishLandingCopy, swedishSiteCopy } from "@/lib/i18n/swedish";
 
 export const siteCopy = {
   en: {
@@ -58,6 +59,7 @@ export const siteCopy = {
       optional: "Allow optional"
     }
   },
+  sv: swedishSiteCopy,
   de: {
     navigation: {
       findJobs: "Jobs finden",
@@ -333,6 +335,7 @@ export const landingCopy = {
       apply: "Apply now"
     }
   },
+  sv: swedishLandingCopy,
   de: {
     landingDescription:
       "Finden Sie aktuelle versteckte Stellen, erstellen Sie mit sicherer KI-Unterstützung passende Lebensläufe und Anschreiben und verwalten Sie jede Bewerbung bis zur Entscheidung.",

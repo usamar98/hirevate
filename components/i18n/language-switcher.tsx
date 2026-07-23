@@ -6,20 +6,34 @@ import {
   type SupportedLanguage
 } from "@/lib/i18n/config";
 
+type RegionalLanguage = Exclude<SupportedLanguage, "en">;
+
 type LanguageSwitcherProps = {
   language: SupportedLanguage;
-  showGermanOption: boolean;
+  regionalLanguage: RegionalLanguage | null;
 };
 
-const languageOptions = [
-  { code: "en", label: "English", shortLabel: "EN" },
-  { code: "de", label: "Deutsch", shortLabel: "DE" }
-] as const;
+const englishOption = { code: "en", label: "English", shortLabel: "EN" } as const;
+const regionalOptions = {
+  de: { code: "de", label: "Deutsch", shortLabel: "DE" },
+  sv: { code: "sv", label: "Svenska", shortLabel: "SV" }
+} as const satisfies Record<
+  RegionalLanguage,
+  { code: RegionalLanguage; label: string; shortLabel: string }
+>;
 
-export function LanguageSwitcher({ language, showGermanOption }: LanguageSwitcherProps) {
+const controlLabels: Record<SupportedLanguage, string> = {
+  en: "Choose language",
+  de: "Sprache auswählen",
+  sv: "Välj språk"
+};
+
+export function LanguageSwitcher({ language, regionalLanguage }: LanguageSwitcherProps) {
   const [pendingLanguage, setPendingLanguage] = useState<SupportedLanguage | null>(null);
 
-  if (!showGermanOption) return null;
+  if (!regionalLanguage) return null;
+
+  const languageOptions = [englishOption, regionalOptions[regionalLanguage]];
 
   function selectLanguage(nextLanguage: SupportedLanguage) {
     if (nextLanguage === language || pendingLanguage) return;
@@ -30,11 +44,9 @@ export function LanguageSwitcher({ language, showGermanOption }: LanguageSwitche
     window.location.reload();
   }
 
-  const controlLabel = language === "de" ? "Sprache auswählen" : "Choose language";
-
   return (
     <div
-      aria-label={controlLabel}
+      aria-label={controlLabels[language]}
       className="fixed left-3 top-20 z-50 inline-flex items-center rounded-full border border-gray-200 bg-white/95 p-1 shadow-lg backdrop-blur"
       role="group"
     >

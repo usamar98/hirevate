@@ -7,15 +7,23 @@ import {
   type SupportedLanguage
 } from "@/lib/i18n/config";
 
+type RegionalLanguage = Exclude<SupportedLanguage, "en">;
+
 type LanguagePreference = {
   language: SupportedLanguage;
-  showGermanOption: boolean;
+  regionalLanguage: RegionalLanguage | null;
 };
 
 function isCrawler(userAgent: string) {
   return /bot|crawler|spider|slurp|google|bing|yandex|baidu|duckduck|facebookexternalhit/i.test(
     userAgent
   );
+}
+
+function getRegionalLanguage(countryCode: string): RegionalLanguage | null {
+  if (countryCode === "DE") return "de";
+  if (countryCode === "SE") return "sv";
+  return null;
 }
 
 export async function resolveLanguagePreference(): Promise<LanguagePreference> {
@@ -26,18 +34,22 @@ export async function resolveLanguagePreference(): Promise<LanguagePreference> {
     headerStore.get("x-country-code") ||
     ""
   ).toUpperCase();
-  const showGermanOption =
-    countryCode === "DE" && !isCrawler(headerStore.get("user-agent") ?? "");
+  const regionalLanguage = getRegionalLanguage(countryCode);
+  const canChooseRegionalLanguage =
+    regionalLanguage !== null && !isCrawler(headerStore.get("user-agent") ?? "");
 
-  if (!showGermanOption) {
-    return { language: "en", showGermanOption: false };
+  if (!canChooseRegionalLanguage || regionalLanguage === null) {
+    return { language: "en", regionalLanguage: null };
   }
 
   const cookieStore = await cookies();
   const savedLanguage = cookieStore.get(languagePreferenceCookie)?.value?.toLowerCase();
+  const canUseSavedLanguage =
+    isSupportedLanguage(savedLanguage) &&
+    (savedLanguage === "en" || savedLanguage === regionalLanguage);
 
   return {
-    language: isSupportedLanguage(savedLanguage) ? savedLanguage : "de",
-    showGermanOption: true
+    language: canUseSavedLanguage ? savedLanguage : regionalLanguage,
+    regionalLanguage
   };
 }

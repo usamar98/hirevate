@@ -198,7 +198,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { language, showGermanOption } = await resolveLanguagePreference();
+  const { language, regionalLanguage } = await resolveLanguagePreference();
 
   return (
     <html lang={language}>
@@ -209,7 +209,7 @@ export default async function RootLayout({
         <SiteFooter language={language} />
         <VisitorTracker />
         <CookieConsent language={language} />
-        <LanguageSwitcher language={language} showGermanOption={showGermanOption} />
+        <LanguageSwitcher language={language} regionalLanguage={regionalLanguage} />
       </body>
     </html>
   );

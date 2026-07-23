@@ -1,6 +1,6 @@
 export const languagePreferenceCookie = "hirevate-language";
 
-export const supportedLanguages = ["en", "de"] as const;
+export const supportedLanguages = ["en", "de", "sv"] as const;
 
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 

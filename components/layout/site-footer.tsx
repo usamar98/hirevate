@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 import { getSiteCopy } from "@/lib/i18n/content";
 import type { SupportedLanguage } from "@/lib/i18n/config";
+import { swedishLegalLabels } from "@/lib/i18n/swedish";
 import { legalFooterLinks } from "@/lib/legal";
 
 export function SiteFooter({ language }: { language: SupportedLanguage }) {
@@ -34,7 +35,9 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
           Accessibility: "Barrierefreiheit",
           "Legal notice": "Rechtlicher Hinweis"
         }
-      : {};
+      : language === "sv"
+        ? swedishLegalLabels
+        : {};
 
   return (
     <footer className="border-t border-gray-100 bg-white">

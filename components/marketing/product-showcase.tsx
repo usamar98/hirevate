@@ -13,6 +13,7 @@ import {
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { SupportedLanguage } from "@/lib/i18n/config";
+import { swedishShowcaseCopy } from "@/lib/i18n/swedish";
 
 const showcaseCopy = {
   en: {
@@ -60,6 +61,7 @@ const showcaseCopy = {
       }
     ]
   },
+  sv: swedishShowcaseCopy,
   de: {
     eyebrow: "Hirevate in Aktion",
     title: "Drei Werkzeuge. Ein fokussiertes System für Ihre Jobsuche.",

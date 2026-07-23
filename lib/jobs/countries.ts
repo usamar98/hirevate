@@ -57,6 +57,15 @@ export const jobCountries = [
     popularCities: ["Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne"]
   },
   {
+    slug: "sweden",
+    code: "SE",
+    name: "Sweden",
+    demonym: "Swedish",
+    path: "/jobs/country/sweden",
+    locationTerms: ["Sweden", "Sverige", "Stockholm", "Gothenburg", "Göteborg", "Malmö", "Uppsala", "Lund"],
+    popularCities: ["Stockholm", "Gothenburg", "Malmö", "Uppsala", "Lund"]
+  },
+  {
     slug: "france",
     code: "FR",
     name: "France",
