@@ -14,6 +14,7 @@ import {
   XCircle
 } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
+import { HomeDiscoveryLinks } from "@/components/marketing/home-discovery-links";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -302,6 +303,8 @@ export default async function LandingPage() {
           <HeroProductPreview jobs={featuredJobs.slice(0, 3)} language={language} />
         </div>
       </section>
+
+      <HomeDiscoveryLinks language={language} />
 
       <section className="border-b border-gray-100 bg-white py-8">
         <div className="container-shell">
