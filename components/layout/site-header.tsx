@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AccountMenu } from "@/components/layout/account-menu";
+import {
+  DesktopDiscoveryMenus,
+  MobileDiscoveryMenu
+} from "@/components/layout/header-discovery-menus";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
 import { AUTH_STATUS_CHANGED_EVENT } from "@/lib/auth/client-events";
@@ -65,15 +69,7 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
           <Link className="transition hover:text-ink-900" href="/jobs#results">
             {copy.findJobs}
           </Link>
-          <Link className="transition hover:text-ink-900" href="/resume-builder">
-            {copy.resume}
-          </Link>
-          <Link className="transition hover:text-ink-900" href="/account/job-tracker">
-            {copy.jobTracker}
-          </Link>
-          <Link className="transition hover:text-ink-900" href="/account/cover-letters">
-            {copy.coverLetter}
-          </Link>
+          <DesktopDiscoveryMenus language={language} />
           {authStatus.authenticated ? (
             <Link className="transition hover:text-ink-900" href="/dashboard">
               {copy.dashboard}
@@ -94,6 +90,7 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
           ) : null}
         </nav>
         <div className="flex items-center gap-2">
+          <MobileDiscoveryMenu language={language} />
           {!authStatus.authenticated ? (
             <Button asChild href="/login" variant="ghost">
               {copy.login}
