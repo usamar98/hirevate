@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { VisitorTracker } from "@/components/analytics/visitor-tracker";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
@@ -202,6 +203,20 @@ export default async function RootLayout({
 
   return (
     <html lang={language}>
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-5SHGLEP5RX"
+          strategy="beforeInteractive"
+        />
+        <Script id="google-tag" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-5SHGLEP5RX');
+          `}
+        </Script>
+      </head>
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd, softwareApplicationJsonLd, jobSearchServiceJsonLd]} />
         <SiteHeader language={language} />
