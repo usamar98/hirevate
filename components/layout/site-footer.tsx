@@ -58,7 +58,27 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
       </div>
       <div className="border-t border-gray-100">
         <div className="container-shell flex flex-col gap-3 py-5 text-xs text-ink-400 md:flex-row md:items-center md:justify-between">
-          <p>&copy; 2026 Hirevate</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p>&copy; 2026 Hirevate</p>
+            <a
+              aria-label="View Hirevate's launch on Fazier"
+              href="https://fazier.com/launches/www.hirevate.com"
+              rel="noopener"
+              target="_blank"
+            >
+              {/* Keep Fazier's hosted SVG endpoint so its free-launch badge can be verified. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt="Launched on Fazier"
+                className="h-auto w-[120px]"
+                decoding="async"
+                height="51"
+                loading="lazy"
+                src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=dark"
+                width="120"
+              />
+            </a>
+          </div>
           <nav aria-label={copy.legalLinksLabel} className="flex flex-wrap gap-x-4 gap-y-2">
             <Link className="hover:text-ink-700" href="/legal">
               {copy.legal}
