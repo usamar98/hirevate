@@ -125,6 +125,7 @@ export const landingCopy = {
       "Find fresh hidden jobs, build job-specific resumes and cover letters with secure AI assistance, and manage every application from interest to decision.",
     hero: {
       title: "Find hidden jobs and turn them into stronger applications",
+      countedTitle: "Find {count} hidden jobs and turn them into stronger applications",
       description:
         "Discover fresh roles from company career pages, public ATS boards, and trusted hiring sources. Then tailor your resume, write a focused cover letter, and manage every next step.",
       jobsCta: "Find fresh jobs",
@@ -341,6 +342,7 @@ export const landingCopy = {
       "Finden Sie aktuelle versteckte Stellen, erstellen Sie mit sicherer KI-Unterstützung passende Lebensläufe und Anschreiben und verwalten Sie jede Bewerbung bis zur Entscheidung.",
     hero: {
       title: "Versteckte Stellen finden und überzeugendere Bewerbungen daraus machen",
+      countedTitle: "{count} versteckte Stellen finden und \u00fcberzeugendere Bewerbungen daraus machen",
       description:
         "Entdecken Sie aktuelle Stellen auf Unternehmenskarriereseiten, öffentlichen ATS-Jobbörsen und vertrauenswürdigen Einstellungsquellen. Passen Sie anschließend Ihren Lebenslauf an, schreiben Sie ein gezieltes Anschreiben und verwalten Sie jeden nächsten Schritt.",
       jobsCta: "Aktuelle Jobs finden",

@@ -61,6 +61,7 @@ export const swedishLandingCopy = {
     "Hitta aktuella dolda jobb, skapa jobbanpassade CV:n och personliga brev med säker AI-hjälp och hantera varje ansökan från intresse till beslut.",
   hero: {
     title: "Hitta dolda jobb och skapa starkare ansökningar",
+    countedTitle: "Hitta {count} dolda jobb och skapa starkare ans\u00f6kningar",
     description:
       "Upptäck aktuella roller på företags karriärsidor, offentliga ATS-jobbsidor och betrodda rekryteringskällor. Anpassa sedan ditt CV, skriv ett fokuserat personligt brev och hantera varje nästa steg.",
     jobsCta: "Hitta aktuella jobb",

@@ -387,6 +387,36 @@ export async function getFeaturedJobs(limit = 3) {
   return getCachedFeaturedJobs(limit);
 }
 
+async function getActiveJobsCountUncached() {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from("jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active");
+
+  if (error) {
+    console.error("Failed to count active jobs", error);
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
+const getCachedActiveJobsCount = unstable_cache(
+  async () => getActiveJobsCountUncached(),
+  ["public-active-jobs-count"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getActiveJobsCount() {
+  return getCachedActiveJobsCount();
+}
+
 async function getSalaryFeaturedJobsUncached(limit = 3) {
   const supabase = createPublicJobsReadClient();
   if (!supabase) return [] as JobWithCompany[];

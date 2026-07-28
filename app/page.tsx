@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
-import { getSalaryFeaturedJobs } from "@/lib/jobs/queries";
+import { getActiveJobsCount, getSalaryFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { getLandingCopy } from "@/lib/i18n/content";
@@ -221,12 +221,27 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
   }))
 );
 
+const numberLocaleByLanguage: Record<SupportedLanguage, string> = {
+  en: "en-US",
+  de: "de-DE",
+  sv: "sv-SE"
+};
+
 export const revalidate = 3600;
 
 export default async function LandingPage() {
   const { language } = await resolveLanguagePreference();
   const copy = getLandingCopy(language);
-  const featuredJobs = await getSalaryFeaturedJobs(12);
+  const [featuredJobs, activeJobsCount] = await Promise.all([
+    getSalaryFeaturedJobs(12),
+    getActiveJobsCount()
+  ]);
+  const heroTitle = activeJobsCount > 0
+    ? copy.hero.countedTitle.replace(
+        "{count}",
+        new Intl.NumberFormat(numberLocaleByLanguage[language]).format(activeJobsCount)
+      )
+    : copy.hero.title;
   const trackedCompanyItems = getTrackedCompanyItems(featuredJobs);
   const companySliderItems = [...trackedCompanyItems, ...trackedCompanyItems];
   const localizedFeatures =
@@ -285,7 +300,7 @@ export default async function LandingPage() {
         <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
             <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
-              {copy.hero.title}
+              {heroTitle}
             </h1>
             <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
               {copy.hero.description}
