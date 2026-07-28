@@ -12,14 +12,26 @@ export const metadata: Metadata = {
   }
 };
 
-export default function SignupPage() {
+type SignupPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getSafeRedirect(value: string | string[] | undefined) {
+  const redirect = Array.isArray(value) ? value[0] : value;
+  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/pricing";
+}
+
+export default async function SignupPage({ searchParams }: SignupPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const redirect = getSafeRedirect(params.redirect);
+  const loginHref = `/login?redirect=${encodeURIComponent(redirect)}`;
   return (
     <section className="bg-gray-50 py-14">
       <div className="container-shell max-w-md">
         <Card className="p-6">
           <h1 className="text-3xl font-semibold text-ink-900">Create account</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            Create your account, then choose daily, weekly, monthly, or annual paid access.
+            Create a free account with no card required. Choose paid access only when you are ready.
           </p>
           <div className="mt-6">
             <Suspense>
@@ -28,7 +40,7 @@ export default function SignupPage() {
           </div>
           <p className="mt-5 text-center text-sm text-ink-500">
             Already have an account?{" "}
-            <Link className="font-semibold text-brand-600" href="/login">
+            <Link className="font-semibold text-brand-600" href={loginHref}>
               Log in
             </Link>
           </p>

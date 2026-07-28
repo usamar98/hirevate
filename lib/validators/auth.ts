@@ -21,7 +21,8 @@ export const signInSchema = z.object({
 export const signUpSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
   password: z.string().min(8, "Password must be at least 8 characters."),
-  fullName: z.string().trim().max(120).optional()
+  fullName: z.string().trim().min(2, "Enter your full name.").max(120),
+  website: z.string().max(200).optional()
 });
 
 export const passwordResetRequestSchema = z.object({

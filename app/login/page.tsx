@@ -12,7 +12,19 @@ export const metadata: Metadata = {
   }
 };
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getSafeRedirect(value: string | string[] | undefined) {
+  const redirect = Array.isArray(value) ? value[0] : value;
+  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const redirect = getSafeRedirect(params.redirect);
+  const signupHref = `/signup?redirect=${encodeURIComponent(redirect)}`;
   return (
     <section className="bg-gray-50 py-14">
       <div className="container-shell max-w-md">
@@ -28,7 +40,7 @@ export default function LoginPage() {
           </div>
           <p className="mt-5 text-center text-sm text-ink-500">
             Need an account?{" "}
-            <Link className="font-semibold text-brand-600" href="/signup">
+            <Link className="font-semibold text-brand-600" href={signupHref}>
               Create account
             </Link>
           </p>

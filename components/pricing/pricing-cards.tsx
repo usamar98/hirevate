@@ -1,11 +1,13 @@
 "use client";
 
 import { CalendarDays, Check, Clock3, Loader2, Trophy, Zap } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  checkoutPlanKeys,
   publicPricingPlans,
   type CheckoutPlanKey,
   type PublicSubscriptionTier
@@ -19,6 +21,11 @@ const planIcons = {
 } satisfies Record<PublicSubscriptionTier, typeof Zap>;
 
 export function PricingCards() {
+  const searchParams = useSearchParams();
+  const requestedPlan = searchParams.get("plan");
+  const selectedPlan = checkoutPlanKeys.includes(requestedPlan as CheckoutPlanKey)
+    ? (requestedPlan as CheckoutPlanKey)
+    : null;
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +44,8 @@ export function PricingCards() {
       const payload = (await response.json()) as { url?: string; error?: string };
 
       if (response.status === 401) {
-        window.location.href = "/login?redirect=/pricing";
+        const redirect = encodeURIComponent(`/pricing?plan=${plan}`);
+        window.location.href = `/login?redirect=${redirect}`;
         return;
       }
 
@@ -61,6 +69,11 @@ export function PricingCards() {
           {error}
         </div>
       ) : null}
+      {selectedPlan ? (
+        <div className="mb-5 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          Your selected plan is ready below. Review it, then continue to secure checkout.
+        </div>
+      ) : null}
       <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4 xl:pt-2">
         {publicPricingPlans.map((plan) => {
           const option = plan.options[0];
@@ -72,8 +85,8 @@ export function PricingCards() {
             <Card
               className={
                 plan.highlighted
-                  ? "relative flex min-h-[510px] flex-col border-black bg-black p-6 text-white shadow-[0_18px_45px_rgba(17,24,39,0.22)] lg:-translate-y-2"
-                  : "relative flex min-h-[510px] flex-col border-gray-200 bg-white p-6 text-ink-900"
+                  ? `relative flex min-h-[510px] flex-col border-black bg-black p-6 text-white shadow-[0_18px_45px_rgba(17,24,39,0.22)] lg:-translate-y-2 ${selectedPlan === option.key ? "ring-4 ring-blue-300" : ""}`
+                  : `relative flex min-h-[510px] flex-col border-gray-200 bg-white p-6 text-ink-900 ${selectedPlan === option.key ? "ring-4 ring-blue-300" : ""}`
               }
               key={plan.key}
             >

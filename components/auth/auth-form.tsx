@@ -36,7 +36,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     defaultValues: {
       email: "",
       password: "",
-      fullName: ""
+      fullName: "",
+      website: ""
     }
   });
 
@@ -74,6 +75,21 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {mode === "signup" ? (
+        <div
+          aria-hidden="true"
+          className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+        >
+          <label htmlFor="signup-website">Website</label>
+          <input
+            autoComplete="off"
+            id="signup-website"
+            tabIndex={-1}
+            {...register("website")}
+          />
+        </div>
+      ) : null}
+
       {mode === "signup" ? (
         <label className="block space-y-1.5">
           <span className="text-sm font-semibold text-ink-700">Full name</span>

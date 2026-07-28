@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
+import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { checkoutPlanKeys } from "@/lib/pricing";
@@ -68,6 +69,15 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
   }
+  try {
+    await ensureUserProfile(user);
+  } catch {
+    return NextResponse.json(
+      { error: "We could not prepare your account for checkout. Please try again." },
+      { status: 500 }
+    );
+  }
+
 
   const profile = await getProfile(user.id);
   const customerId = await getReusableCustomerId(stripe, profile?.stripe_customer_id);

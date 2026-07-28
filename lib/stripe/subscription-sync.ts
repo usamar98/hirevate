@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import type { SubscriptionTier } from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { stripePlans, type StripePlanKey } from "@/lib/stripe/server";
@@ -74,6 +75,14 @@ export async function updateProfileFromSubscription(
 
   const userId = subscription.metadata.userId;
   if (!userId) return false;
+  const { data: authUserData, error: authUserError } = await admin.auth.admin.getUserById(userId);
+  if (authUserError) throw authUserError;
+  if (!authUserData.user) {
+    throw new Error(`No authentication user found for Stripe subscription ${subscription.id}.`);
+  }
+
+  await ensureUserProfile(authUserData.user);
+
 
   const { data, error } = await admin
     .from("profiles")

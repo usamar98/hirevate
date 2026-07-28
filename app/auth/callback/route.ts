@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getSafeNextPath(value: string | null) {
@@ -21,10 +22,17 @@ export async function GET(request: NextRequest) {
       ? await supabase.auth.exchangeCodeForSession(code)
       : tokenHash && type === "recovery"
         ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" })
-        : { error: new Error("Missing authentication code.") }
-    : { error: new Error("Supabase is not configured.") };
+        : { data: null, error: new Error("Missing authentication code.") }
+    : { data: null, error: new Error("Supabase is not configured.") };
 
   if (!result.error) {
+    const user =
+      result.data?.user ??
+      (supabase ? (await supabase.auth.getUser()).data.user : null);
+    if (user) {
+      await ensureUserProfile(user).catch(() => false);
+    }
+
     return NextResponse.redirect(new URL(nextPath, request.nextUrl.origin));
   }
 

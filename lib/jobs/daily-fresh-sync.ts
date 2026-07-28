@@ -174,7 +174,9 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
     runDate: now.toISOString().slice(0, 10),
     sourceRotationSeed: seed,
     staleAfterDays,
-    syncBudgetMs: parsePositiveInt(env.dailyFreshSyncBudgetMs, 55_000, 290_000)
+    // Vercel Hobby functions have a 60-second ceiling. Keep a five-second
+    // response buffer even if an older environment variable requests more time.
+    syncBudgetMs: parsePositiveInt(env.dailyFreshSyncBudgetMs, 55_000, 55_000)
   };
 }
 

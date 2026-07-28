@@ -7,6 +7,7 @@ import {
   isValidSuperLoginPassword,
   resolveLoginEmail
 } from "@/lib/auth/super-login";
+import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -73,8 +74,8 @@ async function updateProfilePresence(userId: string, geo: Awaited<ReturnType<typ
 
   await admin
     .from("profiles")
-    .update(updates)
-    .eq("id", userId);
+    .upsert({ id: userId, ...updates }, { onConflict: "id" });
+  // The primary-key conflict target keeps this write scoped to the current user.
 }
 
 async function findAuthUserByEmail(email: string) {
@@ -182,7 +183,7 @@ export async function signInAction(values: AuthFormValues): Promise<AuthResult> 
   }
 
   if (data.user) {
-    await updateProfilePresence(data.user.id, await getRequestGeo());
+    await ensureUserProfile(data.user, await getRequestGeo()).catch(() => false);
   }
 
   return { ok: true };
@@ -192,6 +193,15 @@ export async function signUpAction(
   values: AuthFormValues,
   redirectTo: string
 ): Promise<AuthResult> {
+  if (values.website?.trim()) {
+    return {
+      ok: true,
+      needsConfirmation: true,
+      message: "Check your email to confirm your account, then log in."
+    };
+  }
+
+  // Continue with normal validation for human submissions.
   const parsed = signUpSchema.safeParse(values);
   if (!parsed.success) {
     return { ok: false, error: "Enter a valid name, email, and password." };
