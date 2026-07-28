@@ -285,14 +285,15 @@ export async function getJobById(id: string) {
   return getCachedJobById(id);
 }
 
-function getSlugTitleProbe(slugOrId: string) {
+function getSlugTitleProbes(slugOrId: string) {
   const withoutToken = slugOrId.replace(/-[a-z0-9]{6}$/i, "");
-  const words = withoutToken
+  const ignoredWords = new Set(["and", "for", "from", "the", "with"]);
+
+  return withoutToken
     .split("-")
     .map((word) => word.trim())
-    .filter((word) => word.length >= 3);
-
-  return words[0] ?? null;
+    .filter((word) => word.length >= 3 && !ignoredWords.has(word))
+    .slice(0, 6);
 }
 
 async function getJobBySlugOrIdUncached(slugOrId: string) {
@@ -306,32 +307,37 @@ async function getJobBySlugOrIdUncached(slugOrId: string) {
   if (!supabase) return null;
 
   const token = getJobSlugToken(decodedSlug);
-  const titleProbe = getSlugTitleProbe(decodedSlug);
-  if (!token || !titleProbe) return null;
+  const titleProbes = getSlugTitleProbes(decodedSlug);
+  if (!token || titleProbes.length === 0) return null;
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .select(jobListWithCompanySelect)
-    .eq("status", "active")
-    .ilike("title", `%${titleProbe}%`)
-    .order("freshness_score", { ascending: false })
-    .order("last_seen_at", { ascending: false, nullsFirst: false })
-    .order("discovered_at", { ascending: false })
-    .limit(JOB_SLUG_LOOKUP_LIMIT);
+  for (const titleProbe of titleProbes) {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select(jobListWithCompanySelect)
+      .eq("status", "active")
+      .ilike("title", `%${titleProbe}%`)
+      .order("freshness_score", { ascending: false })
+      .order("last_seen_at", { ascending: false, nullsFirst: false })
+      .order("discovered_at", { ascending: false })
+      .limit(JOB_SLUG_LOOKUP_LIMIT);
 
-  if (error) {
-    console.error("Failed to resolve job slug", error);
-    return null;
+    if (error) {
+      console.error("Failed to resolve job slug", error);
+      return null;
+    }
+
+    const jobs = (data ?? []) as JobWithCompany[];
+    const match =
+      jobs.find((job) => getJobSlug(job) === decodedSlug) ??
+      jobs.find((job) => jobMatchesSlug(job, decodedSlug)) ??
+      null;
+
+    if (match) {
+      return getJobById(match.id);
+    }
   }
 
-  const jobs = (data ?? []) as JobWithCompany[];
-
-  const match =
-    jobs.find((job) => getJobSlug(job) === decodedSlug) ??
-    jobs.find((job) => Boolean(token) && jobMatchesSlug(job, decodedSlug)) ??
-    null;
-
-  return match ? getJobById(match.id) : null;
+  return null;
 }
 
 const getCachedJobBySlugOrId = unstable_cache(
