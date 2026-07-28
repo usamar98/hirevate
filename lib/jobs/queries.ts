@@ -342,7 +342,7 @@ async function getJobBySlugOrIdUncached(slugOrId: string) {
 
 const getCachedJobBySlugOrId = unstable_cache(
   async (slugOrId: string) => getJobBySlugOrIdUncached(slugOrId),
-  ["public-job-by-slug-or-id"],
+  ["public-job-by-slug-or-id-v2"],
   {
     revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
     tags: ["public-jobs"]
