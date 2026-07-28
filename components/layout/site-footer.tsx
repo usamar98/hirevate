@@ -66,7 +66,7 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
               rel="noopener"
               target="_blank"
             >
-              {/* Keep Fazier's hosted SVG endpoint so its free-launch badge can be verified. */}
+              {/* Keep Fazier's hosted SVG endpoint so its launched badge stays verifiable. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 alt="Launched on Fazier"
@@ -76,6 +76,24 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
                 loading="lazy"
                 src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=dark"
                 width="120"
+              />
+            </a>
+            <a
+              aria-label="View Hirevate's featured launch on Fazier"
+              href="https://fazier.com/launches/www.hirevate.com"
+              rel="noopener"
+              target="_blank"
+            >
+              {/* Keep Fazier's hosted SVG endpoint so its featured badge stays verifiable. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt="Featured on Fazier"
+                className="h-auto w-[250px] max-w-full"
+                decoding="async"
+                height="59"
+                loading="lazy"
+                src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=light"
+                width="250"
               />
             </a>
           </div>
