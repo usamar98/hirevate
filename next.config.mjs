@@ -24,6 +24,15 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"]
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "buysellstartups.com",
+        pathname: "/api/index-badge/**"
+      }
+    ]
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   async headers() {

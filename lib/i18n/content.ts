@@ -131,12 +131,6 @@ export const landingCopy = {
       jobsCta: "Find fresh jobs",
       resumeCta: "Build my resume"
     },
-    companies: {
-      title: "Companies in current listings",
-      description: "Company logos are drawn from jobs currently returned by the Hirevate index.",
-      eyebrow: "Live company jobs",
-      empty: "Current company listings will appear after the next successful job index refresh."
-    },
     comparison: {
       crowdedTitle: "What crowded boards usually miss",
       crowdedItems: [
@@ -251,7 +245,7 @@ export const landingCopy = {
       },
       {
         label: "Pricing",
-        description: "Compare Hirevate daily, weekly, monthly, and annual paid plans."
+        description: "Compare Hirevate monthly and annual paid plans."
       },
       {
         label: "About Hirevate",
@@ -269,11 +263,9 @@ export const landingCopy = {
     pricing: {
       title: "Simple pricing for serious search",
       description:
-        "Choose daily, weekly, monthly, or annual access for the complete job feed and career workflow tools.",
+        "Choose monthly or annual access for the complete job feed and career workflow tools.",
       cta: "View pricing",
       plans: {
-        starter: { name: "Daily Plan", detail: "Billed daily. Cancel anytime." },
-        silver: { name: "Weekly Plan", detail: "Billed weekly. Cancel anytime." },
         gold: { name: "Monthly Plan", detail: "About $5.75 per week." },
         platinum: { name: "Annual Plan", detail: "About $1.35 per week." }
       }
@@ -347,12 +339,6 @@ export const landingCopy = {
         "Entdecken Sie aktuelle Stellen auf Unternehmenskarriereseiten, öffentlichen ATS-Jobbörsen und vertrauenswürdigen Einstellungsquellen. Passen Sie anschließend Ihren Lebenslauf an, schreiben Sie ein gezieltes Anschreiben und verwalten Sie jeden nächsten Schritt.",
       jobsCta: "Aktuelle Jobs finden",
       resumeCta: "Lebenslauf erstellen"
-    },
-    companies: {
-      title: "Unternehmen in aktuellen Stellenanzeigen",
-      description: "Die Firmenlogos stammen aus Jobs, die derzeit im Hirevate-Index enthalten sind.",
-      eyebrow: "Aktuelle Unternehmensjobs",
-      empty: "Aktuelle Unternehmensstellen erscheinen nach der nächsten erfolgreichen Aktualisierung des Jobindex."
     },
     comparison: {
       crowdedTitle: "Was überfüllte Jobbörsen häufig übersehen",
@@ -468,7 +454,7 @@ export const landingCopy = {
       },
       {
         label: "Preise",
-        description: "Vergleichen Sie die täglichen, wöchentlichen, monatlichen und jährlichen Hirevate-Tarife."
+        description: "Vergleichen Sie die monatlichen und jährlichen Hirevate-Tarife."
       },
       {
         label: "Über Hirevate",
@@ -486,11 +472,9 @@ export const landingCopy = {
     pricing: {
       title: "Einfache Preise für eine ernsthafte Jobsuche",
       description:
-        "Wählen Sie täglichen, wöchentlichen, monatlichen oder jährlichen Zugriff auf den vollständigen Jobfeed und alle Karriere-Workflow-Tools.",
+        "Wählen Sie monatlichen oder jährlichen Zugriff auf den vollständigen Jobfeed und alle Karriere-Workflow-Tools.",
       cta: "Preise ansehen",
       plans: {
-        starter: { name: "Tagestarif", detail: "Tägliche Abrechnung. Jederzeit kündbar." },
-        silver: { name: "Wochentarif", detail: "Wöchentliche Abrechnung. Jederzeit kündbar." },
         gold: { name: "Monatstarif", detail: "Etwa 5,75 $ pro Woche." },
         platinum: { name: "Jahrestarif", detail: "Etwa 1,35 $ pro Woche." }
       }

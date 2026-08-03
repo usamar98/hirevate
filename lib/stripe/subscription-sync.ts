@@ -24,6 +24,8 @@ export type PaidSubscriptionSync = {
 };
 
 const legacySubscriptionStatuses: Record<string, SubscriptionTier> = {
+  starter_daily: "starter",
+  silver_weekly: "silver",
   gold_weekly: "gold"
 };
 

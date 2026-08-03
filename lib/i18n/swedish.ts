@@ -67,12 +67,6 @@ export const swedishLandingCopy = {
     jobsCta: "Hitta aktuella jobb",
     resumeCta: "Skapa mitt CV"
   },
-  companies: {
-    title: "Företag i aktuella jobbannonser",
-    description: "Företagslogotyperna hämtas från jobb som just nu finns i Hirevates index.",
-    eyebrow: "Aktuella företagsjobb",
-    empty: "Aktuella företagsjobb visas efter nästa lyckade uppdatering av jobbindexet."
-  },
   comparison: {
     crowdedTitle: "Det överfulla jobbsajter ofta missar",
     crowdedItems: [
@@ -190,7 +184,7 @@ export const swedishLandingCopy = {
     },
     {
       label: "Priser",
-      description: "Jämför Hirevates dags-, vecko-, månads- och årsplaner."
+      description: "Jämför Hirevates månads- och årsplaner."
     },
     {
       label: "Om Hirevate",
@@ -208,11 +202,9 @@ export const swedishLandingCopy = {
   pricing: {
     title: "Enkla priser för seriös jobbsökning",
     description:
-      "Välj dags-, vecko-, månads- eller årsåtkomst till hela jobbflödet och alla verktyg för din karriärprocess.",
+      "Välj månads- eller årsåtkomst till hela jobbflödet och alla verktyg för din karriärprocess.",
     cta: "Visa priser",
     plans: {
-      starter: { name: "Dagsplan", detail: "Debiteras dagligen. Avsluta när du vill." },
-      silver: { name: "Veckoplan", detail: "Debiteras varje vecka. Avsluta när du vill." },
       gold: { name: "Månadsplan", detail: "Cirka 5,75 USD per vecka." },
       platinum: { name: "Årsplan", detail: "Cirka 1,35 USD per vecka." }
     }

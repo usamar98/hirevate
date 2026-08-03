@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, DatabaseZap, FileText, SearchCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -234,6 +235,24 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      <footer className="border-t border-gray-100 bg-gray-50 py-8">
+        <div className="container-shell flex justify-center">
+          <a
+            href="https://buysellstartups.com/startup-index/hirevate.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              src="https://buysellstartups.com/api/index-badge/hirevate.com?style=dark&name=Hirevate"
+              alt="Featured on Startup Index by Buy Sell Startups"
+              width={300}
+              height={68}
+              unoptimized
+            />
+          </a>
+        </div>
+      </footer>
     </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Check, Clock3, Loader2, Trophy, Zap } from "lucide-react";
+import { CalendarDays, Check, Loader2, Trophy } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +14,9 @@ import {
 } from "@/lib/pricing";
 
 const planIcons = {
-  starter: Clock3,
-  silver: Zap,
   gold: CalendarDays,
   platinum: Trophy
-} satisfies Record<PublicSubscriptionTier, typeof Zap>;
+} satisfies Record<PublicSubscriptionTier, typeof Trophy>;
 
 export function PricingCards() {
   const searchParams = useSearchParams();
@@ -74,7 +72,7 @@ export function PricingCards() {
           Your selected plan is ready below. Review it, then continue to secure checkout.
         </div>
       ) : null}
-      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4 xl:pt-2">
+      <div className="mx-auto grid max-w-4xl items-stretch gap-4 md:grid-cols-2 md:pt-2">
         {publicPricingPlans.map((plan) => {
           const option = plan.options[0];
           const PlanIcon = planIcons[plan.key];
