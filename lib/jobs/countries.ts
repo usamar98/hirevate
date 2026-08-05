@@ -10,7 +10,7 @@ export type JobCountry = {
   popularCities: readonly string[];
 };
 
-export const jobCountries = [
+const configuredJobCountries = [
   {
     slug: "united-states",
     code: "US",
@@ -129,6 +129,14 @@ export const jobCountries = [
     popularCities: ["Singapore"]
   }
 ] as const satisfies readonly JobCountry[];
+
+const dailyCoverageCountryCodes = new Set(["US", "GB", "CA"]);
+
+// Only advertise markets that the current source mix refreshes reliably every day.
+// Other countries can be re-enabled after they have dependable daily source coverage.
+export const jobCountries = configuredJobCountries.filter((country) =>
+  dailyCoverageCountryCodes.has(country.code)
+);
 
 export function getJobCountryBySlug(slug: string | null | undefined) {
   if (!slug) return null;

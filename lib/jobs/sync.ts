@@ -2,7 +2,7 @@ import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
 import { syncLeverJobs } from "@/lib/jobs/lever";
-import { expireDuplicateJobs, expireStaleJobs } from "@/lib/jobs/maintenance";
+import { deleteStaleJobs, expireDuplicateJobs } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
 function emptyResult(): JobSyncResult {
@@ -10,6 +10,7 @@ function emptyResult(): JobSyncResult {
     errors: [],
     sourceResults: [],
     totalCompaniesChecked: 0,
+    totalJobsDeleted: 0,
     totalJobsExpired: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0
@@ -20,6 +21,7 @@ function mergeResult(target: JobSyncResult, source: JobSyncResult) {
   target.errors.push(...source.errors);
   target.sourceResults.push(...source.sourceResults);
   target.totalCompaniesChecked += source.totalCompaniesChecked;
+  target.totalJobsDeleted = (target.totalJobsDeleted ?? 0) + (source.totalJobsDeleted ?? 0);
   target.totalJobsExpired = (target.totalJobsExpired ?? 0) + (source.totalJobsExpired ?? 0);
   target.totalJobsInserted += source.totalJobsInserted;
   target.totalJobsUpdated += source.totalJobsUpdated;
@@ -92,9 +94,9 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
   }
 
   try {
-    mergeResult(result, await expireStaleJobs());
+    mergeResult(result, await deleteStaleJobs());
   } catch (error) {
-    mergeResult(result, failedSourceResult("maintenance", getSyncErrorMessage(error, "Job maintenance failed.")));
+    mergeResult(result, failedSourceResult("maintenance", getSyncErrorMessage(error, "Job retention cleanup failed.")));
   }
 
   try {

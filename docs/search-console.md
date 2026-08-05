@@ -46,6 +46,16 @@ The sitemap includes public acquisition pages, category pages, and active public
 - `https://www.hirevate.com/pricing`
 - active `/jobs/{slug}` detail URLs
 
+Country landing pages are limited to the markets with dependable daily source coverage:
+
+- United States
+- United Kingdom
+- Canada
+
+Job records that have not been seen by any source for 10 days are permanently deleted. The daily
+application sync enforces this after refreshing sources, and a database Cron job enforces the same
+rule independently at 05:00 UTC.
+
 Private URLs are excluded:
 
 - `/admin/*`

@@ -3,7 +3,7 @@ import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
 import { syncLeverJobs } from "@/lib/jobs/lever";
-import { expireDuplicateJobs, expireStaleJobs } from "@/lib/jobs/maintenance";
+import { deleteStaleJobs, expireDuplicateJobs, JOB_RETENTION_DAYS } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
 const defaultDailyFreshQueries = [
@@ -37,7 +37,7 @@ type DailyFreshJobPlan = {
   leverCompanyCount: number;
   runDate: string;
   sourceRotationSeed: number;
-  staleAfterDays: number;
+  retentionDays: number;
   syncBudgetMs: number;
 };
 
@@ -46,6 +46,7 @@ function emptyResult(): JobSyncResult {
     errors: [],
     sourceResults: [],
     totalCompaniesChecked: 0,
+    totalJobsDeleted: 0,
     totalJobsExpired: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0
@@ -56,6 +57,7 @@ function mergeResult(target: JobSyncResult, source: JobSyncResult) {
   target.errors.push(...source.errors);
   target.sourceResults.push(...source.sourceResults);
   target.totalCompaniesChecked += source.totalCompaniesChecked;
+  target.totalJobsDeleted = (target.totalJobsDeleted ?? 0) + (source.totalJobsDeleted ?? 0);
   target.totalJobsExpired = (target.totalJobsExpired ?? 0) + (source.totalJobsExpired ?? 0);
   target.totalJobsInserted += source.totalJobsInserted;
   target.totalJobsUpdated += source.totalJobsUpdated;
@@ -162,7 +164,6 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
   const pool = configuredPool.length > 0 ? configuredPool : defaultDailyFreshQueries;
   const seed = getUtcDaySeed(now);
   const freshWindowDays = parsePositiveInt(env.dailyFreshMaxDaysOld, 3, 14);
-  const staleAfterDays = parsePositiveInt(env.dailyFreshStaleDays, 45, 120);
   const adzunaQueryCount = parsePositiveInt(env.dailyFreshAdzunaQueryCount, 8, 20);
 
   return {
@@ -173,7 +174,7 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
     leverCompanyCount: parsePositiveInt(env.dailyFreshLeverCompanyCount, 35, 200),
     runDate: now.toISOString().slice(0, 10),
     sourceRotationSeed: seed,
-    staleAfterDays,
+    retentionDays: JOB_RETENTION_DAYS,
     // Vercel Hobby functions have a 60-second ceiling. Keep a five-second
     // response buffer even if an older environment variable requests more time.
     syncBudgetMs: parsePositiveInt(env.dailyFreshSyncBudgetMs, 55_000, 55_000)
@@ -183,7 +184,7 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
 function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
   result.sourceResults.unshift({
     configured: true,
-    skippedReason: `Daily fresh plan ${plan.runDate}: Adzuna first (${plan.adzunaQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; stale jobs expire after ${plan.staleAfterDays} days; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
+    skippedReason: `Daily fresh plan ${plan.runDate}: Adzuna first (${plan.adzunaQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; jobs not refreshed for ${plan.retentionDays} days are permanently deleted; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
     source: "freshness-planner",
     totalJobsExpired: 0,
     totalJobsFetched: 0,
@@ -284,14 +285,12 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
     "Greenhouse sync failed."
   );
 
-  await runPlannedSource(
-    result,
-    "maintenance",
-    startedAt,
-    plan.syncBudgetMs,
-    () => expireStaleJobs(plan.staleAfterDays),
-    "Job maintenance failed."
-  );
+  // Always enforce retention after refresh attempts, even when a source used the time budget.
+  try {
+    mergeResult(result, await deleteStaleJobs(plan.retentionDays));
+  } catch (error) {
+    mergeResult(result, failedSourceResult("maintenance", getSyncErrorMessage(error, "Job retention cleanup failed.")));
+  }
 
   await runPlannedSource(
     result,

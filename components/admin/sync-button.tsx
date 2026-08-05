@@ -63,7 +63,7 @@ export function SyncButton() {
             <Metric label="Companies checked" value={result.totalCompaniesChecked} />
             <Metric label="Jobs inserted" value={result.totalJobsInserted} />
             <Metric label="Jobs updated" value={result.totalJobsUpdated} />
-            <Metric label="Stale jobs expired" value={result.totalJobsExpired ?? 0} />
+            <Metric label="Stale jobs deleted" value={result.totalJobsDeleted ?? 0} />
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {result.sourceResults.map((source, index) => (
@@ -81,6 +81,7 @@ export function SyncButton() {
                   <MiniMetric label="Inserted" value={source.totalJobsInserted} />
                   <MiniMetric label="Updated" value={source.totalJobsUpdated} />
                   {source.totalJobsExpired ? <MiniMetric label="Expired" value={source.totalJobsExpired} /> : null}
+                  {source.totalJobsDeleted ? <MiniMetric label="Deleted" value={source.totalJobsDeleted} /> : null}
                   {source.totalSkipped ? <MiniMetric label="Skipped" value={source.totalSkipped} /> : null}
                 </div>
                 {typeof source.monthlyLimit === "number" ? (

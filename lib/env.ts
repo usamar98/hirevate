@@ -44,7 +44,6 @@ export const env = {
   dailyFreshJobQueries: readEnv("DAILY_FRESH_JOB_QUERIES"),
   dailyFreshAdzunaQueryCount: readEnv("DAILY_FRESH_ADZUNA_QUERY_COUNT"),
   dailyFreshMaxDaysOld: readEnv("DAILY_FRESH_MAX_DAYS_OLD"),
-  dailyFreshStaleDays: readEnv("DAILY_FRESH_STALE_DAYS"),
   dailyFreshSyncBudgetMs: readEnv("DAILY_FRESH_SYNC_BUDGET_MS"),
   dailyFreshGreenhouseCompanyCount: readEnv("DAILY_FRESH_GREENHOUSE_COMPANY_COUNT"),
   dailyFreshAshbyCompanyCount: readEnv("DAILY_FRESH_ASHBY_COMPANY_COUNT"),

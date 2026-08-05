@@ -34,7 +34,7 @@ export default async function AdminJobsSyncPage() {
           </Card>
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Freshness algorithm</p>
-            <p className="mt-2 text-sm leading-6 text-ink-500">Refreshes ATS boards daily, rotates role searches, and keeps imports inside a recent window.</p>
+            <p className="mt-2 text-sm leading-6 text-ink-500">Refreshes ATS boards daily, rotates role searches, and permanently deletes jobs not refreshed for 10 days.</p>
           </Card>
           <Card className="p-4">
             <p className="text-sm font-semibold text-ink-900">Source health</p>

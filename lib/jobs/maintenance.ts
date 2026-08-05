@@ -3,15 +3,15 @@ import { getJobDuplicateKey, isPreferredDuplicateCandidate } from "@/lib/jobs/de
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 import type { JobWithCompany } from "@/types/database";
 
-const defaultStaleDays = 45;
+export const JOB_RETENTION_DAYS = 10;
 
-function getStaleCutoff(days = defaultStaleDays) {
+function getStaleCutoff(days = JOB_RETENTION_DAYS) {
   const cutoff = new Date();
   cutoff.setUTCDate(cutoff.getUTCDate() - days);
   return cutoff.toISOString();
 }
 
-export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncResult> {
+export async function deleteStaleJobs(days = JOB_RETENTION_DAYS): Promise<JobSyncResult> {
   const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
@@ -40,11 +40,14 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
   }
 
   const cutoff = getStaleCutoff(days);
-  const staleFilter = `last_seen_at.is.null,last_seen_at.lt.${cutoff}`;
+  const staleFilter = [
+    `last_seen_at.lt.${cutoff}`,
+    `and(last_seen_at.is.null,updated_at.lt.${cutoff})`,
+    `and(last_seen_at.is.null,updated_at.is.null,discovered_at.lt.${cutoff})`
+  ].join(",");
   const { count, error: countError } = await supabase
     .from("jobs")
     .select("id", { count: "exact", head: true })
-    .eq("status", "active")
     .or(staleFilter);
 
   if (countError) {
@@ -72,21 +75,20 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
     };
   }
 
-  const totalJobsExpired = count ?? 0;
+  const totalJobsDeleted = count ?? 0;
 
-  if (totalJobsExpired > 0) {
-    const { error: updateError } = await supabase
+  if (totalJobsDeleted > 0) {
+    const { error: deleteError } = await supabase
       .from("jobs")
-      .update({ status: "expired", updated_at: new Date().toISOString() })
-      .eq("status", "active")
+      .delete()
       .or(staleFilter);
 
-    if (updateError) {
+    if (deleteError) {
       return {
         errors: [
           {
             source: "maintenance",
-            message: updateError.message
+            message: deleteError.message
           }
         ],
         sourceResults: [
@@ -114,11 +116,11 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
       {
         configured: true,
         skippedReason:
-          totalJobsExpired > 0
-            ? `${totalJobsExpired} jobs not seen by any source for ${days} days were expired.`
+          totalJobsDeleted > 0
+            ? `${totalJobsDeleted} jobs not seen by any source for ${days} days were permanently deleted.`
             : undefined,
         source: "maintenance",
-        totalJobsExpired,
+        totalJobsDeleted,
         totalJobsFetched: 0,
         totalJobsInserted: 0,
         totalJobsUpdated: 0,
@@ -126,7 +128,8 @@ export async function expireStaleJobs(days = defaultStaleDays): Promise<JobSyncR
       }
     ],
     totalCompaniesChecked: 0,
-    totalJobsExpired,
+    totalJobsDeleted,
+    totalJobsExpired: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0
   };
