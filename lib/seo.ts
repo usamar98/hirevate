@@ -8,7 +8,7 @@ function removeTrailingSlash(value: string) {
 export const siteName = "Hirevate";
 export const siteUrl = removeTrailingSlash(env.appUrl || "https://www.hirevate.com");
 export const defaultDescription =
-  "Find fresh hidden jobs, build job-specific resumes and cover letters with secure AI assistance, and manage applications from interest to decision.";
+  "Paste a job link or description to generate a professional tailored resume with your chosen template, find fresh hidden jobs, and manage applications from interest to decision.";
 export const defaultOgImagePath = "/opengraph-image";
 
 export const crawlDisallowPaths = [
@@ -42,6 +42,9 @@ export const geoAudienceKeywords = [
   "fresh remote jobs",
   "professional resume templates",
   "AI resume builder",
+  "resume from job link",
+  "job description resume generator",
+  "tailored resume generator",
   "AI cover letter builder",
   "job application tracker",
   "AI job search"
@@ -64,7 +67,7 @@ export const publicSeoRoutes = [
   { path: "/jobs/product-manager", changeFrequency: "hourly", priority: 0.86 },
   { path: "/jobs/data-analyst", changeFrequency: "hourly", priority: 0.85 },
   { path: "/jobs/customer-success", changeFrequency: "hourly", priority: 0.84 },
-  { path: "/resume-builder", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/resume-builder", changeFrequency: "weekly", priority: 0.9 },
   { path: "/cover-letter", changeFrequency: "weekly", priority: 0.78 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
   { path: "/legal", changeFrequency: "yearly", priority: 0.3 },

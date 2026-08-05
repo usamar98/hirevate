@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   CheckCircle2,
   Clock3,
+  FileInput,
   Filter,
   Link2,
   ListChecks,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { HeroFeaturePreview } from "@/components/marketing/hero-feature-preview";
 import { HomeDiscoveryLinks } from "@/components/marketing/home-discovery-links";
+import { JobResumeWalkthrough } from "@/components/marketing/job-resume-walkthrough";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,7 +30,7 @@ import { publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, siteName, defaultOgImagePath } from "@/lib/seo";
 
 const landingDescription =
-  "Find fresh hidden jobs, build job-specific resumes and cover letters with secure AI assistance, and manage every application from interest to decision.";
+  "Turn a job link or description into a professional tailored resume, find fresh hidden jobs, write cover letters, and manage every application from interest to decision.";
 
 export const metadata: Metadata = {
   description: landingDescription,
@@ -79,6 +81,11 @@ const features = [
     title: "Application command center",
     description: "Track stage, priority, next action, follow-ups, listing health, and outcomes in one pipeline.",
     icon: ListChecks
+  },
+  {
+    title: "Resume from job link",
+    description: "Paste a readable job URL or description, choose a professional template, and generate an editable role-targeted resume using only your facts.",
+    icon: FileInput
   }
 ];
 
@@ -128,7 +135,12 @@ const homeFaqItems = [
   {
     question: "How does Hirevate use AI for applications?",
     answer:
-      "Paid users can ask Hirevate to improve resume summaries and experience bullets or draft a job-specific cover letter. The AI is instructed to use only user-provided facts, and every suggestion should be reviewed before applying."
+      "Paid users can generate a tailored resume from a readable job link or pasted description, improve resume content, or draft a job-specific cover letter. Resume generation requires a template choice, uses the user's supplied facts, and keeps every result editable for review."
+  },
+  {
+    question: "Can Hirevate generate a complete resume from a job link?",
+    answer:
+      "Yes. Hirevate analyzes many public job-posting links or pasted descriptions, identifies responsibilities and ATS keywords, asks you to choose one of six professional templates, and creates an editable role-targeted resume from your existing career facts."
   },
   {
     question: "What happens when a tracked job listing closes?",
@@ -351,6 +363,8 @@ export default async function LandingPage() {
       </section>
 
       <HomeDiscoveryLinks language={language} />
+
+      <JobResumeWalkthrough />
 
       <ProductShowcase language={language} />
 

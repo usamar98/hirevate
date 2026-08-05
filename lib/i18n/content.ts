@@ -122,12 +122,12 @@ export const siteCopy = {
 export const landingCopy = {
   en: {
     landingDescription:
-      "Find fresh hidden jobs, build job-specific resumes and cover letters with secure AI assistance, and manage every application from interest to decision.",
+      "Turn a job link or description into a professional tailored resume, find fresh hidden jobs, write cover letters, and manage every application from interest to decision.",
     hero: {
       title: "Find hidden jobs and turn them into stronger applications",
       countedTitle: "Find {count} hidden jobs and turn them into stronger applications",
       description:
-        "Discover fresh roles from company career pages, public ATS boards, and trusted hiring sources. Then tailor your resume, write a focused cover letter, and manage every next step.",
+        "Discover fresh roles from company career pages, public ATS boards, and trusted hiring sources. Paste any readable job link or description to create a tailored resume with your chosen professional template.",
       jobsCta: "Find fresh jobs",
       resumeCta: "Build my resume"
     },
@@ -172,7 +172,7 @@ export const landingCopy = {
     },
     featuresTitle: "Built for focused job discovery",
     featuresDescription:
-      "Search by title, location, remote preference, and freshness without adding noisy application tools.",
+      "Search fresh roles, generate a professional resume from a job link, and manage the complete application workflow.",
     features: [
       {
         title: "Fresh jobs",
@@ -201,6 +201,11 @@ export const landingCopy = {
         title: "Application command center",
         description:
           "Track stage, priority, next action, follow-ups, listing health, and outcomes in one pipeline."
+      },
+      {
+        title: "Resume from job link",
+        description:
+          "Paste a readable job URL or description, choose a professional template, and generate an editable role-targeted resume using only your facts."
       }
     ],
     explore: {
@@ -304,7 +309,12 @@ export const landingCopy = {
       {
         question: "How does Hirevate use AI for applications?",
         answer:
-          "Paid users can ask Hirevate to improve resume summaries and experience bullets or draft a job-specific cover letter. The AI is instructed to use only user-provided facts, and every suggestion should be reviewed before applying."
+          "Paid users can generate a tailored resume from a readable job link or pasted description, improve resume content, or draft a job-specific cover letter. Resume generation requires a template choice, uses the user's supplied facts, and keeps every result editable for review."
+      },
+      {
+        question: "Can Hirevate generate a complete resume from a job link?",
+        answer:
+          "Yes. Hirevate analyzes many public job-posting links or pasted descriptions, identifies responsibilities and ATS keywords, asks you to choose one of six professional templates, and creates an editable role-targeted resume from your existing career facts."
       },
       {
         question: "What happens when a tracked job listing closes?",
@@ -331,12 +341,12 @@ export const landingCopy = {
   sv: swedishLandingCopy,
   de: {
     landingDescription:
-      "Finden Sie aktuelle versteckte Stellen, erstellen Sie mit sicherer KI-Unterstützung passende Lebensläufe und Anschreiben und verwalten Sie jede Bewerbung bis zur Entscheidung.",
+      "Erstellen Sie aus einem Joblink oder einer Stellenbeschreibung einen professionellen, passenden Lebenslauf, finden Sie aktuelle Stellen und verwalten Sie jede Bewerbung bis zur Entscheidung.",
     hero: {
       title: "Versteckte Stellen finden und überzeugendere Bewerbungen daraus machen",
       countedTitle: "{count} versteckte Stellen finden und \u00fcberzeugendere Bewerbungen daraus machen",
       description:
-        "Entdecken Sie aktuelle Stellen auf Unternehmenskarriereseiten, öffentlichen ATS-Jobbörsen und vertrauenswürdigen Einstellungsquellen. Passen Sie anschließend Ihren Lebenslauf an, schreiben Sie ein gezieltes Anschreiben und verwalten Sie jeden nächsten Schritt.",
+        "Entdecken Sie aktuelle Stellen auf Unternehmenskarriereseiten und öffentlichen ATS-Jobbörsen. Fügen Sie einen lesbaren Joblink oder eine Beschreibung ein, um einen passenden Lebenslauf mit Ihrer gewählten Vorlage zu erstellen.",
       jobsCta: "Aktuelle Jobs finden",
       resumeCta: "Lebenslauf erstellen"
     },
@@ -381,7 +391,7 @@ export const landingCopy = {
     },
     featuresTitle: "Für eine fokussierte Jobsuche entwickelt",
     featuresDescription:
-      "Suchen Sie nach Titel, Standort, Remote-Präferenz und Aktualität – ohne unnötig überladene Bewerbungstools.",
+      "Finden Sie aktuelle Stellen, erstellen Sie einen professionellen Lebenslauf aus einem Joblink und verwalten Sie den gesamten Bewerbungsprozess.",
     features: [
       {
         title: "Aktuelle Jobs",
@@ -410,6 +420,11 @@ export const landingCopy = {
         title: "Bewerbungszentrale",
         description:
           "Verfolgen Sie Phase, Priorität, nächste Aktion, Nachfasspunkte, Anzeigenstatus und Ergebnisse in einer Pipeline."
+      },
+      {
+        title: "Lebenslauf aus Joblink",
+        description:
+          "Fügen Sie einen lesbaren Joblink oder eine Beschreibung ein, wählen Sie eine professionelle Vorlage und erstellen Sie einen bearbeitbaren, passenden Lebenslauf nur mit Ihren Angaben."
       }
     ],
     explore: {

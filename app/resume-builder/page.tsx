@@ -7,7 +7,7 @@ import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
-  "Build an ATS-friendly resume with six professional templates, role targeting, secure AI writing, impact checks, and print-ready PDF export.";
+  "Paste a job link or description, choose from six professional templates, and generate an editable ATS-friendly resume tailored to the role using only your career facts.";
 
 const resumeBuilderFaqItems = [
   {
@@ -18,7 +18,17 @@ const resumeBuilderFaqItems = [
   {
     question: "Can I target a resume to a specific job?",
     answer:
-      "Yes. Users can compare their resume against a target role, identify missing keywords, and use paid AI writing tools to improve summaries and bullets without inventing facts."
+      "Yes. Paste a readable public job link or the job description, confirm the extracted role, choose a template, and generate an editable tailored resume without inventing facts."
+  },
+  {
+    question: "Can Hirevate create a resume from a job-posting link?",
+    answer:
+      "Yes. Hirevate can read many public job pages and extract the role, responsibilities, qualifications, and keywords. If a page requires login, CAPTCHA, or client-only rendering, paste the job description instead."
+  },
+  {
+    question: "Can I choose the resume template before AI generation?",
+    answer:
+      "Yes. Hirevate requires you to select one of six predefined professional templates before it generates and applies the tailored resume content."
   },
   {
     question: "Does the resume builder export to PDF?",
@@ -38,19 +48,19 @@ const resumeBuilderInternalLinks = [
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Resume Builder",
+  title: "AI Resume Builder from a Job Link",
   description: resumeBuilderDescription,
   alternates: {
     canonical: "/resume-builder"
   },
   openGraph: {
-    title: "Resume Builder",
+    title: "AI Resume Builder from a Job Link",
     description: resumeBuilderDescription,
     url: "/resume-builder",
     images: [defaultOgImagePath]
   },
   twitter: {
-    title: "Resume Builder",
+    title: "AI Resume Builder from a Job Link",
     description: resumeBuilderDescription,
     card: "summary_large_image",
     images: [defaultOgImagePath]
@@ -75,6 +85,8 @@ export default async function ResumeBuilderPage() {
             operatingSystem: "Web",
             description: resumeBuilderDescription,
             featureList: [
+              "Resume generation from a public job link or pasted job description",
+              "Mandatory template selection before resume generation",
               "ATS keyword coverage",
               "Six professional resume templates",
               "Secure AI summary and bullet editing",
@@ -125,7 +137,7 @@ export default async function ResumeBuilderPage() {
       <ResumeBuilder canExport={canExport} canUseAi={canExport} isAuthenticated={Boolean(user)} />
       <section className="border-t border-gray-100 bg-white py-10">
         <div className="container-shell">
-          <h2 className="text-2xl font-semibold text-ink-900">Use this with fresh job pages</h2>
+          <h2 className="text-2xl font-semibold text-ink-900">Create a resume from any relevant job</h2>
           <div className="mt-5 flex flex-wrap gap-3">
             {resumeBuilderInternalLinks.map((item) => (
               <Link

@@ -36,6 +36,8 @@ export const metadata: Metadata = {
     "public-source jobs",
     "fresh job listings",
     "resume builder",
+    "resume from job link",
+    "job description resume generator",
     "job search tracker",
     "remote jobs",
     "professional jobs",
@@ -63,7 +65,7 @@ export const metadata: Metadata = {
         url: defaultOgImagePath,
         width: 1200,
         height: 630,
-        alt: "Hirevate hidden jobs and resume tools"
+        alt: "Hirevate job-link resume builder and hidden job discovery"
       }
     ]
   },
@@ -130,6 +132,12 @@ const organizationJsonLd = {
   logo: absoluteUrl("/icon.svg"),
   image: absoluteUrl(defaultOgImagePath),
   description: defaultDescription,
+  featureList: [
+    "Generate a tailored resume from a public job link or pasted job description",
+    "Choose from six professional resume templates before generation",
+    "Discover fresh public-source jobs",
+    "Track applications, follow-ups, interviews, and outcomes"
+  ],
   knowsAbout: geoAudienceKeywords
 };
 

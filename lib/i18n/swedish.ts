@@ -58,12 +58,12 @@ export const swedishSiteCopy = {
 
 export const swedishLandingCopy = {
   landingDescription:
-    "Hitta aktuella dolda jobb, skapa jobbanpassade CV:n och personliga brev med säker AI-hjälp och hantera varje ansökan från intresse till beslut.",
+    "Skapa ett professionellt, anpassat CV från en jobblänk eller arbetsbeskrivning, hitta aktuella jobb och hantera varje ansökan från intresse till beslut.",
   hero: {
     title: "Hitta dolda jobb och skapa starkare ansökningar",
     countedTitle: "Hitta {count} dolda jobb och skapa starkare ans\u00f6kningar",
     description:
-      "Upptäck aktuella roller på företags karriärsidor, offentliga ATS-jobbsidor och betrodda rekryteringskällor. Anpassa sedan ditt CV, skriv ett fokuserat personligt brev och hantera varje nästa steg.",
+      "Upptäck aktuella roller på företags karriärsidor och offentliga ATS-jobbsidor. Klistra in en läsbar jobblänk eller beskrivning för att skapa ett anpassat CV med din valda professionella mall.",
     jobsCta: "Hitta aktuella jobb",
     resumeCta: "Skapa mitt CV"
   },
@@ -108,7 +108,7 @@ export const swedishLandingCopy = {
   },
   featuresTitle: "Skapat för fokuserad jobbsökning",
   featuresDescription:
-    "Sök efter titel, plats, distansarbete och aktualitet utan onödigt röriga ansökningsverktyg.",
+    "Hitta aktuella roller, skapa ett professionellt CV från en jobblänk och hantera hela ansökningsprocessen.",
   features: [
     {
       title: "Aktuella jobb",
@@ -137,6 +137,11 @@ export const swedishLandingCopy = {
       title: "Ansökningscentral",
       description:
         "Följ steg, prioritet, nästa åtgärd, uppföljningar, annonsstatus och resultat i en och samma pipeline."
+    },
+    {
+      title: "CV från jobblänk",
+      description:
+        "Klistra in en läsbar jobblänk eller beskrivning, välj en professionell mall och skapa ett redigerbart, rollanpassat CV med enbart dina fakta."
     }
   ],
   explore: {

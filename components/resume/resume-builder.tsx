@@ -17,71 +17,22 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { JobResumeGenerator } from "@/components/resume/job-resume-generator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
-type Experience = {
-  id: string;
-  company: string;
-  role: string;
-  location: string;
-  start: string;
-  end: string;
-  bullets: string[];
-};
-
-type Project = {
-  id: string;
-  name: string;
-  link: string;
-  bullets: string[];
-};
-
-type Education = {
-  id: string;
-  school: string;
-  degree: string;
-  dates: string;
-};
-
-type ResumeTemplate = "precision" | "modern" | "executive" | "minimal" | "compact" | "technical";
-
-type ResumeDraft = {
-  template: ResumeTemplate;
-  accent: string;
-  fullName: string;
-  headline: string;
-  email: string;
-  phone: string;
-  location: string;
-  website: string;
-  targetRole: string;
-  targetKeywords: string;
-  summary: string;
-  skills: string;
-  experience: Experience[];
-  projects: Project[];
-  education: Education[];
-  certifications: string;
-};
+import { resumeTemplates } from "@/lib/resume/templates";
+import type {
+  Education,
+  Experience,
+  Project,
+  ResumeDraft,
+  ResumeTemplate,
+  TailoredResumeResult
+} from "@/lib/resume/types";
 
 const storageKey = "hirevate-resume-builder-draft-v1";
-
-const resumeTemplates: Array<{
-  value: ResumeTemplate;
-  label: string;
-  description: string;
-  bestFor: string;
-}> = [
-  { value: "precision", label: "Precision", description: "Balanced hierarchy with clean ATS-safe sections.", bestFor: "Most professional roles" },
-  { value: "modern", label: "Modern", description: "Structured sidebar for skills and contact details.", bestFor: "Product, design, and technology" },
-  { value: "executive", label: "Executive", description: "Confident typography and restrained leadership styling.", bestFor: "Leadership and senior roles" },
-  { value: "minimal", label: "Minimal", description: "Quiet, editorial layout with maximum readability.", bestFor: "Consulting and operations" },
-  { value: "compact", label: "Compact", description: "Dense layout that keeps substantial experience concise.", bestFor: "Experienced candidates" },
-  { value: "technical", label: "Technical", description: "Crisp labels and a project-forward technical rhythm.", bestFor: "Engineering and data roles" }
-];
 
 const initialDraft: ResumeDraft = {
   template: "precision",
@@ -672,6 +623,32 @@ export function ResumeBuilder({
     }
   }
 
+  function applyTailoredResume(result: TailoredResumeResult, template: ResumeTemplate) {
+    setDraft((current) => {
+      const experienceById = new Map(result.experience.map((item) => [item.id, item.bullets]));
+      const projectsById = new Map(result.projects.map((item) => [item.id, item.bullets]));
+
+      return {
+        ...current,
+        template,
+        headline: result.headline,
+        targetRole: result.targetRole,
+        targetKeywords: result.targetKeywords.join(", "),
+        summary: result.summary,
+        skills: result.skills.join(", "),
+        experience: current.experience.map((item) => ({
+          ...item,
+          bullets: experienceById.get(item.id) ?? item.bullets
+        })),
+        projects: current.projects.map((item) => ({
+          ...item,
+          bullets: projectsById.get(item.id) ?? item.bullets
+        }))
+      };
+    });
+    setActiveTab("profile");
+  }
+
   function exportResume() {
     setCheckoutError(null);
 
@@ -710,8 +687,8 @@ export function ResumeBuilder({
           <div>
             <h1 className="text-4xl font-semibold text-ink-900">Resume Builder</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-              Build a role-targeted resume with ATS scoring, keyword coverage, impact checks, and
-              print-ready export.
+              Turn a job link or description into a complete role-targeted resume, then review,
+              edit, score, and export it with your chosen professional template.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -725,6 +702,13 @@ export function ResumeBuilder({
           </div>
         </div>
       </section>
+
+      <JobResumeGenerator
+        canUseAi={canUseAi}
+        draft={draft}
+        isAuthenticated={isAuthenticated}
+        onGenerated={applyTailoredResume}
+      />
 
       <section className="container-shell grid gap-5 py-6 xl:grid-cols-[340px_minmax(0,1fr)_310px]">
         <Card className="h-fit p-4">

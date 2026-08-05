@@ -41,6 +41,7 @@ export type PublicPricingPlan = {
 const includedPaidFeatures = [
   "Complete job feed with Apply now links",
   "Advanced role, company, location, and freshness filters",
+  "AI resume generation from a job link or pasted description",
   "Six professional resume templates with PDF export",
   "AI-assisted resume and company-specific cover-letter writing",
   "Resume-to-job match score and keyword gaps",

@@ -44,7 +44,7 @@ export const legalDocuments: LegalDocument[] = [
       },
       {
         title: "Resume and document data",
-        text: ["Resume-builder drafts and resume-match text are saved in local browser storage by default. When a user explicitly requests AI writing, the relevant resume or cover-letter inputs are sent through Hirevate servers to the configured AI provider to produce the requested suggestion."]
+        text: ["Resume-builder drafts and resume-match text are saved in local browser storage by default. When a user explicitly requests job-to-resume generation or other AI writing, the relevant job link or pasted description and resume or cover-letter inputs are sent through Hirevate servers to the configured AI provider. Public job links are fetched only to read the job content requested by the user."]
       },
       {
         title: "Use, sharing, and retention",
@@ -214,7 +214,7 @@ export const legalDocuments: LegalDocument[] = [
     sections: [
       {
         title: "How matching and AI writing work",
-        text: ["Resume-match scoring uses rules-based text comparison for role terms, skills, action language, and measurable outcomes in the browser. AI writing runs only after a user requests it and sends the relevant inputs through Hirevate servers to the configured AI provider."]
+        text: ["Resume-match scoring uses rules-based text comparison for role terms, skills, action language, and measurable outcomes in the browser. Job-to-resume generation runs only after a user submits a public job link or description, confirms the extracted role, chooses a template, and requests generation. Relevant inputs are then sent through Hirevate servers to the configured AI provider."]
       },
       {
         title: "AI safeguards and data",

@@ -5,6 +5,7 @@ import { jobCountries } from "@/lib/jobs/countries";
 export const hirevateEntityFacts = [
   "Hirevate is a SaaS job search platform for fresh roles from company career pages, public ATS boards, and trusted hiring sources.",
   "Hirevate focuses on company career pages, public ATS job boards, and trusted hiring sources instead of crowded aggregator feeds.",
+  "Hirevate can turn a readable public job link or pasted job description into an editable tailored resume after the user chooses one of six professional templates.",
   "Hirevate includes job freshness scoring, six professional resume templates, AI-assisted resume and cover-letter writing, and application lifecycle tracking.",
   "AI writing is a paid, user-requested tool that is instructed to use only facts supplied by the user; users must review every suggestion.",
   "The application tracker preserves a user record when a linked job listing closes and separates listing health from application stage.",
@@ -54,7 +55,12 @@ export const hirevateAnswerBriefs = [
   {
     question: "How does Hirevate use AI?",
     answer:
-      "Paid users can explicitly request AI help for resume summaries, experience bullets, and job-specific cover letters. The system instructs the model to use only supplied facts and users must review the result before applying."
+      "Paid users can explicitly request a complete tailored resume from a readable job link or pasted description, improve resume summaries and bullets, or draft a job-specific cover letter. Users choose the resume template first, and the system is instructed to use only supplied facts."
+  },
+  {
+    question: "Can Hirevate create a resume from a job link?",
+    answer:
+      "Yes. Hirevate can analyze many public job pages or a pasted job description, extract role requirements and keywords, require the user to choose one of six templates, and generate an editable tailored resume from the user's existing career facts."
   },
   {
     question: "What happens when a tracked job closes?",
@@ -131,7 +137,7 @@ export const hirevatePublicPages = [
   {
     title: "Resume builder",
     path: "/resume-builder",
-    description: "ATS-friendly resume builder with six professional templates, role targeting, paid AI writing, and PDF export."
+    description: "AI resume builder that reads a public job link or pasted description, asks for one of six templates, and creates an editable ATS-friendly tailored resume with PDF export."
   },
   {
     title: "Cover letter builder",

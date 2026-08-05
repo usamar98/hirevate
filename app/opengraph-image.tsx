@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { defaultDescription, siteName } from "@/lib/seo";
 
-export const alt = "Hirevate hidden jobs and resume tools";
+export const alt = "Hirevate job-link resume builder and hidden job discovery";
 export const size = {
   width: 1200,
   height: 630

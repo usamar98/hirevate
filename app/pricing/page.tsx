@@ -7,7 +7,7 @@ import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate paid plans for fresh job discovery, six professional resume templates, AI writing, resume matching, and lifecycle tracking.";
+  "Compare Hirevate paid plans for fresh job discovery, AI resume generation from a job link, six professional templates, resume matching, and lifecycle tracking.";
 
 const pricingFaqItems = [
   {
@@ -27,7 +27,7 @@ const pricingFaqItems = [
   {
     question: "Do paid plans include resume and cover letter tools?",
     answer:
-      "Yes. All paid plans include six professional resume templates, PDF export, AI-assisted resume and cover-letter writing, resume matching, and the application tracker."
+      "Yes. All paid plans can generate an editable resume from a public job link or pasted job description after you choose one of six templates. PDF export, AI-assisted cover-letter writing, resume matching, and the application tracker are also included."
   },
   {
     question: "How do I cancel a Hirevate subscription?",
@@ -177,8 +177,8 @@ export default function PricingPage() {
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
             Public job pages can be previewed for discovery. Opening plan access from this page
             requires an account, and a paid plan unlocks the complete job feed and Apply now links.
-            Both paid plans unlock the same job, resume, cover-letter, matching, and tracking
-            features. Choose a plan based on how long you want access.
+            Both paid plans unlock the same job, job-to-resume, cover-letter, matching, and
+            tracking features. Choose a plan based on how long you want access.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             {pricingInternalLinks.map((item) => (
