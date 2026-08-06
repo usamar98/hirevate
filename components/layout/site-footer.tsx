@@ -11,12 +11,16 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
     { href: "/jobs#results", label: copy.links.findJobs },
     { href: "/jobs/latest", label: copy.links.latestJobs },
     { href: "/jobs/remote", label: copy.links.remoteJobs },
+    { href: "/jobs/part-time", label: "Part-time jobs" },
+    { href: "/jobs/student/us", label: "US student jobs" },
+    { href: "/jobs/student/uk", label: "UK student jobs" },
     { href: "/jobs/uk", label: copy.links.ukJobs },
     { href: "/jobs/engineering", label: copy.links.engineeringJobs },
     { href: "/resume-builder", label: copy.links.resume },
     { href: "/cover-letter", label: copy.links.coverLetter },
     { href: "/pricing", label: copy.links.pricing },
     { href: "/guides", label: copy.links.guides },
+    { href: "/research/student-part-time-jobs", label: "Job methodology" },
     { href: "/about", label: copy.links.about },
     { href: "/login", label: copy.links.login }
   ];

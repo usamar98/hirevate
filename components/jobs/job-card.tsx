@@ -8,6 +8,7 @@ import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getJobPath } from "@/lib/jobs/seo";
+import { classifyStudentJob } from "@/lib/jobs/student-part-time";
 import { formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
 
@@ -15,7 +16,8 @@ export function JobCard({
   canApply,
   hasAccount,
   job,
-  showApplyAction = true
+  showApplyAction = true,
+  showStudentSignals = false
 }: {
   canApply: boolean;
   hasAccount: boolean;
@@ -23,11 +25,16 @@ export function JobCard({
   job: JobWithCompany;
   showApplyAction?: boolean;
   showSave?: boolean;
+  showStudentSignals?: boolean;
 }) {
   const companyName = job.companies?.name ?? "Unknown company";
   const jobPath = getJobPath(job);
   const compensationLabel = getJobCompensationLabel(job);
   const locationLabel = getJobLocationLabel(job);
+  const studentClassification = showStudentSignals ? classifyStudentJob(job) : null;
+  const hasEligibilityEvidence = studentClassification?.signals.some((signal) =>
+    ["cpt-opt-mentioned", "authorization-required", "sponsorship-unavailable"].includes(signal.key)
+  );
 
   return (
     <Card className="p-5 transition hover:border-brand-100 hover:shadow-soft">
@@ -43,6 +50,19 @@ export function JobCard({
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone={getWorkModeTone(job.remote_type)}>{getWorkModeLabel(job.remote_type)}</Badge>
               <FreshnessBadge score={job.freshness_score} />
+              {studentClassification?.signals.slice(0, 4).map((signal) => (
+                <Badge key={signal.key} tone={signal.tone}>{signal.label}</Badge>
+              ))}
+              {studentClassification?.hours ? (
+                <Badge tone="gray">
+                  {studentClassification.hours.min
+                    ? `${studentClassification.hours.min}–${studentClassification.hours.max} hours/week`
+                    : `Up to ${studentClassification.hours.max} hours/week`}
+                </Badge>
+              ) : null}
+              {studentClassification && !hasEligibilityEvidence ? (
+                <Badge tone="gray">Eligibility not stated</Badge>
+              ) : null}
             </div>
             <Link href={jobPath} className="group mt-4 block">
               <h2 className="text-xl font-semibold leading-7 text-ink-900 group-hover:text-brand-600">

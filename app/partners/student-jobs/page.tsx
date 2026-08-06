@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ArrowRight, Building2, GraduationCap, Link2 } from "lucide-react";
+import { JsonLd } from "@/components/seo/json-ld";
+import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
+
+const path = "/partners/student-jobs";
+const title = "Student Jobs Partnerships for Universities & Employers | Hirevate";
+const description = "Share fresh, source-linked US and UK student jobs with your careers hub, student society or employer job feed.";
+export const metadata: Metadata = { title: { absolute: title }, description, alternates: { canonical: path }, openGraph: { title, description, url: path, images: [defaultOgImagePath] }, twitter: { card: "summary_large_image", title, description, images: [defaultOgImagePath] } };
+
+const resources = [
+  { href: "/jobs/student/us", label: "US student jobs", description: "Campus, internship, part-time and explicit student signals." },
+  { href: "/jobs/student/uk", label: "UK student jobs", description: "Student, internship and flexible-schedule signals." },
+  { href: "/research/student-part-time-jobs", label: "Open methodology", description: "Live counts, freshness rules and classification limits." }
+];
+
+export default function StudentJobsPartnersPage() {
+  const jsonLd = { "@context": "https://schema.org", "@type": "WebPage", name: title, url: absoluteUrl(path), description, about: { "@type": "Service", name: "Hirevate student job partnerships", provider: { "@type": "Organization", name: "Hirevate", url: absoluteUrl("/") } } };
+  return <main className="bg-gray-50 py-12"><JsonLd data={jsonLd} /><div className="container-shell"><p className="text-sm font-semibold uppercase tracking-normal text-brand-600">Partner with Hirevate</p><h1 className="mt-3 max-w-4xl text-4xl font-semibold text-ink-900">Useful student-job resources worth sharing</h1><p className="mt-4 max-w-3xl text-base leading-7 text-ink-600">Give students a fresh, evidence-labeled route to public US and UK opportunities. Hirevate keeps the original application source visible and removes listings that are no longer verified.</p>
+    <section className="mt-8 grid gap-5 md:grid-cols-3"><div className="rounded-xl border border-gray-200 bg-white p-6"><GraduationCap className="h-6 w-6 text-brand-600" aria-hidden="true" /><h2 className="mt-4 text-xl font-semibold text-ink-900">Universities</h2><p className="mt-2 text-sm leading-6 text-ink-500">Add a country-specific link to a careers resource page or international-student employment guide.</p></div><div className="rounded-xl border border-gray-200 bg-white p-6"><Link2 className="h-6 w-6 text-brand-600" aria-hidden="true" /><h2 className="mt-4 text-xl font-semibold text-ink-900">Student societies</h2><p className="mt-2 text-sm leading-6 text-ink-500">Share a transparent job hub in newsletters, resource lists and orientation materials.</p></div><div className="rounded-xl border border-gray-200 bg-white p-6"><Building2 className="h-6 w-6 text-brand-600" aria-hidden="true" /><h2 className="mt-4 text-xl font-semibold text-ink-900">Employers</h2><p className="mt-2 text-sm leading-6 text-ink-500">Publish roles through a public ATS feed and state schedule, hours and authorization requirements clearly.</p></div></section>
+    <section className="mt-10 rounded-xl border border-gray-200 bg-white p-6"><h2 className="text-2xl font-semibold text-ink-900">Link-ready resources</h2><div className="mt-5 grid gap-4 md:grid-cols-3">{resources.map((resource) => <Link className="rounded-lg border border-gray-200 p-5 hover:border-brand-200" href={resource.href} key={resource.href}><h3 className="font-semibold text-ink-900">{resource.label}</h3><p className="mt-2 text-sm leading-6 text-ink-500">{resource.description}</p><span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-700">Open resource <ArrowRight className="h-4 w-4" aria-hidden="true" /></span></Link>)}</div></section>
+    <section className="mt-8 grid gap-5 lg:grid-cols-2"><div className="rounded-xl border border-gray-200 bg-white p-6"><h2 className="text-xl font-semibold text-ink-900">What partners can expect</h2><ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-ink-600"><li>No paid-link requirement or reciprocal-link scheme.</li><li>Original employer or ATS application sources stay visible.</li><li>Evidence labels never claim personal visa eligibility.</li><li>Supported listings are verified daily and removed after ten unverified days.</li></ul></div><div className="rounded-xl border border-gray-200 bg-white p-6"><h2 className="text-xl font-semibold text-ink-900">Feed requirements</h2><ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-ink-600"><li>A public, authorized employer or ATS endpoint.</li><li>Stable job IDs, title, location, description and application URL.</li><li>Clear closing dates, schedule and work-authorization wording where available.</li><li>No protected portal scraping or republished third-party listings.</li></ul></div></section>
+    <div className="mt-8"><Link className="inline-flex items-center gap-2 font-semibold text-brand-700" href="/about">Contact Hirevate about a student-jobs partnership <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link></div>
+  </div></main>;
+}

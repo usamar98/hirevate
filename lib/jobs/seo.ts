@@ -1,10 +1,11 @@
 import { getJobStructuredSalary } from "@/lib/jobs/compensation";
 import { getJobLocationLabel } from "@/lib/jobs/display";
 import { isEmployerOrAtsApplyUrl } from "@/lib/jobs/sources";
+import { classifyStudentJob } from "@/lib/jobs/student-part-time";
 import { absoluteUrl, siteName } from "@/lib/seo";
 import type { Company, Job, JobWithCompany } from "@/types/database";
 
-const JOB_SCHEMA_MAX_AGE_DAYS = 45;
+const JOB_SCHEMA_MAX_AGE_DAYS = 10;
 
 type JobSlugSource = Pick<Job, "id" | "title" | "location"> & {
   companies: Pick<Company, "name"> | null;
@@ -90,9 +91,10 @@ function stripHtml(value: string | null | undefined) {
 
 function inferEmploymentType(job: JobWithCompany) {
   const text = `${job.title} ${stripHtml(job.description)}`.toLowerCase();
+  const classification = classifyStudentJob(job);
 
   if (text.includes("intern")) return "INTERN";
-  if (text.includes("part-time") || text.includes("part time")) return "PART_TIME";
+  if (classification.isPartTime) return "PART_TIME";
   if (text.includes("contract") || text.includes("freelance")) return "CONTRACTOR";
   if (text.includes("temporary") || text.includes("seasonal")) return "TEMPORARY";
 

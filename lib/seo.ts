@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { jobCountries } from "@/lib/jobs/countries";
+import { studentJobsPageList } from "@/lib/jobs/student-pages";
 
 function removeTrailingSlash(value: string) {
   return value.replace(/\/+$/, "");
@@ -47,7 +48,10 @@ export const geoAudienceKeywords = [
   "tailored resume generator",
   "AI cover letter builder",
   "job application tracker",
-  "AI job search"
+  "AI job search",
+  "part-time jobs for international students",
+  "student jobs in the US",
+  "student jobs in the UK"
 ] as const;
 
 export const publicSeoRoutes = [
@@ -56,6 +60,11 @@ export const publicSeoRoutes = [
   { path: "/jobs", changeFrequency: "hourly", priority: 0.95 },
   { path: "/jobs/latest", changeFrequency: "hourly", priority: 0.92 },
   { path: "/jobs/remote", changeFrequency: "hourly", priority: 0.9 },
+  ...studentJobsPageList.map((page) => ({
+    path: page.path,
+    changeFrequency: "hourly" as const,
+    priority: page.path === "/jobs/part-time" ? 0.92 : 0.9
+  })),
   ...jobCountries.map((country) => ({
     path: country.path,
     changeFrequency: "hourly" as const,
@@ -72,7 +81,9 @@ export const publicSeoRoutes = [
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
   { path: "/legal", changeFrequency: "yearly", priority: 0.3 },
   { path: "/guides", changeFrequency: "weekly", priority: 0.76 },
-  { path: "/compare", changeFrequency: "monthly", priority: 0.68 }
+  { path: "/compare", changeFrequency: "monthly", priority: 0.68 },
+  { path: "/research/student-part-time-jobs", changeFrequency: "hourly", priority: 0.82 },
+  { path: "/partners/student-jobs", changeFrequency: "monthly", priority: 0.7 }
 ] as const;
 
 export function absoluteUrl(path = "/") {

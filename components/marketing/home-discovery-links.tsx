@@ -23,6 +23,7 @@ function LinkRow({ children, label }: { children: ReactNode; label: string }) {
 
 export function HomeDiscoveryLinks({ language }: { language: SupportedLanguage }) {
   const copy = linkCopy[language];
+  const studentLabel = language === "de" ? "Studium und Teilzeit:" : language === "sv" ? "Student och deltid:" : "Student and part-time:";
 
   return (
     <section
@@ -37,6 +38,13 @@ export function HomeDiscoveryLinks({ language }: { language: SupportedLanguage }
             </Link>
           ))}
         </LinkRow>
+        <div className="mt-4">
+          <LinkRow label={studentLabel}>
+            <Link className={linkClassName} href="/jobs/part-time">Part-time jobs</Link>
+            <Link className={linkClassName} href="/jobs/student/us">US student jobs</Link>
+            <Link className={linkClassName} href="/jobs/student/uk">UK student jobs</Link>
+          </LinkRow>
+        </div>
       </div>
     </section>
   );

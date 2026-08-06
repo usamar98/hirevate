@@ -12,6 +12,12 @@ import {
   type JobCountry
 } from "@/lib/jobs/countries";
 import { getJobSlug, getJobSlugToken, isUuidLike, jobMatchesSlug } from "@/lib/jobs/seo";
+import {
+  matchesStudentJobAudience,
+  studentCandidateTerms,
+  type StudentJobAudience,
+  type StudentJobCountry
+} from "@/lib/jobs/student-part-time";
 import type { JobWithCompany, SavedJobWithJob } from "@/types/database";
 import type { Database } from "@/types/database";
 
@@ -30,6 +36,7 @@ const JOB_SLUG_LOOKUP_LIMIT = 250;
 const PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS = 30 * 60;
 const SITEMAP_FRESH_DAYS = 30;
 const SITEMAP_JOBS_LIMIT = 300;
+const STUDENT_JOB_CANDIDATE_LIMIT = 240;
 
 function createAnonPublicJobsClient() {
   if (!hasSupabaseBrowserConfig()) return null;
@@ -691,6 +698,83 @@ const getCachedKeywordJobs = unstable_cache(
 export async function getKeywordJobs(keywords: string[], limit = CATEGORY_JOB_FETCH_LIMIT) {
   const keywordKey = keywords.map((keyword) => keyword.trim()).filter(Boolean).join("|");
   return getCachedKeywordJobs(keywordKey, limit);
+}
+
+function getStudentJobCountry(country: StudentJobCountry | null): JobCountry | null {
+  if (!country) return null;
+  return getJobCountryBySlug(country === "us" ? "united-states" : "united-kingdom");
+}
+
+async function getStudentPartTimeJobsUncached(
+  audience: StudentJobAudience,
+  country: StudentJobCountry | null,
+  limit = CATEGORY_JOB_FETCH_LIMIT
+) {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return { jobs: [] as JobWithCompany[], configured: false };
+
+  const candidateFilter = studentCandidateTerms[audience]
+    .flatMap((term) => [
+      `title.ilike.%${term}%`,
+      `description.ilike.%${term}%`,
+      `raw_data->>commitment.ilike.%${term}%`,
+      `raw_data->>contract_time.ilike.%${term}%`,
+      `raw_data->>contract_type.ilike.%${term}%`,
+      `raw_data->>employmentType.ilike.%${term}%`,
+      `raw_data->>employment_type.ilike.%${term}%`,
+      `raw_data->>jobType.ilike.%${term}%`
+    ])
+    .join(",");
+
+  let query = supabase
+    .from("jobs")
+    .select(featuredJobWithCompanySelect)
+    .eq("status", "active")
+    .or(candidateFilter);
+
+  const selectedCountry = getStudentJobCountry(country);
+  if (selectedCountry) query = query.or(getCountryLocationFilter(selectedCountry));
+  if (!selectedCountry) {
+    const hubCountries = [getStudentJobCountry("us"), getStudentJobCountry("uk")].filter(
+      (item): item is JobCountry => Boolean(item)
+    );
+    query = query.or(hubCountries.map(getCountryLocationFilter).join(","));
+  }
+
+  const { data, error } = await query
+    .order("freshness_score", { ascending: false })
+    .order("last_seen_at", { ascending: false, nullsFirst: false })
+    .order("discovered_at", { ascending: false })
+    .limit(STUDENT_JOB_CANDIDATE_LIMIT);
+
+  if (error) {
+    console.error(`Failed to load ${country ?? "all"} ${audience} job candidates`, error);
+    return { jobs: [] as JobWithCompany[], configured: true };
+  }
+
+  const jobs = dedupeJobs((data ?? []) as JobWithCompany[])
+    .filter((job) => matchesStudentJobAudience(job, audience))
+    .slice(0, limit);
+
+  return { jobs, configured: true };
+}
+
+const getCachedStudentPartTimeJobs = unstable_cache(
+  async (audience: StudentJobAudience, country: StudentJobCountry | null, limit: number) =>
+    getStudentPartTimeJobsUncached(audience, country, limit),
+  ["public-student-part-time-jobs"],
+  {
+    revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+    tags: ["public-jobs"]
+  }
+);
+
+export async function getStudentPartTimeJobs(
+  audience: StudentJobAudience,
+  country: StudentJobCountry | null = null,
+  limit = CATEGORY_JOB_FETCH_LIMIT
+) {
+  return getCachedStudentPartTimeJobs(audience, country, limit);
 }
 
 export async function getSavedJobIds(userId: string) {
