@@ -1,12 +1,4 @@
-"use client";
-/* eslint-disable @next/next/no-img-element */
-import { useMemo, useState } from "react";
-import { Building2 } from "lucide-react";
-import {
-  getCompanyInitials,
-  getCompanyLogoDomain,
-  getCompanyLogoUrl
-} from "@/lib/companies/logos";
+import { getCompanyInitials } from "@/lib/companies/logos";
 import { cn } from "@/lib/utils";
 
 const sizes = {
@@ -17,21 +9,14 @@ const sizes = {
 export function CompanyLogo({
   className,
   companyName,
-  size = "md",
-  website
+  size = "md"
 }: {
   className?: string;
   companyName: string;
   size?: keyof typeof sizes;
   website?: string | null;
 }) {
-  const domain = useMemo(
-    () => getCompanyLogoDomain(companyName, website),
-    [companyName, website]
-  );
-  const [hasImageError, setHasImageError] = useState(false);
   const initials = getCompanyInitials(companyName);
-  const showImage = Boolean(domain && !hasImageError);
 
   return (
     <span
@@ -44,21 +29,7 @@ export function CompanyLogo({
       role="img"
       title={companyName}
     >
-      {showImage && domain ? (
-        <img
-          alt=""
-          className="h-full w-full object-contain p-1.5"
-          decoding="async"
-          loading="lazy"
-          onError={() => setHasImageError(true)}
-          referrerPolicy="no-referrer"
-          src={getCompanyLogoUrl(domain)}
-        />
-      ) : initials ? (
-        <span>{initials}</span>
-      ) : (
-        <Building2 className="h-4 w-4" aria-hidden="true" />
-      )}
+      <span aria-hidden="true">{initials}</span>
     </span>
   );
 }
