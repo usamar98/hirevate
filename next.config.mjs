@@ -28,6 +28,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "zunastatic-abf.kxcdn.com",
+        pathname: "/assets/images/press/adzuna_logo/**"
+      },
+      {
+        protocol: "https",
         hostname: "buysellstartups.com",
         pathname: "/api/index-badge/**"
       }

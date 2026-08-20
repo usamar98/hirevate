@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
+import { JobSourceAttribution } from "@/components/jobs/job-source-attribution";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getJobPath } from "@/lib/jobs/seo";
@@ -63,6 +64,7 @@ export function JobCard({
               {studentClassification && !hasEligibilityEvidence ? (
                 <Badge tone="gray">Eligibility not stated</Badge>
               ) : null}
+              <JobSourceAttribution externalId={job.external_id} source={job.source} />
             </div>
             <Link href={jobPath} className="group mt-4 block">
               <h2 className="text-xl font-semibold leading-7 text-ink-900 group-hover:text-brand-600">

@@ -83,6 +83,15 @@ type SourceBatchOptions = {
 
 const sourceName = "ashby";
 const requestTimeoutMs = 15_000;
+const dailyAustraliaSourceSlugs = new Set([
+  "airwallex",
+  "halter",
+  "lightspeedhq",
+  "lyrebird-health",
+  "maincode",
+  "pluralis-research",
+  "xero"
+]);
 
 class AshbyHttpError extends Error {
   constructor(
@@ -118,7 +127,14 @@ function rotateItems<T>(items: T[], seed = 0) {
 
 function selectSourceBatch(sources: AshbySource[], options: SourceBatchOptions) {
   const batchSize = normalizeBatchSize(options.maxCompanies, sources.length);
-  return rotateItems(sources, options.offsetSeed).slice(0, batchSize);
+  const prioritySources = sources.filter((source) => dailyAustraliaSourceSlugs.has(source.slug));
+  const rotatingSources = sources.filter((source) => !dailyAustraliaSourceSlugs.has(source.slug));
+  const remainingSlots = Math.max(0, batchSize - prioritySources.length);
+
+  return [
+    ...prioritySources.slice(0, batchSize),
+    ...rotateItems(rotatingSources, options.offsetSeed).slice(0, remainingSlots)
+  ];
 }
 
 function titleizeSlug(slug: string) {

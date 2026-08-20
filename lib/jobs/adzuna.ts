@@ -56,19 +56,84 @@ type AdzunaSearchResponse = {
 };
 
 type AdzunaFetchBatch = {
+  country: string;
   jobs: AdzunaJob[];
   query: string;
   sourceKey: string;
 };
 
 export type AdzunaSyncOptions = {
+  country?: string;
   maxDaysOld?: number | string;
   queries?: string[];
   resultsPerQuery?: number;
 };
 
-function getQuerySourceKey(query: string) {
-  return query.toLowerCase().replace(/\s+/g, " ").trim();
+const supportedAdzunaCountries = new Set([
+  "au",
+  "at",
+  "be",
+  "br",
+  "ca",
+  "ch",
+  "de",
+  "es",
+  "fr",
+  "gb",
+  "in",
+  "it",
+  "mx",
+  "nl",
+  "nz",
+  "pl",
+  "sg",
+  "us",
+  "za"
+]);
+
+function normalizeCountry(value: string) {
+  const country = value.trim().toLowerCase();
+  return supportedAdzunaCountries.has(country) ? country : null;
+}
+
+export function getConfiguredAdzunaCountries() {
+  const configured = env.adzunaCountries
+    .split(/[,.\n;\s]+/)
+    .map(normalizeCountry)
+    .filter((country): country is string => Boolean(country));
+
+  // Keep the old single-country variable working while guaranteeing the newly
+  // supported Australian market participates in daily refreshes.
+  const fallback = [normalizeCountry(env.adzunaCountry), "au"].filter(
+    (country): country is string => Boolean(country)
+  );
+
+  return Array.from(new Set(configured.length > 0 ? configured : fallback)).sort((left, right) => {
+    if (left === "au") return -1;
+    if (right === "au") return 1;
+    return left.localeCompare(right);
+  });
+}
+
+function getQuerySourceKey(country: string, query: string) {
+  return `${country}:${query.toLowerCase().replace(/\s+/g, " ").trim()}`;
+}
+
+async function mapWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  action: (item: T) => Promise<void>
+) {
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (nextIndex < items.length) {
+      const item = items[nextIndex];
+      nextIndex += 1;
+      if (item !== undefined) await action(item);
+    }
+  });
+
+  await Promise.all(workers);
 }
 
 function getSearchQueries(options: AdzunaSyncOptions = {}) {
@@ -110,14 +175,20 @@ function getCompanySlug(job: AdzunaJob) {
   return `adzuna-${slugifyCompanyName(getCompanyName(job))}`;
 }
 
-function getLocation(job: AdzunaJob) {
-  return formatJobLocation(
+function getLocation(job: AdzunaJob, country?: string) {
+  const location = formatJobLocation(
     job.location?.display_name ?? job.location?.area?.filter(Boolean).join(", ") ?? null
   );
+
+  if (country === "au" && location && !/\baustralia\b/i.test(location)) {
+    return `${location}, Australia`;
+  }
+
+  return location;
 }
 
 function getAdzunaUrl(query: string, options: AdzunaSyncOptions = {}) {
-  const country = env.adzunaCountry.toLowerCase();
+  const country = normalizeCountry(options.country ?? env.adzunaCountry) ?? "us";
   const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`);
 
   url.searchParams.set("app_id", env.adzunaAppId);
@@ -132,7 +203,7 @@ function getAdzunaUrl(query: string, options: AdzunaSyncOptions = {}) {
     url.searchParams.set("max_days_old", String(maxDaysOld));
   }
 
-  if (env.adzunaDefaultWhere) {
+  if (env.adzunaDefaultWhere && country === normalizeCountry(env.adzunaCountry)) {
     url.searchParams.set("where", env.adzunaDefaultWhere);
   }
 
@@ -140,6 +211,7 @@ function getAdzunaUrl(query: string, options: AdzunaSyncOptions = {}) {
 }
 
 async function fetchAdzunaJobs(query: string, options: AdzunaSyncOptions = {}): Promise<AdzunaFetchBatch> {
+  const country = normalizeCountry(options.country ?? env.adzunaCountry) ?? "us";
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
@@ -158,9 +230,10 @@ async function fetchAdzunaJobs(query: string, options: AdzunaSyncOptions = {}): 
 
     const payload = (await response.json()) as AdzunaSearchResponse;
     return {
+      country,
       jobs: payload.results ?? [],
       query,
-      sourceKey: getQuerySourceKey(query)
+      sourceKey: getQuerySourceKey(country, query)
     };
   } finally {
     clearTimeout(timeout);
@@ -209,8 +282,8 @@ async function ensureAdzunaCompanies(
   return new Map((data ?? []).map((company) => [company.greenhouse_slug, company]));
 }
 
-function normalizeJob(job: AdzunaJob, companyId: string) {
-  const location = getLocation(job);
+function normalizeJob(job: AdzunaJob, companyId: string, country: string) {
+  const location = getLocation(job, country);
   const applyUrl = job.redirect_url ?? null;
   const createdAt = job.created ?? null;
   const lastSeenAt = new Date().toISOString();
@@ -218,7 +291,7 @@ function normalizeJob(job: AdzunaJob, companyId: string) {
 
   return {
     company_id: companyId,
-    external_id: `adzuna:${env.adzunaCountry.toLowerCase()}:${job.id}`,
+    external_id: `adzuna:${country}:${job.id}`,
     title,
     description: job.description ?? null,
     location,
@@ -243,6 +316,7 @@ function normalizeJob(job: AdzunaJob, companyId: string) {
 
 export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<JobSyncResult> {
   const supabase = createSupabaseAdminClient();
+  const country = normalizeCountry(options.country ?? env.adzunaCountry) ?? "us";
 
   if (!supabase) {
     throw new Error("Supabase service role environment variables are not configured.");
@@ -250,7 +324,7 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
 
   const sourceResult: JobSyncSourceResult = {
     configured: hasAdzunaConfig(),
-    source: "adzuna",
+    source: `adzuna-${country}`,
     totalJobsFetched: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
@@ -276,10 +350,10 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
 
   const batches: AdzunaFetchBatch[] = [];
 
-  for (const query of getSearchQueries(options)) {
-    const sourceKey = getQuerySourceKey(query);
+  await mapWithConcurrency(getSearchQueries(options), 4, async (query) => {
+    const sourceKey = getQuerySourceKey(country, query);
     const healthIdentity = {
-      displayName: `Adzuna: ${query}`,
+      displayName: `Adzuna ${country.toUpperCase()}: ${query}`,
       source: "adzuna",
       sourceKey
     };
@@ -287,7 +361,7 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
 
     if (healthStatus.shouldSkip) {
       sourceResult.totalSkipped = (sourceResult.totalSkipped ?? 0) + 1;
-      continue;
+      return;
     }
 
     sourceResult.totalRequests += 1;
@@ -300,19 +374,19 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
       const message = error instanceof Error ? error.message : "Unknown Adzuna sync error";
       await recordSourceFailure(supabase, healthIdentity, message);
       result.errors.push({
-        source: "adzuna",
+        source: `adzuna-${country}`,
         query,
         message
       });
     }
-  }
+  });
 
   const jobs = batches.flatMap((batch) => batch.jobs);
   const companies = await ensureAdzunaCompanies(supabase, jobs);
   const normalizedJobs = jobs
     .map((job) => {
       const company = companies.get(getCompanySlug(job));
-      return company ? normalizeJob(job, company.id) : null;
+      return company ? normalizeJob(job, company.id, country) : null;
     })
     .filter(Boolean) as Database["public"]["Tables"]["jobs"]["Insert"][];
   const uniqueJobs = Array.from(
@@ -324,7 +398,7 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
       await recordSourceSuccess(
         supabase,
         {
-          displayName: `Adzuna: ${batch.query}`,
+          displayName: `Adzuna ${batch.country.toUpperCase()}: ${batch.query}`,
           source: "adzuna",
           sourceKey: batch.sourceKey
         },
@@ -379,13 +453,13 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
     await recordSourceSuccess(
       supabase,
       {
-        displayName: `Adzuna: ${batch.query}`,
+        displayName: `Adzuna ${batch.country.toUpperCase()}: ${batch.query}`,
         source: "adzuna",
         sourceKey: batch.sourceKey
       },
       {
         jobsFetched: batch.jobs.length,
-        jobsInserted: batch.jobs.filter((job) => insertedExternalIds.has(`adzuna:${env.adzunaCountry.toLowerCase()}:${job.id}`)).length
+        jobsInserted: batch.jobs.filter((job) => insertedExternalIds.has(`adzuna:${batch.country}:${job.id}`)).length
       }
     );
   }

@@ -1,7 +1,8 @@
 import { env } from "@/lib/env";
-import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
+import { getConfiguredAdzunaCountries, syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
+import { syncJoobleAustraliaJobs } from "@/lib/jobs/jooble";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { deleteStaleJobs, expireDuplicateJobs, JOB_RETENTION_DAYS } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
@@ -30,10 +31,12 @@ const defaultDailyFreshQueries = [
 ];
 
 type DailyFreshJobPlan = {
+  adzunaCountries: string[];
   adzunaQueries: string[];
   ashbyCompanyCount: number;
   freshWindowDays: number;
   greenhouseCompanyCount: number;
+  joobleQueries: string[];
   leverCompanyCount: number;
   runDate: string;
   sourceRotationSeed: number;
@@ -165,12 +168,15 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
   const seed = getUtcDaySeed(now);
   const freshWindowDays = parsePositiveInt(env.dailyFreshMaxDaysOld, 3, 14);
   const adzunaQueryCount = parsePositiveInt(env.dailyFreshAdzunaQueryCount, 8, 20);
+  const joobleQueryCount = parsePositiveInt(env.dailyFreshJoobleQueryCount, 4, 12);
 
   return {
+    adzunaCountries: getConfiguredAdzunaCountries(),
     adzunaQueries: rotateQueries(pool, adzunaQueryCount, seed),
     ashbyCompanyCount: parsePositiveInt(env.dailyFreshAshbyCompanyCount, 35, 200),
     freshWindowDays,
     greenhouseCompanyCount: parsePositiveInt(env.dailyFreshGreenhouseCompanyCount, 40, 200),
+    joobleQueries: rotateQueries(pool, joobleQueryCount, seed + adzunaQueryCount),
     leverCompanyCount: parsePositiveInt(env.dailyFreshLeverCompanyCount, 35, 200),
     runDate: now.toISOString().slice(0, 10),
     sourceRotationSeed: seed,
@@ -184,14 +190,15 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
 function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
   result.sourceResults.unshift({
     configured: true,
-    skippedReason: `Daily fresh plan ${plan.runDate}: Adzuna first (${plan.adzunaQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; jobs not refreshed for ${plan.retentionDays} days are permanently deleted; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
+    skippedReason: `Daily fresh plan ${plan.runDate}: Adzuna ${plan.adzunaCountries.map((country) => country.toUpperCase()).join("/")} (${plan.adzunaQueries.length} searches per market), optional Jooble Australia (${plan.joobleQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; jobs not refreshed for ${plan.retentionDays} days are permanently deleted; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
     source: "freshness-planner",
     totalJobsExpired: 0,
     totalJobsFetched: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
     totalRequests:
-      plan.adzunaQueries.length +
+      plan.adzunaQueries.length * plan.adzunaCountries.length +
+      plan.joobleQueries.length +
       plan.ashbyCompanyCount +
       plan.leverCompanyCount +
       plan.greenhouseCompanyCount
@@ -223,17 +230,33 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
   const result = emptyResult();
   const startedAt = Date.now();
 
+  for (const country of plan.adzunaCountries) {
+    await runPlannedSource(
+      result,
+      `adzuna-${country}`,
+      startedAt,
+      plan.syncBudgetMs,
+      () =>
+        syncAdzunaJobs({
+          country,
+          maxDaysOld: plan.freshWindowDays,
+          queries: plan.adzunaQueries
+        }),
+      `Adzuna ${country.toUpperCase()} sync failed.`
+    );
+  }
+
   await runPlannedSource(
     result,
-    "adzuna",
+    "jooble-au",
     startedAt,
     plan.syncBudgetMs,
     () =>
-      syncAdzunaJobs({
+      syncJoobleAustraliaJobs({
         maxDaysOld: plan.freshWindowDays,
-        queries: plan.adzunaQueries
+        queries: plan.joobleQueries
       }),
-    "Adzuna sync failed."
+    "Jooble Australia sync failed."
   );
 
   await runPlannedSource(

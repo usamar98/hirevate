@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { env, hasLeverConfig } from "@/lib/env";
+import { defaultLeverSources } from "@/lib/jobs/default-lever-sources";
 import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -11,6 +12,7 @@ type LeverRegion = "global" | "eu";
 
 type LeverSource = {
   companyName: string;
+  industry: string | null;
   region: LeverRegion;
   slug: string;
 };
@@ -143,6 +145,7 @@ function parseLeverSourceEntry(entry: string, region: LeverRegion): LeverSource 
 
   return {
     companyName: rawCompanyName || titleizeSlug(slug) || slug,
+    industry: null,
     region: sourceRegion,
     slug
   };
@@ -150,6 +153,12 @@ function parseLeverSourceEntry(entry: string, region: LeverRegion): LeverSource 
 
 function parseLeverSources() {
   const entries = [
+    ...(env.leverDisableDefaultSources.toLowerCase() === "true"
+      ? []
+      : defaultLeverSources.map((source) => ({
+          ...source,
+          region: "global" as const
+        }))),
     ...env.leverCompanySlugs
       .split(/[,\n;]/)
       .map((entry) => parseLeverSourceEntry(entry, "global")),
@@ -327,7 +336,7 @@ async function ensureLeverCompanies(
     .filter((source) => !existingSlugs.has(getCompanySlug(source)))
     .map((source) => ({
       greenhouse_slug: getCompanySlug(source),
-      industry: "Public ATS",
+      industry: source.industry ?? "Public ATS",
       is_active: true,
       name: source.companyName,
       website: getCompanyWebsite(source)
@@ -438,7 +447,10 @@ export async function syncLeverJobs(options: SourceBatchOptions = {}): Promise<J
   const batchSkipped = Math.max(0, allSources.length - sources.length);
   const sourceResult: JobSyncSourceResult = {
     configured: hasLeverConfig(),
-    skippedReason: sources.length === 0 ? "Add LEVER_COMPANY_SLUGS in Vercel to enable Lever sync." : undefined,
+    skippedReason:
+      sources.length === 0
+        ? "Lever sync has no sources. Add LEVER_COMPANY_SLUGS or enable bundled Australian employer boards."
+        : undefined,
     source: sourceName,
     totalJobsFetched: 0,
     totalJobsInserted: 0,

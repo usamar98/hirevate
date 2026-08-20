@@ -120,5 +120,11 @@ export const defaultAshbySources = [
   { name: "Bolt", slug: "bolt", industry: "Fintech" },
   { name: "SSI", slug: "ssi", industry: "AI" },
   { name: "Wiz", slug: "wiz", industry: "Security" },
-  { name: "Snyk", slug: "snyk", industry: "Security" }
+  { name: "Snyk", slug: "snyk", industry: "Security" },
+  { name: "Xero", slug: "xero", industry: "Accounting software" },
+  { name: "Maincode", slug: "maincode", industry: "AI" },
+  { name: "Pluralis Research", slug: "pluralis-research", industry: "AI research" },
+  { name: "Lyrebird Health", slug: "lyrebird-health", industry: "Healthcare AI" },
+  { name: "Halter", slug: "halter", industry: "Agricultural technology" },
+  { name: "Lightspeed", slug: "lightspeedhq", industry: "Commerce software" }
 ] as const satisfies DefaultAshbySource[];

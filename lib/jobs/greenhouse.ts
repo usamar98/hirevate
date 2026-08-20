@@ -174,6 +174,7 @@ async function ensureDefaultCompanies(
     .not("greenhouse_slug", "like", "adzuna-%")
     .not("greenhouse_slug", "like", "lever-%")
     .not("greenhouse_slug", "like", "ashby-%")
+    .not("greenhouse_slug", "like", "jooble-%")
     .not("greenhouse_slug", "like", "serpapi-%");
 
   if (countError) {
@@ -209,6 +210,7 @@ export async function syncGreenhouseJobs(options: SourceBatchOptions = {}): Prom
     .not("greenhouse_slug", "like", "adzuna-%")
     .not("greenhouse_slug", "like", "lever-%")
     .not("greenhouse_slug", "like", "ashby-%")
+    .not("greenhouse_slug", "like", "jooble-%")
     .not("greenhouse_slug", "like", "serpapi-%")
     .order("name", { ascending: true });
 

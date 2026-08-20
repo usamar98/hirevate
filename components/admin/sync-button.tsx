@@ -8,6 +8,11 @@ import type { JobSyncResult } from "@/lib/jobs/sync";
 function getSourceLabel(source: string) {
   if (source === "freshness-planner") return "Freshness Planner";
   if (source === "ashby") return "Ashby";
+  if (source.startsWith("adzuna-")) {
+    const country = source.slice("adzuna-".length).toUpperCase();
+    return `Adzuna ${country}`;
+  }
+  if (source === "jooble-au") return "Jooble Australia";
   if (source === "lever") return "Lever";
   if (source === "maintenance") return "Maintenance";
   return source;

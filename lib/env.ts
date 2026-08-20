@@ -37,12 +37,14 @@ export const env = {
   adzunaAppId: readEnv("ADZUNA_APP_ID"),
   adzunaAppKey: readEnv("ADZUNA_APP_KEY"),
   adzunaCountry: readEnv("ADZUNA_COUNTRY") || "us",
+  adzunaCountries: readEnv("ADZUNA_COUNTRIES"),
   adzunaSearchQueries: readEnv("ADZUNA_SEARCH_QUERIES"),
   adzunaDefaultWhere: readEnv("ADZUNA_DEFAULT_WHERE"),
   adzunaResultsPerQuery: readEnv("ADZUNA_RESULTS_PER_QUERY"),
   adzunaMaxDaysOld: readEnv("ADZUNA_MAX_DAYS_OLD") || "7",
   dailyFreshJobQueries: readEnv("DAILY_FRESH_JOB_QUERIES"),
   dailyFreshAdzunaQueryCount: readEnv("DAILY_FRESH_ADZUNA_QUERY_COUNT"),
+  dailyFreshJoobleQueryCount: readEnv("DAILY_FRESH_JOOBLE_QUERY_COUNT"),
   dailyFreshMaxDaysOld: readEnv("DAILY_FRESH_MAX_DAYS_OLD"),
   dailyFreshSyncBudgetMs: readEnv("DAILY_FRESH_SYNC_BUDGET_MS"),
   dailyFreshGreenhouseCompanyCount: readEnv("DAILY_FRESH_GREENHOUSE_COMPANY_COUNT"),
@@ -53,7 +55,11 @@ export const env = {
   ashbyMaxCompaniesPerSync: readEnv("ASHBY_MAX_COMPANIES_PER_SYNC"),
   leverCompanySlugs: readEnv("LEVER_COMPANY_SLUGS"),
   leverEuCompanySlugs: readEnv("LEVER_EU_COMPANY_SLUGS"),
+  leverDisableDefaultSources: readEnv("LEVER_DISABLE_DEFAULT_SOURCES"),
   leverMaxCompaniesPerSync: readEnv("LEVER_MAX_COMPANIES_PER_SYNC"),
+  joobleApiKey: readEnv("JOOBLE_API_KEY"),
+  joobleSearchQueries: readEnv("JOOBLE_SEARCH_QUERIES"),
+  joobleResultsPerQuery: readEnv("JOOBLE_RESULTS_PER_QUERY"),
   googleSiteVerification: readEnv("GOOGLE_SITE_VERIFICATION"),
   legalOperatorName: readEnv("NEXT_PUBLIC_LEGAL_OPERATOR_NAME"),
   legalEmail: readEnv("NEXT_PUBLIC_LEGAL_EMAIL"),
@@ -84,9 +90,13 @@ export function hasAdzunaConfig() {
 }
 
 export function hasLeverConfig() {
-  return Boolean(env.leverCompanySlugs || env.leverEuCompanySlugs);
+  return env.leverDisableDefaultSources.toLowerCase() !== "true" || Boolean(env.leverCompanySlugs || env.leverEuCompanySlugs);
 }
 
 export function hasAshbyConfig() {
   return env.ashbyDisableDefaultSources.toLowerCase() !== "true" || Boolean(env.ashbyCompanySlugs);
+}
+
+export function hasJoobleConfig() {
+  return Boolean(env.joobleApiKey);
 }

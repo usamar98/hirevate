@@ -78,8 +78,8 @@ export default async function StudentPartTimeResearchPage() {
         <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6">
           <h2 className="text-2xl font-semibold text-ink-900">Collection and freshness</h2>
           <div className="mt-4 grid gap-5 text-sm leading-6 text-ink-600 md:grid-cols-3">
-            <div><h3 className="font-semibold text-ink-900">Public sources</h3><p className="mt-2">Employer career pages, public Greenhouse, Lever and Ashby boards, Adzuna discovery results, and trusted hiring partners.</p></div>
-            <div><h3 className="font-semibold text-ink-900">Daily verification</h3><p className="mt-2">Supported US, UK and Canada sources are refreshed every day. Each result keeps its available original source and apply URL.</p></div>
+            <div><h3 className="font-semibold text-ink-900">Public sources</h3><p className="mt-2">Employer career pages, public Greenhouse, Lever and Ashby boards, Adzuna discovery results, optional Jooble results, and trusted hiring partners.</p></div>
+            <div><h3 className="font-semibold text-ink-900">Daily verification</h3><p className="mt-2">Supported US, UK, Canada and Australia sources are refreshed every day. Each result keeps its available original source and apply URL.</p></div>
             <div><h3 className="font-semibold text-ink-900">Ten-day retention</h3><p className="mt-2">A job that has not been verified within ten days is deleted automatically from the public system and database.</p></div>
           </div>
         </section>

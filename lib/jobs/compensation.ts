@@ -182,7 +182,7 @@ function getStructuredSalaryFromRaw(raw: JsonRecord | null, location: string | n
 function extractStructuredSalaryFromText(value: string | null | undefined, location: string | null, raw: JsonRecord | null) {
   const text = stripHtml(value);
   const match = text.match(
-    /(?:USD|US\$|\$|GBP|EUR|CAD|AUD)?\s?(\d[\d,.]*(?:k)?)\s*(?:-|to)\s*(?:USD|US\$|\$|GBP|EUR|CAD|AUD)?\s?(\d[\d,.]*(?:k)?)(?:\s*(?:per|\/)\s*(year|yr|hour|hr|month|mo|week|wk|annum))?/i
+    /(?:USD|US\$|A\$|\$|GBP|EUR|CAD|AUD)?\s?(\d[\d,.]*(?:k)?)\s*(?:-|to)\s*(?:USD|US\$|A\$|\$|GBP|EUR|CAD|AUD)?\s?(\d[\d,.]*(?:k)?)(?:\s*(?:per|\/)\s*(year|yr|hour|hr|month|mo|week|wk|annum))?/i
   );
 
   if (!match) return null;
@@ -190,9 +190,11 @@ function extractStructuredSalaryFromText(value: string | null | undefined, locat
   const min = parseSalaryNumber(match[1] ?? "");
   const max = parseSalaryNumber(match[2] ?? "");
   const interval = match[3] ?? text;
-  const currencyMatch = match[0]?.match(/USD|US\$|\$|GBP|EUR|CAD|AUD/i)?.[0]?.toUpperCase();
+  const currencyMatch = match[0]?.match(/USD|US\$|A\$|\$|GBP|EUR|CAD|AUD/i)?.[0]?.toUpperCase();
   const currency =
-    currencyMatch === "$" || currencyMatch === "US$"
+    currencyMatch === "A$"
+      ? "AUD"
+      : currencyMatch === "$" || currencyMatch === "US$"
       ? "USD"
       : currencyMatch ?? inferCurrency(location, raw);
 
@@ -224,7 +226,7 @@ function extractStructuredSalaryFromExtensions(raw: JsonRecord | null, location:
   if (Array.isArray(extensions)) {
     const match = extensions
       .filter((item): item is string => typeof item === "string")
-      .find((item) => /(?:salary|pay|compensation|USD|US\$|\$|GBP|EUR|CAD|AUD|\b\d+\s?k\b)/i.test(item));
+      .find((item) => /(?:salary|pay|compensation|USD|US\$|A\$|\$|GBP|EUR|CAD|AUD|\b\d+\s?k\b)/i.test(item));
 
     if (match) return extractStructuredSalaryFromText(match, location, raw);
   }

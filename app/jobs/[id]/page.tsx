@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
+import { JobSourceAttribution } from "@/components/jobs/job-source-attribution";
 import { ResumeMatchCard } from "@/components/jobs/resume-match-card";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -145,6 +146,7 @@ export default async function JobDetailPage({
               <Badge tone={sourceTrust.isEmployerOrAtsApply ? "green" : "blue"}>
                 {sourceTrust.label}
               </Badge>
+              <JobSourceAttribution externalId={job.external_id} source={job.source} />
             </div>
             <h1 className="mt-5 text-4xl font-semibold leading-tight text-ink-900">{job.title}</h1>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-500">

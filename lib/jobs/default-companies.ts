@@ -23,5 +23,12 @@ export const defaultGreenhouseCompanies = [
   { name: "DoorDash", website: "https://doordash.com", greenhouse_slug: "doordash", industry: "Marketplace" },
   { name: "HashiCorp", website: "https://hashicorp.com", greenhouse_slug: "hashicorp", industry: "Infrastructure" },
   { name: "MongoDB", website: "https://mongodb.com", greenhouse_slug: "mongodb", industry: "Database" },
-  { name: "Hugging Face", website: "https://huggingface.co", greenhouse_slug: "huggingface", industry: "AI" }
+  { name: "Hugging Face", website: "https://huggingface.co", greenhouse_slug: "huggingface", industry: "AI" },
+  { name: "Culture Amp", website: "https://cultureamp.com", greenhouse_slug: "cultureamp", industry: "HR software" },
+  { name: "DoorDash ANZ", website: "https://doordash.com", greenhouse_slug: "doordashaustralia", industry: "Marketplace" },
+  { name: "Easygo", website: "https://easygo.io", greenhouse_slug: "easygo", industry: "Technology" },
+  { name: "JCDecaux Australia", website: "https://jcdecaux.com.au", greenhouse_slug: "jcdecaux", industry: "Media" },
+  { name: "Karbon", website: "https://karbonhq.com", greenhouse_slug: "karbon", industry: "Accounting software" },
+  { name: "ROLLER", website: "https://roller.software", greenhouse_slug: "roller", industry: "Venue software" },
+  { name: "Weploy", website: "https://weployapp.com", greenhouse_slug: "weploy", industry: "Staffing technology" }
 ];

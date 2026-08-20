@@ -1,6 +1,7 @@
-import { syncAdzunaJobs } from "@/lib/jobs/adzuna";
+import { getConfiguredAdzunaCountries, syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
+import { syncJoobleAustraliaJobs } from "@/lib/jobs/jooble";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { deleteStaleJobs, expireDuplicateJobs } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
@@ -81,10 +82,24 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
   } catch (error) {
     mergeResult(result, failedSourceResult("ashby", getSyncErrorMessage(error, "Ashby sync failed.")));
   }
+  for (const country of getConfiguredAdzunaCountries()) {
+    try {
+      mergeResult(result, await syncAdzunaJobs({ country }));
+    } catch (error) {
+      mergeResult(
+        result,
+        failedSourceResult(
+          `adzuna-${country}`,
+          getSyncErrorMessage(error, `Adzuna ${country.toUpperCase()} sync failed.`)
+        )
+      );
+    }
+  }
+
   try {
-    mergeResult(result, await syncAdzunaJobs());
+    mergeResult(result, await syncJoobleAustraliaJobs());
   } catch (error) {
-    mergeResult(result, failedSourceResult("adzuna", getSyncErrorMessage(error, "Adzuna sync failed.")));
+    mergeResult(result, failedSourceResult("jooble-au", getSyncErrorMessage(error, "Jooble Australia sync failed.")));
   }
 
   try {

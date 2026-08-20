@@ -44,8 +44,29 @@ const configuredJobCountries = [
     name: "Australia",
     demonym: "Australian",
     path: "/jobs/country/australia",
-    locationTerms: ["Australia", "Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra"],
-    popularCities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"]
+    locationTerms: [
+      "Australia",
+      "Sydney",
+      "Melbourne",
+      "Brisbane",
+      "Perth",
+      "Adelaide",
+      "Canberra",
+      "Gold Coast",
+      "Newcastle",
+      "Wollongong",
+      "Hobart",
+      "Darwin",
+      "Geelong",
+      "New South Wales",
+      "Queensland",
+      "Western Australia",
+      "South Australia",
+      "Tasmania",
+      "Northern Territory",
+      "Australian Capital Territory"
+    ],
+    popularCities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra"]
   },
   {
     slug: "germany",
@@ -130,7 +151,7 @@ const configuredJobCountries = [
   }
 ] as const satisfies readonly JobCountry[];
 
-const dailyCoverageCountryCodes = new Set(["US", "GB", "CA"]);
+const dailyCoverageCountryCodes = new Set(["US", "GB", "CA", "AU"]);
 
 // Only advertise markets that the current source mix refreshes reliably every day.
 // Other countries can be re-enabled after they have dependable daily source coverage.
