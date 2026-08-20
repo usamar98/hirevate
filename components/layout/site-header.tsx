@@ -13,13 +13,11 @@ import type { SupportedLanguage } from "@/lib/i18n/config";
 type AuthStatus = {
   authenticated: boolean;
   isAdmin: boolean;
-  privateAdmin: boolean;
 };
 
 const anonymousStatus: AuthStatus = {
   authenticated: false,
-  isAdmin: false,
-  privateAdmin: false
+  isAdmin: false
 };
 
 export function SiteHeader({ language }: { language: SupportedLanguage }) {
@@ -94,19 +92,9 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
               </Link>
             </>
           ) : null}
-          {authStatus.privateAdmin && !authStatus.isAdmin ? (
-            <Link className="font-semibold text-brand-700 transition hover:text-brand-800" href="/adminhirevate01">
-              Private admin
-            </Link>
-          ) : null}
         </nav>
         <div className="flex items-center gap-2">
-          {authStatus.privateAdmin ? (
-            <Button asChild className="md:hidden" href="/adminhirevate01" variant="ghost">
-              Admin
-            </Button>
-          ) : null}
-          {!authStatus.authenticated && !authStatus.privateAdmin ? (
+          {!authStatus.authenticated ? (
             <Button asChild href="/login" variant="ghost">
               {copy.login}
             </Button>

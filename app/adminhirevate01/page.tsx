@@ -25,7 +25,6 @@ import {
   AdminGrowthChart,
   AdminPlanDistribution
 } from "@/components/admin/admin-dashboard-charts";
-import { AdminSessionSync } from "@/components/admin/admin-session-sync";
 import { AdminUsersTable } from "@/components/admin/admin-users-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -159,21 +158,14 @@ export default async function AdminHirevatePage({
   ]);
 
   if (!hasSession) {
-    return (
-      <>
-        <AdminSessionSync active={false} />
-        <LoginView error={readParam(resolvedSearchParams, "error")} />
-      </>
-    );
+    return <LoginView error={readParam(resolvedSearchParams, "error")} />;
   }
 
   const dashboard = await getAdminUsersDashboard();
   const maxCountryCount = Math.max(...dashboard.countryStats.map((country) => country.total), 1);
 
   return (
-    <>
-      <AdminSessionSync active />
-      <section className="min-h-screen bg-gray-50 py-10">
+    <section className="min-h-screen bg-gray-50 py-10">
         <div className="container-shell space-y-8">
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
             <div>
@@ -197,7 +189,7 @@ export default async function AdminHirevatePage({
               <form action={signOutAdminHirevateAction}>
                 <Button type="submit" variant="outline">
                   <LogOut className="h-4 w-4" aria-hidden="true" />
-                  Lock dashboard
+                  Log out
                 </Button>
               </form>
             </div>
@@ -408,7 +400,6 @@ export default async function AdminHirevatePage({
             <AdminUsersTable users={dashboard.recentUsers} />
           </Card>
         </div>
-      </section>
-    </>
+    </section>
   );
 }

@@ -2,8 +2,9 @@ import { createHash, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 
-export const adminHirevateCookieName = "hirevate_adminhirevate01_session_v2";
+export const adminHirevateCookieName = "hirevate_adminhirevate01_session_v3";
 export const adminHirevateCookieMaxAge = 60 * 60 * 8;
+const legacyAdminHirevateRootCookieName = "hirevate_adminhirevate01_session_v2";
 
 function hashValue(value: string) {
   return createHash("sha256").update(value).digest("hex");
@@ -53,6 +54,13 @@ export async function setAdminHirevateSession() {
   cookieStore.set(adminHirevateCookieName, getAdminHirevateSessionToken(), {
     httpOnly: true,
     maxAge: adminHirevateCookieMaxAge,
+    path: "/adminhirevate01",
+    sameSite: "lax",
+    secure: shouldUseSecureCookies()
+  });
+  cookieStore.set(legacyAdminHirevateRootCookieName, "", {
+    httpOnly: true,
+    maxAge: 0,
     path: "/",
     sameSite: "lax",
     secure: shouldUseSecureCookies()
@@ -62,6 +70,13 @@ export async function setAdminHirevateSession() {
 export async function clearAdminHirevateSession() {
   const cookieStore = await cookies();
   cookieStore.set(adminHirevateCookieName, "", {
+    httpOnly: true,
+    maxAge: 0,
+    path: "/adminhirevate01",
+    sameSite: "lax",
+    secure: shouldUseSecureCookies()
+  });
+  cookieStore.set(legacyAdminHirevateRootCookieName, "", {
     httpOnly: true,
     maxAge: 0,
     path: "/",
