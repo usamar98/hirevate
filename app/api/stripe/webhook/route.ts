@@ -6,6 +6,7 @@ import {
   getInvoiceSubscriptionId,
   getStripeObjectId,
   syncPaidSubscription,
+  syncSubscriptionState,
   updateProfileFromSubscription
 } from "@/lib/stripe/subscription-sync";
 
@@ -120,14 +121,7 @@ export async function POST(request: Request) {
 
     if (event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
-      if (subscription.status === "active" || subscription.status === "trialing") {
-        const paidInvoiceSynced = await updatePaidProfileIfInvoiceIsPaid(stripe, subscription);
-        if (!paidInvoiceSynced) {
-          await updateProfileFromSubscription(subscription, "free");
-        }
-      } else {
-        await updateProfileFromSubscription(subscription, "free");
-      }
+      await syncSubscriptionState(stripe, subscription);
     }
 
     if (event.type === "customer.subscription.deleted") {

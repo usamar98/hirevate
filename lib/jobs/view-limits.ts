@@ -1,7 +1,7 @@
 import { startOfUtcDay } from "@/lib/time";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { isPaidSubscription } from "@/lib/auth/session";
+import { hasPremiumAccess } from "@/lib/auth/session";
 
 export const FREE_DAILY_JOB_VIEW_LIMIT = 10;
 
@@ -21,11 +21,11 @@ export async function canViewJob(userId: string, jobId?: string) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status")
+    .select("role,subscription_status")
     .eq("id", userId)
     .maybeSingle();
 
-  if (isPaidSubscription(profile?.subscription_status)) {
+  if (hasPremiumAccess(profile)) {
     return { allowed: true, remaining: Number.POSITIVE_INFINITY, reason: null };
   }
 

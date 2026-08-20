@@ -55,6 +55,25 @@ function getSubscriptionPlan(subscription: Stripe.Subscription) {
   return isPlanKey(plan) ? stripePlans[plan].subscriptionStatus : legacySubscriptionStatuses[plan];
 }
 
+function subscriptionGrantsAccess(subscription: Stripe.Subscription) {
+  return subscription.status === "active" || subscription.status === "trialing";
+}
+
+function getCurrentPeriodEnd(subscription: Stripe.Subscription) {
+  return subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000).toISOString()
+    : null;
+}
+
+function isMissingLifecycleColumn(error: { code?: string; message?: string }) {
+  return (
+    error.code === "PGRST204" &&
+    /stripe_subscription_status|subscription_cancel_at_period_end|subscription_current_period_end|subscription_updated_at/i.test(
+      error.message ?? ""
+    )
+  );
+}
+
 async function getLatestInvoice(stripe: Stripe, subscription: Stripe.Subscription) {
   if (!subscription.latest_invoice) return null;
   if (typeof subscription.latest_invoice !== "string") return subscription.latest_invoice;
@@ -86,16 +105,38 @@ export async function updateProfileFromSubscription(
   await ensureUserProfile(authUserData.user);
 
 
-  const { data, error } = await admin
+  const coreUpdates = {
+    subscription_status: paidStatus,
+    stripe_customer_id: String(subscription.customer),
+    stripe_subscription_id: subscription.id
+  };
+  const lifecycleUpdates = {
+    ...coreUpdates,
+    stripe_subscription_status: subscription.status,
+    subscription_cancel_at_period_end: subscription.cancel_at_period_end,
+    subscription_current_period_end: getCurrentPeriodEnd(subscription),
+    subscription_updated_at: new Date().toISOString()
+  };
+
+  let result = await admin
     .from("profiles")
-    .update({
-      subscription_status: paidStatus,
-      stripe_customer_id: String(subscription.customer),
-      stripe_subscription_id: subscription.id
-    })
+    .update(lifecycleUpdates)
     .eq("id", userId)
     .select("id")
     .maybeSingle();
+
+  // Keep billing webhooks safe during a rolling deploy if application code reaches
+  // production before the lifecycle migration has been applied.
+  if (result.error && isMissingLifecycleColumn(result.error)) {
+    result = await admin
+      .from("profiles")
+      .update(coreUpdates)
+      .eq("id", userId)
+      .select("id")
+      .maybeSingle();
+  }
+
+  const { data, error } = result;
 
   if (error) throw error;
   if (!data) {
@@ -109,11 +150,24 @@ export async function syncPaidSubscription(
   stripe: Stripe,
   subscription: Stripe.Subscription
 ): Promise<PaidSubscriptionSync | null> {
+  if (!subscriptionGrantsAccess(subscription)) return null;
+
   const paidStatus = getSubscriptionPlan(subscription);
   if (!paidStatus || !(await hasPaidLatestInvoice(stripe, subscription))) return null;
 
   const updated = await updateProfileFromSubscription(subscription, paidStatus);
   return updated ? { paidStatus, subscription } : null;
+}
+
+export async function syncSubscriptionState(
+  stripe: Stripe,
+  subscription: Stripe.Subscription
+) {
+  const synced = await syncPaidSubscription(stripe, subscription);
+  if (synced) return synced;
+
+  await updateProfileFromSubscription(subscription, "free");
+  return null;
 }
 
 export async function syncPaidCheckoutSession(
@@ -164,7 +218,7 @@ export async function reconcilePaidSubscriptionForUser(
   subscriptions.sort((left, right) => right.created - left.created);
   for (const subscription of subscriptions) {
     if (subscription.metadata.userId !== userId) continue;
-    if (subscription.status !== "active" && subscription.status !== "trialing") continue;
+    if (!subscriptionGrantsAccess(subscription)) continue;
 
     const synced = await syncPaidSubscription(stripe, subscription);
     if (synced) return synced;

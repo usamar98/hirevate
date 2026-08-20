@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { readPublicJobPage } from "@/lib/jobs/read-public-job-page";
 import { resumeTemplateValues } from "@/lib/resume/templates";
@@ -272,7 +272,7 @@ export async function POST(request: Request) {
   }
 
   const profile = await getProfile(user.id);
-  if (!isPaidSubscription(profile?.subscription_status)) {
+  if (!hasPremiumAccess(profile)) {
     return NextResponse.json(
       { error: "Job-tailored resume generation is included with paid Hirevate plans." },
       { status: 403 }

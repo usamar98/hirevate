@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getProfile, hasPremiumAccess } from "@/lib/auth/session";
 import type { JobActionErrorCode } from "@/lib/jobs/action-feedback";
 import { countSavedJobs } from "@/lib/jobs/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -88,7 +88,7 @@ export async function saveJobAction(formData: FormData) {
 
   const savedCount = await countSavedJobs(user.id);
 
-  if (!isPaidSubscription(profile?.subscription_status) && savedCount >= FREE_SAVED_JOB_LIMIT) {
+  if (!hasPremiumAccess(profile) && savedCount >= FREE_SAVED_JOB_LIMIT) {
     redirect("/pricing?limit=saved-jobs");
   }
 

@@ -45,7 +45,7 @@ export async function requireAdmin(redirectTo = "/admin") {
   const user = await requireUser(safeRedirectTo);
   const profile = await getProfile(user.id);
 
-  if (profile?.role !== "admin") {
+  if (!isAdminProfile(profile)) {
     redirect(`/admin/no-access?from=${encodeURIComponent(safeRedirectTo)}`);
   }
 
@@ -54,4 +54,15 @@ export async function requireAdmin(redirectTo = "/admin") {
 
 export function isPaidSubscription(status: string | null | undefined) {
   return ["active", "trialing", "pro", "annual", "starter", "silver", "gold", "platinum"].includes(status ?? "");
+}
+
+export function isAdminProfile(profile: Pick<Profile, "role"> | null | undefined) {
+  const role = profile?.role.trim().toLowerCase();
+  return role === "admin" || role === "superadmin" || role === "super_admin";
+}
+
+export function hasPremiumAccess(
+  profile: Pick<Profile, "role" | "subscription_status"> | null | undefined
+) {
+  return isAdminProfile(profile) || isPaidSubscription(profile?.subscription_status);
 }

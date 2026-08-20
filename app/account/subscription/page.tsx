@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getProfile, isPaidSubscription, requireUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/server";
-import { reconcilePaidSubscriptionForUser } from "@/lib/stripe/subscription-sync";
+import {
+  reconcilePaidSubscriptionForUser,
+  syncSubscriptionState
+} from "@/lib/stripe/subscription-sync";
 
 export const metadata: Metadata = {
   title: "Account Subscription",
@@ -19,10 +22,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 function planLabel(status: string | null | undefined) {
-  if (status === "starter") return "Daily Plan";
-  if (status === "silver") return "Weekly Plan";
   if (status === "gold") return "Monthly Plan";
   if (status === "platinum") return "Annual Plan";
+  if (status === "starter" || status === "silver") return "Legacy subscription";
   if (status === "free") return "No active plan";
   return status ? "Paid subscription" : "No active plan";
 }
@@ -66,7 +68,7 @@ export default async function AccountSubscriptionPage() {
     }
   }
 
-  const isPaid = isPaidSubscription(profile?.subscription_status);
+  let isPaid = isPaidSubscription(profile?.subscription_status);
   let cancellationScheduled = false;
   let periodEnd: string | null = null;
   let stripeStatus: string | null = null;
@@ -78,6 +80,16 @@ export default async function AccountSubscriptionPage() {
       cancellationScheduled = subscription.cancel_at_period_end;
       periodEnd = formatBillingDate(subscription.current_period_end);
       stripeStatus = subscription.status;
+
+      if (
+        profile.stripe_subscription_status !== subscription.status ||
+        profile.subscription_cancel_at_period_end !== subscription.cancel_at_period_end ||
+        (isPaid && !["active", "trialing"].includes(subscription.status))
+      ) {
+        await syncSubscriptionState(stripe, subscription);
+        profile = await getProfile(user.id);
+        isPaid = isPaidSubscription(profile?.subscription_status);
+      }
     } catch {
       subscriptionUnavailable = true;
     }

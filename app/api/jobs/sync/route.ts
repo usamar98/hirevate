@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getCurrentUser, getProfile } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, isAdminProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { syncDailyFreshJobs } from "@/lib/jobs/daily-fresh-sync";
 
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     const profile = await getProfile(user.id);
-    if (profile?.role !== "admin") {
+    if (!isAdminProfile(profile)) {
       return NextResponse.json({ error: "Admin access required." }, { status: 403 });
     }
 

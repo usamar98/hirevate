@@ -8,7 +8,7 @@ import { JobCard } from "@/components/jobs/job-card";
 import { CountryPreferenceLink } from "@/components/jobs/country-preference-select";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCountryBySlug, jobCountries } from "@/lib/jobs/countries";
 import { resolveJobCountryPreference } from "@/lib/jobs/country-preference";
@@ -223,7 +223,7 @@ export default async function JobsPage({
     getCurrentUser()
   ]);
   const profile = user ? await getProfile(user.id) : null;
-  const isPaid = isPaidSubscription(profile?.subscription_status);
+  const isPaid = hasPremiumAccess(profile);
   const effectiveSearchParams = {
     ...(resolvedSearchParams ?? {}),
     country: countryPreference.slug

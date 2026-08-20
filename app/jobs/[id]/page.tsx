@@ -10,7 +10,7 @@ import { JobSourceAttribution } from "@/components/jobs/job-source-attribution";
 import { ResumeMatchCard } from "@/components/jobs/resume-match-card";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
@@ -107,7 +107,7 @@ export default async function JobDetailPage({
     user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>()),
     user ? getProfile(user.id) : Promise.resolve(null)
   ]);
-  const isPaid = isPaidSubscription(profile?.subscription_status);
+  const isPaid = hasPremiumAccess(profile);
 
   if (user && access.allowed) {
     await recordJobView(user.id, job.id);

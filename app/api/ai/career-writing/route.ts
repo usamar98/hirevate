@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
   }
 
   const profile = await getProfile(user.id);
-  if (!isPaidSubscription(profile?.subscription_status)) {
+  if (!hasPremiumAccess(profile)) {
     return NextResponse.json({ error: "AI writing is included with paid Hirevate plans." }, { status: 403 });
   }
 

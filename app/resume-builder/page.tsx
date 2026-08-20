@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ResumeBuilder } from "@/components/resume/resume-builder";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, isPaidSubscription } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
 import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 export default async function ResumeBuilderPage() {
   const user = await getCurrentUser();
   const profile = user ? await getProfile(user.id) : null;
-  const canExport = isPaidSubscription(profile?.subscription_status);
+  const canExport = hasPremiumAccess(profile);
 
   return (
     <>

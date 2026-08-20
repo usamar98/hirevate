@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/server";
+import { syncSubscriptionState } from "@/lib/stripe/subscription-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +41,16 @@ export async function POST() {
     const updated = subscription.cancel_at_period_end
       ? subscription
       : await stripe.subscriptions.update(subscription.id, { cancel_at_period_end: true });
+
+    try {
+      await syncSubscriptionState(stripe, updated);
+    } catch (syncError) {
+      console.error("Subscription was canceled in Stripe but profile lifecycle sync failed", {
+        name: syncError instanceof Error ? syncError.name : "UnknownError",
+        subscriptionId: updated.id,
+        userId: user.id
+      });
+    }
 
     return NextResponse.json({
       cancelAtPeriodEnd: updated.cancel_at_period_end,

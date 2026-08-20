@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CoverLetterBuilder } from "@/components/cover-letter/cover-letter-builder";
-import { getProfile, isPaidSubscription, requireUser } from "@/lib/auth/session";
+import { getProfile, hasPremiumAccess, requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Account Cover Letters",
@@ -16,7 +16,7 @@ export default async function AccountCoverLettersPage() {
 
   return (
     <CoverLetterBuilder
-      canUseAi={isPaidSubscription(profile?.subscription_status)}
+      canUseAi={hasPremiumAccess(profile)}
       isAuthenticated
     />
   );
