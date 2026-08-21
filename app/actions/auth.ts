@@ -1,5 +1,6 @@
 "use server";
 
+import type Stripe from "stripe";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -9,27 +10,40 @@ import {
   resolveLoginEmail
 } from "@/lib/auth/super-login";
 import { ensureUserProfile } from "@/lib/auth/ensure-profile";
+import { isAdminProfile } from "@/lib/auth/session";
 import { triggerWelcomeAutomationSafely } from "@/lib/email/welcome";
 import { env } from "@/lib/env";
+import { getStripe } from "@/lib/stripe/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   accountPasswordSchema,
   accountProfileSchema,
+  deactivateAccountSchema,
+  deleteAccountSchema,
   passwordResetRequestSchema,
   passwordUpdateSchema,
   signInSchema,
   signUpSchema,
+  type AccountClosureValues,
   type AccountPasswordValues,
   type AccountProfileValues,
   type AuthFormValues,
   type PasswordResetRequestValues,
   type PasswordUpdateValues
 } from "@/lib/validators/auth";
+import type { Profile } from "@/types/database";
 
 type AuthResult =
   | { ok: true; needsConfirmation?: boolean; message?: string }
   | { ok: false; error: string };
+
+type AccountClosureProfile = Pick<
+  Profile,
+  "role" | "stripe_customer_id" | "stripe_subscription_id"
+>;
+
+const terminalSubscriptionStatuses = new Set(["canceled", "incomplete_expired"]);
 
 function getSafeNextPath(value: string) {
   if (!value.startsWith("/") || value.startsWith("//")) {
@@ -393,6 +407,236 @@ export async function updateAccountPasswordAction(
   if (error) return { ok: false, error: error.message };
 
   return { ok: true, message: "Your password has been updated." };
+}
+
+async function getAccountClosureContext(userId: string) {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return { ok: false as const, error: "Account management is not configured." };
+  }
+
+  const { data: profile, error } = await admin
+    .from("profiles")
+    .select("role, stripe_customer_id, stripe_subscription_id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false as const, error: "Unable to verify your account details." };
+  }
+
+  return { ok: true as const, admin, profile };
+}
+
+function isProtectedAdminAccount(
+  user: { app_metadata?: Record<string, unknown>; email?: string },
+  profile: AccountClosureProfile | null
+) {
+  const appRole =
+    typeof user.app_metadata?.role === "string" ? user.app_metadata.role : "";
+  const isConfiguredSuperLogin =
+    Boolean(env.superLoginEmail) && user.email?.toLowerCase() === env.superLoginEmail.toLowerCase();
+
+  return isAdminProfile(profile) || isAdminProfile({ role: appRole }) || isConfiguredSuperLogin;
+}
+
+function getSubscriptionCustomerId(customer: string | { id: string }) {
+  return typeof customer === "string" ? customer : customer.id;
+}
+
+async function getAccountSubscriptions(
+  user: { email?: string; id: string },
+  profile: AccountClosureProfile | null
+) {
+  const stripe = getStripe();
+  const hasBillingReference = Boolean(
+    profile?.stripe_subscription_id || profile?.stripe_customer_id
+  );
+
+  if (!stripe) {
+    return hasBillingReference
+      ? { ok: false as const, error: "Billing is temporarily unavailable. No account change was made." }
+      : { ok: true as const, stripe: null, subscriptions: [] };
+  }
+
+  try {
+    const subscriptions = new Map<string, Stripe.Subscription>();
+    const customerIds = new Set<string>();
+    if (profile?.stripe_customer_id) customerIds.add(profile.stripe_customer_id);
+
+    if (profile?.stripe_subscription_id) {
+      try {
+        const directSubscription = await stripe.subscriptions.retrieve(
+          profile.stripe_subscription_id
+        );
+        const directCustomerId = getSubscriptionCustomerId(directSubscription.customer);
+        const hasWrongCustomer =
+          Boolean(profile.stripe_customer_id) && directCustomerId !== profile.stripe_customer_id;
+        const hasWrongOwner =
+          Boolean(directSubscription.metadata.userId) &&
+          directSubscription.metadata.userId !== user.id;
+
+        if (hasWrongCustomer || hasWrongOwner) {
+          return { ok: false as const, error: "Subscription ownership could not be verified." };
+        }
+
+        subscriptions.set(directSubscription.id, directSubscription);
+        customerIds.add(directCustomerId);
+      } catch (error) {
+        const stripeError = error as { statusCode?: number };
+        if (stripeError.statusCode !== 404) throw error;
+      }
+    }
+
+    if (user.email) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 10 });
+      for (const customer of customers.data) customerIds.add(customer.id);
+    }
+
+    for (const customerId of customerIds) {
+      try {
+        const result = await stripe.subscriptions.list({
+          customer: customerId,
+          status: "all",
+          limit: 10
+        });
+
+        for (const subscription of result.data) {
+          if (
+            subscription.metadata.userId === user.id ||
+            subscription.id === profile?.stripe_subscription_id
+          ) {
+            subscriptions.set(subscription.id, subscription);
+          }
+        }
+      } catch (error) {
+        const stripeError = error as { statusCode?: number };
+        if (stripeError.statusCode !== 404) throw error;
+      }
+    }
+
+    return { ok: true as const, stripe, subscriptions: [...subscriptions.values()] };
+  } catch {
+    return {
+      ok: false as const,
+      error: "Unable to verify your billing status. No account change was made."
+    };
+  }
+}
+
+export async function deactivateAccountAction(
+  values: AccountClosureValues
+): Promise<AuthResult> {
+  const parsed = deactivateAccountSchema.safeParse(values);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Confirm deactivation." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured." };
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) return { ok: false, error: "Log in again to deactivate your account." };
+
+  const context = await getAccountClosureContext(user.id);
+  if (!context.ok) return { ok: false, error: context.error };
+  if (isProtectedAdminAccount(user, context.profile)) {
+    return { ok: false, error: "Administrator accounts cannot be deactivated here." };
+  }
+
+  const billing = await getAccountSubscriptions(user, context.profile);
+  if (!billing.ok) return { ok: false, error: billing.error };
+
+  const renewingSubscription = billing.subscriptions.find(
+    (subscription) =>
+      !terminalSubscriptionStatuses.has(subscription.status) &&
+      !subscription.cancel_at_period_end
+  );
+  if (renewingSubscription) {
+    return {
+      ok: false,
+      error: "Cancel your membership before deactivating so billing does not continue while you cannot log in."
+    };
+  }
+
+  const { error: banError } = await context.admin.auth.admin.updateUserById(user.id, {
+    ban_duration: "876000h"
+  });
+  if (banError) return { ok: false, error: "Unable to deactivate your account right now." };
+
+  const { error: signOutError } = await supabase.auth.signOut({ scope: "global" });
+  if (signOutError) {
+    console.error("Hirevate account was deactivated but global sign-out failed", {
+      userId: user.id,
+      error: signOutError.message
+    });
+  }
+
+  return { ok: true, message: "Your account has been deactivated." };
+}
+
+export async function deleteAccountAction(
+  values: AccountClosureValues
+): Promise<AuthResult> {
+  const parsed = deleteAccountSchema.safeParse(values);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Confirm account deletion." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured." };
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) return { ok: false, error: "Log in again to delete your account." };
+
+  const context = await getAccountClosureContext(user.id);
+  if (!context.ok) return { ok: false, error: context.error };
+  if (isProtectedAdminAccount(user, context.profile)) {
+    return { ok: false, error: "Administrator accounts cannot be deleted here." };
+  }
+
+  const billing = await getAccountSubscriptions(user, context.profile);
+  if (!billing.ok) return { ok: false, error: billing.error };
+
+  const subscriptionsToCancel = billing.subscriptions.filter(
+    (subscription) => !terminalSubscriptionStatuses.has(subscription.status)
+  );
+  const stripe = billing.stripe;
+  if (stripe && subscriptionsToCancel.length > 0) {
+    try {
+      await Promise.all(
+        subscriptionsToCancel.map((subscription) => stripe.subscriptions.cancel(subscription.id))
+      );
+    } catch {
+      return {
+        ok: false,
+        error: "Your membership could not be canceled, so your account was not deleted. Contact support."
+      };
+    }
+  }
+
+  const { error: signOutError } = await supabase.auth.signOut({ scope: "global" });
+  if (signOutError) {
+    console.error("Global sign-out failed before Hirevate account deletion", {
+      userId: user.id,
+      error: signOutError.message
+    });
+  }
+
+  const { error: deleteError } = await context.admin.auth.admin.deleteUser(user.id, false);
+  if (deleteError) {
+    return {
+      ok: false,
+      error:
+        subscriptionsToCancel.length > 0
+          ? "Your membership was canceled, but account deletion did not complete. Contact support."
+          : "Unable to delete your account right now. Contact support."
+    };
+  }
+
+  return { ok: true, message: "Your account has been permanently deleted." };
 }
 
 export async function signOutAction() {

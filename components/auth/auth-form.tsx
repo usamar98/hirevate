@@ -21,11 +21,17 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const redirectTo =
     redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : defaultRedirect;
   const passwordWasUpdated = mode === "login" && searchParams.get("password") === "updated";
+  const accountWasDeactivated =
+    mode === "login" && searchParams.get("account") === "deactivated";
   const [message, setMessage] = useState<string | null>(
-    passwordWasUpdated ? "Your password was updated. Log in with your new password." : null
+    accountWasDeactivated
+      ? "Your account is deactivated. Contact support@hirevate.com to reactivate it."
+      : passwordWasUpdated
+        ? "Your password was updated. Log in with your new password."
+        : null
   );
   const [messageTone, setMessageTone] = useState<"error" | "success">(
-    passwordWasUpdated ? "success" : "error"
+    accountWasDeactivated || passwordWasUpdated ? "success" : "error"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {

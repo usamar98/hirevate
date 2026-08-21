@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AccountDangerZone } from "@/components/account/account-danger-zone";
 import { ProfileSettingsForm } from "@/components/account/profile-settings-form";
 import { getProfile, requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Account Profile",
-  description: "Update your Hirevate profile and password.",
+  description: "Update your Hirevate profile, password, and account status.",
   robots: { index: false, follow: false }
 };
 
@@ -44,6 +45,7 @@ export default async function AccountProfilePage() {
             countryName: profile?.country_name ?? user.user_metadata?.country_name ?? ""
           }}
         />
+        <AccountDangerZone />
       </div>
     </section>
   );

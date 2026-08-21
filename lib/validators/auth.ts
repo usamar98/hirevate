@@ -63,8 +63,23 @@ export const accountPasswordSchema = z
     path: ["confirmPassword"]
   });
 
+export const deactivateAccountSchema = z.object({
+  confirmation: z
+    .string()
+    .trim()
+    .refine((value) => value === "DEACTIVATE", "Type DEACTIVATE to continue.")
+});
+
+export const deleteAccountSchema = z.object({
+  confirmation: z
+    .string()
+    .trim()
+    .refine((value) => value === "DELETE", "Type DELETE to continue.")
+});
+
 export type AuthFormValues = z.infer<typeof signUpSchema>;
 export type PasswordResetRequestValues = z.infer<typeof passwordResetRequestSchema>;
 export type PasswordUpdateValues = z.infer<typeof passwordUpdateSchema>;
 export type AccountProfileValues = z.infer<typeof accountProfileSchema>;
 export type AccountPasswordValues = z.infer<typeof accountPasswordSchema>;
+export type AccountClosureValues = { confirmation: string };
