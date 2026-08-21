@@ -41,6 +41,7 @@ export type Database = {
           country_code: string | null;
           country_name: string | null;
           last_seen_at: string | null;
+          welcome_email_triggered_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -59,6 +60,7 @@ export type Database = {
           country_code?: string | null;
           country_name?: string | null;
           last_seen_at?: string | null;
+          welcome_email_triggered_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -77,6 +79,7 @@ export type Database = {
           country_code?: string | null;
           country_name?: string | null;
           last_seen_at?: string | null;
+          welcome_email_triggered_at?: string | null;
           created_at?: string;
         };
         Relationships: [];

@@ -321,20 +321,9 @@ export default async function JobsPage({
       />
       <section className="bg-gray-50 py-10">
         <div className="container-shell">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <div>
-              <h1 className="text-4xl font-semibold text-ink-900">Hidden jobs</h1>
-              <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-                Search company career pages, public ATS boards, and trusted hiring sources by keyword,
-                location, remote preference, and freshness.
-              </p>
-            </div>
-            <Button asChild href="/pricing" variant="outline">
-              View plans
-            </Button>
-          </div>
+          <h1 className="sr-only">Hidden jobs</h1>
           {countryPreference.country ? (
-            <div className="mt-6 flex flex-col gap-3 rounded-lg border border-brand-100 bg-brand-50 p-4 text-sm md:flex-row md:items-center">
+            <div className="flex flex-col gap-3 rounded-lg border border-brand-100 bg-brand-50 p-4 text-sm md:flex-row md:items-center">
               <Globe2 className="h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-ink-900">
@@ -360,7 +349,7 @@ export default async function JobsPage({
             </div>
           ) : null}
 
-          <div className="mt-8">
+          <div className={countryPreference.country ? "mt-8" : undefined}>
             <JobFilters filters={filters} />
           </div>
 

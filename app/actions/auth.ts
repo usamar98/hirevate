@@ -9,6 +9,7 @@ import {
   resolveLoginEmail
 } from "@/lib/auth/super-login";
 import { ensureUserProfile } from "@/lib/auth/ensure-profile";
+import { triggerWelcomeAutomationSafely } from "@/lib/email/welcome";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -72,29 +73,6 @@ async function getRequestGeo() {
     countryCode: countryCode?.toUpperCase() ?? null,
     countryName: countryName || null
   };
-}
-
-async function updateProfilePresence(userId: string, geo: Awaited<ReturnType<typeof getRequestGeo>>) {
-  const admin = createSupabaseAdminClient();
-  if (!admin) return;
-
-  const updates: {
-    country_code?: string | null;
-    country_name?: string | null;
-    last_seen_at: string;
-  } = {
-    last_seen_at: new Date().toISOString()
-  };
-
-  if (geo.countryCode) {
-    updates.country_code = geo.countryCode;
-    updates.country_name = geo.countryName;
-  }
-
-  await admin
-    .from("profiles")
-    .upsert({ id: userId, ...updates }, { onConflict: "id" });
-  // The primary-key conflict target keeps this write scoped to the current user.
 }
 
 async function findAuthUserByEmail(email: string) {
@@ -205,6 +183,7 @@ export async function signInAction(values: AuthFormValues): Promise<AuthResult> 
 
   if (data.user) {
     await ensureUserProfile(data.user, await getRequestGeo()).catch(() => false);
+    await triggerWelcomeAutomationSafely(data.user);
   }
 
   return { ok: true };
@@ -262,7 +241,8 @@ export async function signUpAction(
   }
 
   if (data.user) {
-    await updateProfilePresence(data.user.id, geo);
+    await ensureUserProfile(data.user, geo).catch(() => false);
+    await triggerWelcomeAutomationSafely(data.user);
   }
 
   return { ok: true };

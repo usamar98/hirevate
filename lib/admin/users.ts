@@ -521,6 +521,7 @@ export async function getAdminUsersDashboard() {
       country_code: countryCode,
       country_name: getMetadataString(userMetadata, "country_name"),
       last_seen_at: authUser.last_sign_in_at ?? null,
+      welcome_email_triggered_at: null,
       created_at: authUser.created_at
     };
     const stripeSubscription = findUserSubscription(profile, stripeIndexes);
