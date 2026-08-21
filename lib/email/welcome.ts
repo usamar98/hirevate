@@ -5,7 +5,8 @@ import type { User } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-const welcomeEventName = "hirevate.user.created";
+const welcomeTemplateAlias = "hirevate-new-user-welcome";
+const welcomeSubject = "Welcome to Hirevate — find fresh jobs faster";
 
 let resendClient: Resend | null = null;
 
@@ -51,17 +52,26 @@ async function triggerWelcomeAutomation(user: User) {
   if (claimError) throw claimError;
   if (!claimedProfile) return false;
 
-  const { error: eventError } = await resend.events.send({
-    event: welcomeEventName,
-    email: user.email,
-    payload: {
-      first_name: getFirstName(user),
-      browse_jobs_url: productUrl("/jobs#results"),
-      pricing_url: productUrl("/pricing")
-    }
-  });
+  const { error: emailError } = await resend.emails.send(
+    {
+      from: env.welcomeEmailFrom,
+      to: user.email,
+      subject: welcomeSubject,
+      replyTo: "support@hirevate.com",
+      template: {
+        id: welcomeTemplateAlias,
+        variables: {
+          RECIPIENT_FIRST_NAME: getFirstName(user),
+          BROWSE_JOBS_URL: productUrl("/jobs#results"),
+          PRICING_URL: productUrl("/pricing")
+        }
+      },
+      tags: [{ name: "email_type", value: "new_user_welcome" }]
+    },
+    { idempotencyKey: `hirevate-welcome-${user.id}` }
+  );
 
-  if (!eventError) return true;
+  if (!emailError) return true;
 
   const { error: rollbackError } = await admin
     .from("profiles")
@@ -76,7 +86,7 @@ async function triggerWelcomeAutomation(user: User) {
     });
   }
 
-  throw new Error(eventError.message);
+  throw new Error(emailError.message);
 }
 
 export async function triggerWelcomeAutomationSafely(user: User) {
