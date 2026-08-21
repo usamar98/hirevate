@@ -74,11 +74,6 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
           <Link className="transition hover:text-ink-900" href="/account/cover-letters">
             {copy.coverLetter}
           </Link>
-          {authStatus.authenticated ? (
-            <Link className="transition hover:text-ink-900" href="/dashboard">
-              {copy.dashboard}
-            </Link>
-          ) : null}
           {authStatus.isAdmin ? (
             <>
               <Link className="transition hover:text-ink-900" href="/admin/users">

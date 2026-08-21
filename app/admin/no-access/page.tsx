@@ -35,8 +35,8 @@ export default async function AdminNoAccessPage({
             <span>Requested: {from}</span>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild href="/dashboard" variant="secondary">
-              Open dashboard
+            <Button asChild href="/jobs" variant="secondary">
+              Browse jobs
             </Button>
             <Button asChild href="/admin/users" variant="outline">
               Try admin users

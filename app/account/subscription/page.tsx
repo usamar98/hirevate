@@ -98,8 +98,8 @@ export default async function AccountSubscriptionPage() {
   return (
     <section className="bg-gray-50 py-12">
       <div className="container-shell max-w-3xl">
-        <Link className="text-sm font-semibold text-brand-700" href="/dashboard">
-          Dashboard
+        <Link className="text-sm font-semibold text-brand-700" href="/jobs">
+          Jobs
         </Link>
         <h1 className="mt-3 text-4xl font-semibold text-ink-900">Account subscription</h1>
         <p className="mt-3 text-base leading-7 text-ink-500">

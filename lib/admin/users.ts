@@ -509,6 +509,7 @@ export async function getAdminUsersDashboard() {
       id: authUser.id,
       email: authUser.email ?? null,
       full_name: getMetadataString(userMetadata, "full_name"),
+      username: getMetadataString(userMetadata, "username")?.toLowerCase() ?? null,
       role,
       subscription_status: "free",
       stripe_customer_id: null,

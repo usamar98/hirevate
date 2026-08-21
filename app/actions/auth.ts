@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
@@ -12,10 +13,14 @@ import { env } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  accountPasswordSchema,
+  accountProfileSchema,
   passwordResetRequestSchema,
   passwordUpdateSchema,
   signInSchema,
   signUpSchema,
+  type AccountPasswordValues,
+  type AccountProfileValues,
   type AuthFormValues,
   type PasswordResetRequestValues,
   type PasswordUpdateValues
@@ -27,10 +32,24 @@ type AuthResult =
 
 function getSafeNextPath(value: string) {
   if (!value.startsWith("/") || value.startsWith("//")) {
-    return "/dashboard";
+    return "/jobs";
   }
 
   return value;
+}
+
+async function findLoginEmailByUsername(username: string) {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return null;
+
+  const { data, error } = await admin
+    .from("profiles")
+    .select("email")
+    .eq("username", username.trim().toLowerCase())
+    .maybeSingle();
+
+  if (error || !data?.email) return null;
+  return data.email;
 }
 
 async function getRequestOrigin() {
@@ -163,7 +182,9 @@ export async function signInAction(values: AuthFormValues): Promise<AuthResult> 
     if (!ensured.ok) return ensured;
   }
 
-  const loginEmail = resolveLoginEmail(parsed.data.email);
+  const loginEmail =
+    resolveLoginEmail(parsed.data.email) ??
+    (await findLoginEmailByUsername(parsed.data.email));
   if (!loginEmail) {
     return { ok: false, error: "Enter a valid email address or username." };
   }
@@ -308,6 +329,90 @@ export async function updatePasswordAction(values: PasswordUpdateValues): Promis
     ok: true,
     message: "Your password has been updated. You can now log in with your new password."
   };
+}
+
+export async function updateAccountProfileAction(
+  values: AccountProfileValues
+): Promise<AuthResult> {
+  const parsed = accountProfileSchema.safeParse(values);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Enter valid profile details." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured." };
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (userError || !user) return { ok: false, error: "Log in again to update your profile." };
+
+  const username = parsed.data.username.toLowerCase();
+  const countryName = parsed.data.countryName || null;
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      full_name: parsed.data.fullName,
+      username,
+      country_name: countryName
+    })
+    .eq("id", user.id);
+
+  if (profileError) {
+    const duplicateUsername = profileError.code === "23505";
+    return {
+      ok: false,
+      error: duplicateUsername
+        ? "That username is already taken. Choose another one."
+        : profileError.message
+    };
+  }
+
+  const emailChanged = parsed.data.email.toLowerCase() !== user.email?.toLowerCase();
+  const { data: updatedUserData, error: authError } = await supabase.auth.updateUser({
+    ...(emailChanged ? { email: parsed.data.email } : {}),
+    data: {
+      ...user.user_metadata,
+      full_name: parsed.data.fullName,
+      username,
+      country_name: countryName
+    }
+  });
+
+  if (authError) return { ok: false, error: authError.message };
+
+  if (updatedUserData.user.email?.toLowerCase() === parsed.data.email.toLowerCase()) {
+    await ensureUserProfile(updatedUserData.user).catch(() => false);
+  }
+
+  revalidatePath("/account/profile");
+  return {
+    ok: true,
+    message: emailChanged
+      ? "Profile saved. Check your inbox to confirm the new email address."
+      : "Your profile has been updated."
+  };
+}
+
+export async function updateAccountPasswordAction(
+  values: AccountPasswordValues
+): Promise<AuthResult> {
+  const parsed = accountPasswordSchema.safeParse(values);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Enter a valid password." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured." };
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return { ok: false, error: "Log in again to update your password." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) return { ok: false, error: error.message };
+
+  return { ok: true, message: "Your password has been updated." };
 }
 
 export async function signOutAction() {

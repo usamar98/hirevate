@@ -19,6 +19,7 @@ export const siteCopy = {
     account: {
       trigger: "Account",
       menuLabel: "Account menu",
+      profile: "Profile",
       subscription: "Subscription",
       savedJobs: "Saved jobs",
       about: "About",
@@ -77,6 +78,7 @@ export const siteCopy = {
     account: {
       trigger: "Konto",
       menuLabel: "Kontomenü",
+      profile: "Profil",
       subscription: "Abonnement",
       savedJobs: "Gespeicherte Jobs",
       about: "Über uns",

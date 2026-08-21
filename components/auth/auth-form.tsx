@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { signInAction, signUpAction } from "@/app/actions/auth";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { notifyAuthStatusChanged } from "@/lib/auth/client-events";
@@ -15,7 +16,7 @@ import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validator
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultRedirect = mode === "signup" ? "/pricing" : "/dashboard";
+  const defaultRedirect = mode === "signup" ? "/pricing" : "/jobs#results";
   const redirectParam = searchParams.get("redirect") ?? defaultRedirect;
   const redirectTo =
     redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : defaultRedirect;
@@ -123,11 +124,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             </Link>
           ) : null}
         </div>
-        <Input
+        <PasswordInput
           autoComplete={mode === "signup" ? "new-password" : "current-password"}
           id={`${mode}-password`}
           placeholder="At least 8 characters"
-          type="password"
           {...register("password")}
         />
         {errors.password ? (

@@ -15,6 +15,7 @@ export const swedishSiteCopy = {
   account: {
     trigger: "Konto",
     menuLabel: "Kontomeny",
+    profile: "Profil",
     subscription: "Prenumeration",
     savedJobs: "Sparade jobb",
     about: "Om oss",

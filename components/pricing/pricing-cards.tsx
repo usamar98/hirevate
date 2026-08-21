@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, Check, Loader2, Trophy } from "lucide-react";
+import { CalendarDays, Check, Clock3, Loader2, Trophy } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,60 @@ const planIcons = {
   gold: CalendarDays,
   platinum: Trophy
 } satisfies Record<PublicSubscriptionTier, typeof Trophy>;
+
+const annualOfferWindowMs = 12 * 60 * 60 * 1000;
+const annualOfferStorageKey = "hirevate-annual-offer-ends-at";
+
+function formatTimeRemaining(milliseconds: number) {
+  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
+}
+
+function AnnualOfferTimer() {
+  const [remaining, setRemaining] = useState(annualOfferWindowMs);
+
+  useEffect(() => {
+    let offerEndsAt = Date.now() + annualOfferWindowMs;
+
+    try {
+      const storedValue = Number(window.localStorage.getItem(annualOfferStorageKey));
+      if (Number.isFinite(storedValue) && storedValue > Date.now()) {
+        offerEndsAt = storedValue;
+      } else {
+        window.localStorage.setItem(annualOfferStorageKey, String(offerEndsAt));
+      }
+    } catch {
+      // The countdown still works when browser storage is unavailable.
+    }
+
+    function tick() {
+      const now = Date.now();
+      if (offerEndsAt <= now) {
+        offerEndsAt = now + annualOfferWindowMs;
+        try {
+          window.localStorage.setItem(annualOfferStorageKey, String(offerEndsAt));
+        } catch {
+          // Continue with the in-memory rolling window.
+        }
+      }
+      setRemaining(offerEndsAt - now);
+    }
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <span className="inline-flex items-center gap-1 font-mono text-xs font-semibold tabular-nums" role="timer">
+      <Clock3 aria-hidden="true" className="h-3.5 w-3.5" />
+      {formatTimeRemaining(remaining)}
+    </span>
+  );
+}
 
 export function PricingCards() {
   const searchParams = useSearchParams();
@@ -156,6 +210,17 @@ export function PricingCards() {
                 >
                   {option.billingDetail}
                 </p>
+                {option.compareAtPrice ? (
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
+                    <span className="text-xs font-semibold">
+                      <span className="mr-2 text-ink-500 line-through decoration-2">
+                        {option.compareAtPrice}/yr
+                      </span>
+                      Annual offer
+                    </span>
+                    <AnnualOfferTimer />
+                  </div>
+                ) : null}
                 <Button
                   className={
                     plan.highlighted

@@ -505,8 +505,8 @@ export default async function JobTrackerPage({
             title="Professional tracker needs database setup"
             description={dashboard.setupMessage ?? "Run the tracker lifecycle migration in Supabase."}
             action={
-              <Button asChild href="/dashboard">
-                Back to dashboard
+              <Button asChild href="/jobs">
+                Browse jobs
               </Button>
             }
           />

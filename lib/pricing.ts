@@ -12,6 +12,7 @@ export type PublicPricingOption = {
   key: CheckoutPlanKey;
   label: "Monthly" | "Annual";
   price: string;
+  compareAtPrice?: string;
   displayPrice: string;
   displayCadence: "/day" | "/week";
   priceValue: string;
@@ -90,6 +91,7 @@ export const publicPricingPlans: PublicPricingPlan[] = [
         key: "platinum_annual",
         label: "Annual",
         price: "$69.99",
+        compareAtPrice: "$99",
         displayPrice: "~$1.35",
         displayCadence: "/week",
         priceValue: "69.99",

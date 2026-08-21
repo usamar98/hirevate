@@ -10,8 +10,19 @@ import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getJobPath } from "@/lib/jobs/seo";
 import { classifyStudentJob } from "@/lib/jobs/student-part-time";
-import { formatRelativeDate } from "@/lib/utils";
+import { cn, formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
+
+const jobCardColors = [
+  "border-sky-100 bg-sky-50/60 hover:border-sky-200",
+  "border-violet-100 bg-violet-50/60 hover:border-violet-200",
+  "border-amber-100 bg-amber-50/60 hover:border-amber-200"
+] as const;
+
+function getJobCardColor(seed: string) {
+  const hash = Array.from(seed).reduce((total, character) => total + character.charCodeAt(0), 0);
+  return jobCardColors[hash % jobCardColors.length];
+}
 
 export function JobCard({
   canApply,
@@ -38,7 +49,7 @@ export function JobCard({
   );
 
   return (
-    <Card className="p-5 transition hover:border-brand-100 hover:shadow-soft">
+    <Card className={cn("p-5 transition hover:shadow-soft", getJobCardColor(job.id))}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-1 gap-4">
           <CompanyLogo

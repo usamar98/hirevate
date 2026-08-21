@@ -9,8 +9,8 @@ import {
   AuthStatusMessage,
   type AuthMessage
 } from "@/components/auth/auth-status-message";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { passwordUpdateSchema, type PasswordUpdateValues } from "@/lib/validators/auth";
 
 export function ResetPasswordForm() {
@@ -69,11 +69,10 @@ export function ResetPasswordForm() {
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink-700">New password</span>
-        <Input
+        <PasswordInput
           aria-invalid={Boolean(errors.password)}
           autoComplete="new-password"
           placeholder="At least 8 characters"
-          type="password"
           {...register("password")}
         />
         {errors.password ? (
@@ -82,11 +81,10 @@ export function ResetPasswordForm() {
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-ink-700">Confirm new password</span>
-        <Input
+        <PasswordInput
           aria-invalid={Boolean(errors.confirmPassword)}
           autoComplete="new-password"
           placeholder="Enter the password again"
-          type="password"
           {...register("confirmPassword")}
         />
         {errors.confirmPassword ? (

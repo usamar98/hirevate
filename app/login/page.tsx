@@ -18,7 +18,7 @@ type LoginPageProps = {
 
 function getSafeRedirect(value: string | string[] | undefined) {
   const redirect = Array.isArray(value) ? value[0] : value;
-  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
+  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/jobs#results";
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowRight } from "lucide-react";
+import { redirect } from "next/navigation";
 import { updateSuperLoginPlanAction } from "@/app/actions/super-login";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -100,6 +100,10 @@ export default async function DashboardPage({
   const superLoginError = resolvedSearchParams?.superLoginError;
   const isSuperLogin = isSuperLoginProfile(profile);
 
+  if (!checkoutNotice && !isSuperLogin && !superLoginPlan && !superLoginError) {
+    redirect("/jobs#results");
+  }
+
   return (
     <section className="bg-gray-50 py-10">
       <div className="container-shell space-y-8">
@@ -120,20 +124,6 @@ export default async function DashboardPage({
             Supabase service role is not configured, so the super login plan could not be changed.
           </div>
         ) : null}
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <h1 className="text-4xl font-semibold text-ink-900">Dashboard</h1>
-            <p className="mt-3 text-base leading-7 text-ink-500">
-              Find your next role here, then use the Account menu to manage your career workflow.
-            </p>
-          </div>
-          <Button asChild href="/jobs">
-            Browse jobs
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </div>
-
-
         {isSuperLogin ? (
           <Card className="border-amber-200 bg-amber-50 p-5">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">

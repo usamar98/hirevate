@@ -26,10 +26,10 @@ import {
   AdminPlanDistribution
 } from "@/components/admin/admin-dashboard-charts";
 import { AdminUsersTable } from "@/components/admin/admin-users-table";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { getAdminUsersDashboard } from "@/lib/admin/users";
 import { hasAdminHirevateSession, isAdminHirevateConfigured } from "@/lib/admin/password-session";
 
@@ -112,7 +112,7 @@ function LoginView({ error }: { error: string | undefined }) {
               <label className="text-sm font-semibold text-ink-900" htmlFor="admin-password">
                 Admin password
               </label>
-              <Input
+              <PasswordInput
                 autoComplete="current-password"
                 className="mt-2"
                 disabled={!configured}
@@ -120,7 +120,6 @@ function LoginView({ error }: { error: string | undefined }) {
                 name="password"
                 placeholder="Enter private dashboard password"
                 required
-                type="password"
               />
             </div>
 

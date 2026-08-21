@@ -9,6 +9,7 @@ import {
   CreditCard,
   Info,
   LogOut,
+  UserRound,
   UserCircle
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +24,7 @@ export function AccountMenu({ language }: { language: SupportedLanguage }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const copy = getSiteCopy(language).account;
   const accountMenuItems = [
+    { href: "/account/profile", label: copy.profile, icon: UserRound },
     { href: "/account/subscription", label: copy.subscription, icon: CreditCard },
     { href: "/account/saved-jobs", label: copy.savedJobs, icon: BookmarkCheck },
     { href: "/about", label: copy.about, icon: Info },

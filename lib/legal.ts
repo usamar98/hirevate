@@ -92,7 +92,7 @@ export const legalDocuments: LegalDocument[] = [
       },
       {
         title: "Cancellation",
-        text: ["A signed-in subscriber can open Account Subscription from the dashboard and select Cancel subscription. Cancellation takes effect at the end of the paid period, with access continuing until then."]
+        text: ["A signed-in subscriber can open Subscription from the Account menu and select Cancel subscription. Cancellation takes effect at the end of the paid period, with access continuing until then."]
       },
       {
         title: "Refunds and payment issues",

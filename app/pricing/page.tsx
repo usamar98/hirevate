@@ -32,7 +32,7 @@ const pricingFaqItems = [
   {
     question: "How do I cancel a Hirevate subscription?",
     answer:
-      "Sign in, open Dashboard, choose Manage billing, and confirm cancellation. Renewal stops and paid access continues until the end of the current billing period."
+      "Sign in, open the Account menu, choose Subscription, and confirm cancellation. Renewal stops and paid access continues until the end of the current billing period."
   }
 ];
 
