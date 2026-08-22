@@ -26,7 +26,7 @@ import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { getLandingCopy } from "@/lib/i18n/content";
 import type { SupportedLanguage } from "@/lib/i18n/config";
 import { resolveLanguagePreference } from "@/lib/i18n/server";
-import { publicPricingPlans } from "@/lib/pricing";
+import { publicPricingPlans, startTrialHref } from "@/lib/pricing";
 import {
   absoluteUrl,
   defaultDescription,
@@ -366,8 +366,11 @@ export default async function LandingPage() {
               </Button>
             </div>
             <p className="mt-4 text-sm font-semibold text-brand-700">
-              <Link href="/signup?redirect=%2Fjobs">Start a 3-day free trial</Link>
-              <span className="font-medium text-ink-500"> — no card required.</span>
+              <Link href={startTrialHref}>Start a 3-day free trial</Link>
+              <span className="font-medium text-ink-500">
+                {" "}
+                — card required; $24.99/month afterward unless canceled.
+              </span>
             </p>
             <p className="mt-5 max-w-lg text-sm leading-6 text-ink-500">
               Company career pages and public ATS boards are prioritized, with stale listings

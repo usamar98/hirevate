@@ -10,7 +10,8 @@ import {
   getFreeTrialEndsAt,
   getProfile,
   hasActiveFreeTrial,
-  isPaidSubscription,
+  hasPremiumAccess,
+  hasProductAccess,
   requireUser
 } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/server";
@@ -50,7 +51,7 @@ export default async function AccountSubscriptionPage() {
   if (
     stripe &&
     user.email &&
-    (!isPaidSubscription(profile?.subscription_status) || !profile?.stripe_subscription_id)
+    (!hasProductAccess(profile) || !profile?.stripe_subscription_id)
   ) {
     try {
       const repaired = await reconcilePaidSubscriptionForUser(
@@ -66,7 +67,11 @@ export default async function AccountSubscriptionPage() {
           ...profile,
           subscription_status: repaired.paidStatus,
           stripe_customer_id: String(repaired.subscription.customer),
-          stripe_subscription_id: repaired.subscription.id
+          stripe_subscription_id: repaired.subscription.id,
+          stripe_subscription_status: repaired.subscription.status,
+          subscription_current_period_end: repaired.subscription.current_period_end
+            ? new Date(repaired.subscription.current_period_end * 1000).toISOString()
+            : null
         };
       }
     } catch {
@@ -74,7 +79,7 @@ export default async function AccountSubscriptionPage() {
     }
   }
 
-  let isPaid = isPaidSubscription(profile?.subscription_status);
+  let isPaid = hasPremiumAccess(profile);
   let cancellationScheduled = false;
   let periodEnd: string | null = null;
   let stripeStatus: string | null = null;
@@ -90,18 +95,18 @@ export default async function AccountSubscriptionPage() {
       if (
         profile.stripe_subscription_status !== subscription.status ||
         profile.subscription_cancel_at_period_end !== subscription.cancel_at_period_end ||
-        (isPaid && !["active", "trialing"].includes(subscription.status))
+        (hasProductAccess(profile) && !["active", "trialing"].includes(subscription.status))
       ) {
         await syncSubscriptionState(stripe, subscription);
         profile = await getProfile(user.id);
-        isPaid = isPaidSubscription(profile?.subscription_status);
+        isPaid = hasPremiumAccess(profile);
       }
     } catch {
       subscriptionUnavailable = true;
     }
   }
 
-  const isFreeTrialActive = !isPaid && hasActiveFreeTrial(profile);
+  const isFreeTrialActive = hasActiveFreeTrial(profile);
   const freeTrialEndsAt = getFreeTrialEndsAt(profile);
 
   return (
@@ -126,8 +131,16 @@ export default async function AccountSubscriptionPage() {
               </div>
               <p className="mt-2 text-sm text-ink-500">{user.email}</p>
             </div>
-            <Badge tone={isPaid || isFreeTrialActive ? "green" : "gray"}>
-              {isPaid ? stripeStatus ?? "active" : isFreeTrialActive ? "active" : "unsubscribed"}
+            <Badge
+              tone={cancellationScheduled ? "amber" : isPaid || isFreeTrialActive ? "green" : "gray"}
+            >
+              {cancellationScheduled
+                ? "ending"
+                : isPaid
+                  ? stripeStatus ?? "active"
+                  : isFreeTrialActive
+                    ? "active"
+                    : "unsubscribed"}
             </Badge>
           </div>
 
@@ -139,13 +152,15 @@ export default async function AccountSubscriptionPage() {
                   Free trial ends {new Intl.DateTimeFormat("en", { dateStyle: "long", timeStyle: "short" }).format(freeTrialEndsAt)}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-ink-500">
-                  Choose a plan anytime to keep access after the trial.
+                  {cancellationScheduled
+                    ? "Your trial will end without a charge, and the Monthly Plan will not start."
+                    : "Unless you cancel before then, Stripe will attempt to charge USD $24.99 and your Monthly Plan will begin automatically. A reminder is scheduled about 12 hours before the trial ends."}
                 </p>
               </div>
             </div>
           ) : null}
 
-          {periodEnd ? (
+          {periodEnd && !isFreeTrialActive ? (
             <div className="mt-6 flex gap-3 rounded-md border border-gray-100 bg-gray-50 p-4">
               <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-ink-500" aria-hidden="true" />
               <div>
@@ -168,10 +183,12 @@ export default async function AccountSubscriptionPage() {
           ) : null}
 
           <div className="mt-6">
-            {isPaid && profile?.stripe_subscription_id && !cancellationScheduled ? (
-              <CancelSubscriptionButton />
+            {(isPaid || isFreeTrialActive) &&
+            profile?.stripe_subscription_id &&
+            !cancellationScheduled ? (
+              <CancelSubscriptionButton isTrial={isFreeTrialActive} />
             ) : null}
-            {!isPaid ? (
+            {!isPaid && !isFreeTrialActive ? (
               <Button asChild href="/pricing">
                 View paid plans
               </Button>

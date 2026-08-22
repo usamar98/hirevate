@@ -8,6 +8,12 @@ export type SubscriptionTier = "starter" | "silver" | "gold" | "platinum";
 export type PublicSubscriptionTier = Extract<SubscriptionTier, "gold" | "platinum">;
 export type BillingInterval = "day" | "week" | "month" | "year";
 
+export const trialCheckoutPlanKey: CheckoutPlanKey = "gold_monthly";
+export const trialCheckoutPath = "/pricing?trial=start";
+export const startTrialHref = `/signup?redirect=${encodeURIComponent(trialCheckoutPath)}`;
+export const trialDurationDays = 3;
+export const trialReminderHoursBeforeEnd = 12;
+
 export type PublicPricingOption = {
   key: CheckoutPlanKey;
   label: "Monthly" | "Annual";
@@ -123,7 +129,7 @@ export const publicPricingFacts = publicPricingPlans.flatMap((plan) =>
 );
 
 export const pricingSummary =
-  "Hirevate costs USD $24.99 per month or USD $69.99 per year. Both plans are paid subscriptions and renew for the selected billing period until canceled.";
+  "Hirevate costs USD $24.99 per month or USD $69.99 per year. The optional 3-day trial requires a card and converts automatically to the USD $24.99 monthly plan unless canceled before the trial ends. Paid plans renew for the selected billing period until canceled.";
 
 export function getPricingPlanForOption(key: CheckoutPlanKey) {
   const plan = publicPricingPlans.find((item) => item.options.some((option) => option.key === key));

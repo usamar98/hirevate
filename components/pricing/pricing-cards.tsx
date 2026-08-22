@@ -2,13 +2,15 @@
 
 import { CalendarDays, Check, Clock3, Loader2, Trophy } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   checkoutPlanKeys,
   publicPricingPlans,
+  trialCheckoutPath,
+  trialCheckoutPlanKey,
   type CheckoutPlanKey,
   type PublicSubscriptionTier
 } from "@/lib/pricing";
@@ -78,10 +80,12 @@ export function PricingCards() {
   const selectedPlan = checkoutPlanKeys.includes(requestedPlan as CheckoutPlanKey)
     ? (requestedPlan as CheckoutPlanKey)
     : null;
+  const trialRequested = searchParams.get("trial") === "start";
+  const trialCheckoutStarted = useRef(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function startCheckout(plan: CheckoutPlanKey) {
+  const startCheckout = useCallback(async (plan: CheckoutPlanKey, trial = false) => {
     setLoadingPlan(plan);
     setError(null);
 
@@ -91,12 +95,12 @@ export function PricingCards() {
         headers: {
           "content-type": "application/json"
         },
-        body: JSON.stringify({ plan })
+        body: JSON.stringify({ plan, trial })
       });
       const payload = (await response.json()) as { url?: string; error?: string };
 
       if (response.status === 401) {
-        const redirect = encodeURIComponent(`/pricing?plan=${plan}`);
+        const redirect = encodeURIComponent(trial ? trialCheckoutPath : `/pricing?plan=${plan}`);
         window.location.href = `/login?redirect=${redirect}`;
         return;
       }
@@ -112,7 +116,14 @@ export function PricingCards() {
     } finally {
       setLoadingPlan(null);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!trialRequested || trialCheckoutStarted.current) return;
+
+    trialCheckoutStarted.current = true;
+    void startCheckout(trialCheckoutPlanKey, true);
+  }, [startCheckout, trialRequested]);
 
   return (
     <div>
@@ -121,7 +132,12 @@ export function PricingCards() {
           {error}
         </div>
       ) : null}
-      {selectedPlan ? (
+      {trialRequested && !error ? (
+        <div className="mb-5 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          Preparing secure Stripe Checkout for your 3-day trial. You are not charged today; the
+          USD $24.99 monthly charge applies unless you cancel before the trial ends.
+        </div>
+      ) : selectedPlan ? (
         <div className="mb-5 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
           Your selected plan is ready below. Review it, then continue to secure checkout.
         </div>
@@ -242,7 +258,7 @@ export function PricingCards() {
         })}
       </div>
       <p className="mt-8 text-center text-xs font-medium text-ink-500">
-        Cancel anytime | No hidden fees | Secured by Stripe
+        Card required for trial | Cancel before trial end to avoid charge | Secured by Stripe
       </p>
     </div>
   );

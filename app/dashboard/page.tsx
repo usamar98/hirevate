@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { isSuperLoginProfile } from "@/lib/auth/super-login";
 import { getProfile, requireUser } from "@/lib/auth/session";
+import { scheduleTrialEndingReminderSafely } from "@/lib/email/trial-reminder";
 import { getStripe } from "@/lib/stripe/server";
 import { syncPaidCheckoutSession } from "@/lib/stripe/subscription-sync";
 
@@ -62,10 +63,21 @@ async function getCheckoutNotice(
     }
 
     if (session.payment_status === "no_payment_required") {
-      return {
-        tone: "amber" as const,
-        message: "Checkout completed without an immediate charge. Paid access will stay pending until Stripe pays an invoice."
-      };
+      const synced = await syncPaidCheckoutSession(stripe, session, userId);
+      if (synced?.subscription.status === "trialing") {
+        await scheduleTrialEndingReminderSafely(synced.subscription);
+      }
+      return synced
+        ? {
+            tone: "green" as const,
+            message:
+              "Your 3-day trial is active. Unless you cancel before it ends, the USD $24.99 monthly subscription starts automatically."
+          }
+        : {
+            tone: "amber" as const,
+            message:
+              "Checkout completed, but your trial is still syncing. Open Account subscription to retry."
+          };
     }
 
     return {

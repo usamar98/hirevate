@@ -33,6 +33,8 @@ export const env = {
   resendApiKey: readEnv("RESEND_API_KEY"),
   welcomeEmailFrom:
     readEnv("WELCOME_EMAIL_FROM") || "Hirevate <welcome@auth.hirevate.com>",
+  trialReminderEmailFrom:
+    readEnv("TRIAL_REMINDER_EMAIL_FROM") || "Hirevate Team <team@hirevate.com>",
   openAiApiKey: readEnv("OPENAI_API_KEY"),
   openAiModel: readEnv("OPENAI_MODEL") || "gpt-5-mini",
   jobSyncSecret: readEnv("JOB_SYNC_SECRET"),

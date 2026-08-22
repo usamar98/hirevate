@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import {
+  cancelTrialEndingReminderSafely,
+  scheduleTrialEndingReminderSafely
+} from "@/lib/email/trial-reminder";
 import { env } from "@/lib/env";
 import { getStripe, resumeBuilderProduct } from "@/lib/stripe/server";
 import {
@@ -32,6 +36,27 @@ async function updatePaidProfileIfInvoiceIsPaid(
   );
 
   return false;
+}
+
+async function syncSubscriptionAndTrialReminder(
+  stripe: Stripe,
+  subscription: Stripe.Subscription
+) {
+  const synced = await syncSubscriptionState(stripe, subscription);
+  const userId = subscription.metadata.userId;
+
+  if (subscription.status === "trialing" && !subscription.cancel_at_period_end) {
+    await scheduleTrialEndingReminderSafely(subscription);
+  } else if (
+    userId &&
+    (subscription.cancel_at_period_end ||
+      subscription.status === "canceled" ||
+      subscription.status === "incomplete_expired")
+  ) {
+    await cancelTrialEndingReminderSafely(userId);
+  }
+
+  return synced;
 }
 
 export async function GET() {
@@ -83,14 +108,18 @@ export async function POST(request: Request) {
 
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(String(subscriptionId));
-        if (session.payment_status === "paid") {
-          await updatePaidProfileIfInvoiceIsPaid(stripe, subscription);
+        if (
+          session.payment_status === "paid" ||
+          (session.payment_status === "no_payment_required" &&
+            subscription.status === "trialing")
+        ) {
+          await syncSubscriptionAndTrialReminder(stripe, subscription);
         } else {
           console.warn(
             JSON.stringify({
               level: "warn",
               route: "/api/stripe/webhook",
-              message: "Checkout completed without paid funds.",
+              message: "Checkout completed without paid funds or an active trial.",
               sessionId: session.id,
               paymentStatus: session.payment_status,
               subscriptionId: subscription.id
@@ -119,13 +148,24 @@ export async function POST(request: Request) {
       }
     }
 
-    if (event.type === "customer.subscription.updated") {
+    if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated"
+    ) {
       const subscription = event.data.object as Stripe.Subscription;
-      await syncSubscriptionState(stripe, subscription);
+      await syncSubscriptionAndTrialReminder(stripe, subscription);
+    }
+
+    if (event.type === "customer.subscription.trial_will_end") {
+      await scheduleTrialEndingReminderSafely(event.data.object as Stripe.Subscription);
     }
 
     if (event.type === "customer.subscription.deleted") {
-      await updateProfileFromSubscription(event.data.object as Stripe.Subscription, "free");
+      const subscription = event.data.object as Stripe.Subscription;
+      await updateProfileFromSubscription(subscription, "free");
+      if (subscription.metadata.userId) {
+        await cancelTrialEndingReminderSafely(subscription.metadata.userId);
+      }
     }
 
     if (event.type === "invoice.payment_failed" || event.type === "invoice.finalization_failed") {

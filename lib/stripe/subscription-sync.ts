@@ -65,10 +65,16 @@ function getCurrentPeriodEnd(subscription: Stripe.Subscription) {
     : null;
 }
 
+function getTrialStartedAt(subscription: Stripe.Subscription) {
+  return subscription.trial_start
+    ? new Date(subscription.trial_start * 1000).toISOString()
+    : null;
+}
+
 function isMissingLifecycleColumn(error: { code?: string; message?: string }) {
   return (
     error.code === "PGRST204" &&
-    /stripe_subscription_status|subscription_cancel_at_period_end|subscription_current_period_end|subscription_updated_at/i.test(
+    /stripe_subscription_status|stripe_trial_started_at|subscription_cancel_at_period_end|subscription_current_period_end|subscription_updated_at/i.test(
       error.message ?? ""
     )
   );
@@ -113,6 +119,9 @@ export async function updateProfileFromSubscription(
   const lifecycleUpdates = {
     ...coreUpdates,
     stripe_subscription_status: subscription.status,
+    ...(getTrialStartedAt(subscription)
+      ? { stripe_trial_started_at: getTrialStartedAt(subscription) }
+      : {}),
     subscription_cancel_at_period_end: subscription.cancel_at_period_end,
     subscription_current_period_end: getCurrentPeriodEnd(subscription),
     subscription_updated_at: new Date().toISOString()
@@ -175,7 +184,7 @@ export async function syncPaidCheckoutSession(
   session: Stripe.Checkout.Session,
   expectedUserId: string
 ) {
-  if (session.payment_status !== "paid" || session.client_reference_id !== expectedUserId) {
+  if (session.client_reference_id !== expectedUserId) {
     return null;
   }
 
@@ -184,6 +193,10 @@ export async function syncPaidCheckoutSession(
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   if (subscription.metadata.userId !== expectedUserId) return null;
+  const validCheckoutStatus =
+    session.payment_status === "paid" ||
+    (session.payment_status === "no_payment_required" && subscription.status === "trialing");
+  if (!validCheckoutStatus) return null;
 
   return syncPaidSubscription(stripe, subscription);
 }

@@ -11,6 +11,7 @@ import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { notifyAuthStatusChanged } from "@/lib/auth/client-events";
+import { trialCheckoutPath } from "@/lib/pricing";
 import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validators/auth";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -20,6 +21,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const redirectParam = searchParams.get("redirect") ?? defaultRedirect;
   const redirectTo =
     redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : defaultRedirect;
+  const startsTrial = mode === "signup" && redirectTo === trialCheckoutPath;
   const passwordWasUpdated = mode === "login" && searchParams.get("password") === "updated";
   const accountWasDeactivated =
     mode === "login" && searchParams.get("account") === "deactivated";
@@ -153,7 +155,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       ) : null}
       <Button className="w-full" disabled={isSubmitting} size="lg" type="submit">
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-        {mode === "signup" ? "Start 3-day free trial" : "Log in"}
+        {mode === "signup" ? (startsTrial ? "Create account and continue" : "Create account") : "Log in"}
       </Button>
       {mode === "signup" ? (
         <p className="text-center text-xs leading-5 text-ink-500">

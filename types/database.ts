@@ -36,9 +36,12 @@ export type Database = {
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           stripe_subscription_status: string | null;
+          stripe_trial_started_at: string | null;
           subscription_cancel_at_period_end: boolean;
           subscription_current_period_end: string | null;
           subscription_updated_at: string | null;
+          trial_reminder_email_id: string | null;
+          trial_reminder_scheduled_for: string | null;
           country_code: string | null;
           country_name: string | null;
           last_seen_at: string | null;
@@ -55,9 +58,12 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           stripe_subscription_status?: string | null;
+          stripe_trial_started_at?: string | null;
           subscription_cancel_at_period_end?: boolean;
           subscription_current_period_end?: string | null;
           subscription_updated_at?: string | null;
+          trial_reminder_email_id?: string | null;
+          trial_reminder_scheduled_for?: string | null;
           country_code?: string | null;
           country_name?: string | null;
           last_seen_at?: string | null;
@@ -74,9 +80,12 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           stripe_subscription_status?: string | null;
+          stripe_trial_started_at?: string | null;
           subscription_cancel_at_period_end?: boolean;
           subscription_current_period_end?: string | null;
           subscription_updated_at?: string | null;
+          trial_reminder_email_id?: string | null;
+          trial_reminder_scheduled_for?: string | null;
           country_code?: string | null;
           country_name?: string | null;
           last_seen_at?: string | null;

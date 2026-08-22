@@ -62,32 +62,49 @@ export function isAdminProfile(profile: Pick<Profile, "role"> | null | undefined
 }
 
 export function hasPremiumAccess(
-  profile: Pick<Profile, "role" | "subscription_status"> | null | undefined
+  profile:
+    | Pick<Profile, "role" | "subscription_status" | "stripe_subscription_status">
+    | null
+    | undefined
 ) {
-  return isAdminProfile(profile) || isPaidSubscription(profile?.subscription_status);
+  if (isAdminProfile(profile)) return true;
+
+  const stripeStatus = profile?.stripe_subscription_status?.trim().toLowerCase();
+  if (stripeStatus) return stripeStatus === "active";
+
+  return isPaidSubscription(profile?.subscription_status);
 }
 
-export const FREE_TRIAL_DAYS = 3;
-export const FREE_TRIAL_DURATION_MS = FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
-
 export function getFreeTrialEndsAt(
-  profile: Pick<Profile, "created_at"> | null | undefined
+  profile: Pick<Profile, "subscription_current_period_end"> | null | undefined
 ) {
-  const createdAt = Date.parse(profile?.created_at ?? "");
-  if (!Number.isFinite(createdAt)) return null;
-  return new Date(createdAt + FREE_TRIAL_DURATION_MS);
+  const periodEnd = Date.parse(profile?.subscription_current_period_end ?? "");
+  return Number.isFinite(periodEnd) ? new Date(periodEnd) : null;
 }
 
 export function hasActiveFreeTrial(
-  profile: Pick<Profile, "created_at"> | null | undefined,
+  profile:
+    | Pick<Profile, "stripe_subscription_status" | "subscription_current_period_end">
+    | null
+    | undefined,
   now = new Date()
 ) {
+  if (profile?.stripe_subscription_status?.trim().toLowerCase() !== "trialing") return false;
   const trialEndsAt = getFreeTrialEndsAt(profile);
   return Boolean(trialEndsAt && trialEndsAt.getTime() > now.getTime());
 }
 
 export function hasProductAccess(
-  profile: Pick<Profile, "created_at" | "role" | "subscription_status"> | null | undefined,
+  profile:
+    | Pick<
+        Profile,
+        | "role"
+        | "subscription_status"
+        | "stripe_subscription_status"
+        | "subscription_current_period_end"
+      >
+    | null
+    | undefined,
   now = new Date()
 ) {
   return hasPremiumAccess(profile) || hasActiveFreeTrial(profile, now);

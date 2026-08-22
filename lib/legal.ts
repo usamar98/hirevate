@@ -81,6 +81,7 @@ export const legalDocuments: LegalDocument[] = [
         title: "6. Payments and Stripe",
         text: [
           "Stripe processes Checkout, card details, payment authentication, invoices, recurring subscription charges, refunds, and payment-risk signals. Hirevate sends Stripe the account email, internal user reference, selected plan, and information needed to create and manage the subscription. Stripe returns customer, subscription, Checkout, invoice, payment, and status references needed to grant or remove paid access.",
+          "When an eligible user starts the three-day trial, Stripe collects and saves the payment method for the disclosed automatic monthly subscription. Hirevate records the trial dates and subscription status needed to provide access, prevent repeat trials, schedule a reminder, and administer cancellation.",
           "Stripe handles payment information under its own privacy terms and applicable role as a payment provider. Users should not send full card information to Hirevate by email or support message."
         ]
       },
@@ -106,7 +107,7 @@ export const legalDocuments: LegalDocument[] = [
           "Vercel and related infrastructure providers for website hosting, request delivery, security, and operational logs.",
           "Stripe for Checkout, recurring billing, payment processing, fraud prevention, refunds, and subscription management.",
           "OpenAI when a user requests AI job analysis, resume generation, or career writing.",
-          "Resend or another configured email provider for transactional service messages.",
+          "Resend or another configured email provider for transactional service messages, including a scheduled reminder shortly before a card-backed trial ends.",
           "Google Analytics only after optional analytics consent.",
           "Professional advisers, authorities, courts, or counterparties when reasonably necessary to comply with law, protect users or the service, investigate misuse, establish legal claims, or complete a legitimate business reorganization subject to appropriate safeguards."
         ]
@@ -191,8 +192,10 @@ export const legalDocuments: LegalDocument[] = [
       {
         title: "4. Three-day free access",
         text: [
-          "A newly eligible account receives three days of limited free access beginning when the account is created. No payment card is required for that access, and it does not automatically convert into a paid subscription. A user must separately select a paid plan and complete Stripe Checkout to continue paid features.",
-          "Free access is an evaluation of selected core features and is subject to reasonable feature availability, anti-abuse controls, and technical usage safeguards. It has no cash value, cannot be transferred, combined, extended, repeatedly claimed, or exchanged for credit, and may be withdrawn for fraud, duplicate accounts, circumvention, or unlawful use. Mandatory consumer rights remain unaffected."
+          "An eligible user may start one three-day trial of selected Hirevate features by completing Stripe Checkout and providing a valid payment method. The trial starts only after Stripe confirms Checkout. No subscription charge is made when the trial starts.",
+          "Unless the user cancels before the trial end time shown in the account and Stripe records, the trial automatically converts to the Hirevate Monthly Plan. Stripe will then attempt to charge the saved payment method USD $24.99, and the plan renews monthly at the disclosed price until canceled. By starting the trial, the user expressly authorizes that automatic charge and recurring billing.",
+          "Hirevate schedules a courtesy reminder approximately 12 hours before the trial ends. Email delivery can be delayed or fail for reasons outside Hirevate's control, so receipt of the reminder is not a condition of renewal and the user remains responsible for canceling before the trial ends if they do not want the paid plan.",
+          "Trial access is an evaluation of selected core features and is subject to feature availability, anti-abuse controls, and technical usage safeguards. It has no cash value, cannot be transferred, combined, extended, repeatedly claimed, or exchanged for credit, and may be withdrawn for fraud, duplicate accounts, circumvention, or unlawful use. Mandatory consumer rights remain unaffected."
         ]
       },
       {
@@ -200,13 +203,13 @@ export const legalDocuments: LegalDocument[] = [
         text: [
           pricingSummary,
           "Prices are stated in United States dollars unless Checkout clearly displays another currency. The selected plan, billing interval, total charge, and applicable payment details are shown before purchase. Stripe processes the payment and may perform payment authentication or fraud checks.",
-          "A paid subscription begins when Stripe confirms the initial payment and renews automatically for the same monthly or annual billing interval until canceled. By purchasing, the subscriber authorizes Stripe and Hirevate to charge the payment method for each renewal and any amount clearly disclosed at Checkout, subject to applicable law. Bank conversion or issuer fees are controlled by the user's payment provider."
+          "A subscription purchased without a trial begins when Stripe confirms the initial payment. A subscription following the three-day trial begins when the trial ends and Stripe attempts the disclosed USD $24.99 monthly charge. Paid subscriptions renew automatically for the same billing interval until canceled. By purchasing or starting the card-backed trial, the subscriber authorizes Stripe and Hirevate to charge the payment method for each disclosed initial or renewal amount, subject to applicable law. Bank conversion or issuer fees are controlled by the user's payment provider."
         ]
       },
       {
         title: "6. Cancellation",
         text: [
-          "A signed-in subscriber can open Account, choose Subscription, and select Cancel subscription. A cancellation normally stops the next renewal and takes effect at the end of the current paid billing period; paid access remains available until then. Deleting an account also triggers cancellation of active recurring subscriptions located for that account, but users should confirm the resulting Stripe status.",
+          "A signed-in user can open Account, choose Subscription, and select Cancel subscription. Cancellation during the trial must be completed before the displayed trial end time to prevent conversion and the first monthly charge; trial access normally continues until the trial ends. Cancellation after payment normally stops the next renewal and takes effect at the end of the current paid billing period; paid access remains available until then. Deleting an account also triggers cancellation of active recurring subscriptions located for that account, but users should confirm the resulting Stripe status.",
           `If self-service cancellation is unavailable, contact ${legalIdentity.contactEmail} from the account email before the next renewal. Cancellation does not create a refund for time already billed, except where law or the Refund Policy requires one.`
         ]
       },
@@ -303,16 +306,23 @@ export const legalDocuments: LegalDocument[] = [
     slug: "subscription-terms",
     shortTitle: "Subscriptions",
     title: "Hirevate Subscription and Cancellation Terms",
-    description: "Hirevate monthly and annual recurring billing, automatic renewal, cancellation at period end, paid access, refunds, and price changes.",
-    summary: "Paid plans renew for the selected billing period until the subscriber cancels.",
+    description: "Hirevate card-backed trial terms, monthly and annual recurring billing, automatic renewal, cancellation, paid access, refunds, and price changes.",
+    summary: "The optional trial converts to the monthly plan unless canceled, and paid plans renew until the subscriber cancels.",
     sections: [
+      {
+        title: "Three-day trial",
+        text: [
+          "Eligible users can start one three-day trial of the Monthly Plan after entering a valid payment method in Stripe Checkout. No charge is made when the trial begins.",
+          "Unless canceled before the displayed trial end time, the trial converts automatically to the USD $24.99 Monthly Plan and Stripe attempts to charge the saved payment method. The plan then renews every month until canceled. A courtesy reminder is scheduled approximately 12 hours before the trial ends, but the user's cancellation responsibility does not depend on receiving that email."
+        ]
+      },
       {
         title: "Plans and renewal",
         text: [pricingSummary, "Prices are stated in United States dollars. The selected price, currency, interval, and total charge are shown before payment. Stripe processes card details and recurring charges. A subscription renews monthly or annually until cancellation."]
       },
       {
         title: "Cancellation",
-        text: ["A signed-in subscriber can open Subscription from the Account menu and select Cancel subscription. Cancellation takes effect at the end of the paid period, with access continuing until then."]
+        text: ["A signed-in subscriber can open Subscription from the Account menu and select Cancel subscription. Cancel before the trial end time to avoid the first monthly charge. After a paid period starts, cancellation takes effect at the end of that period, with access continuing until then."]
       },
       {
         title: "Refunds and payment issues",
