@@ -24,7 +24,7 @@ import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const jobsDescription =
-  "Use a free job search and application tracker for fresh roles from company career pages, public ATS boards, and trusted hiring sources, with clear freshness signals.";
+  "Find fresh roles with free job search and application tools, employer and ATS links, source checks, smart filters, saved jobs, and an application tracker.";
 
 const jobsFaqItems = [
   {
@@ -174,7 +174,7 @@ export async function generateMetadata({
   ].filter(Boolean);
   const title = hasFacetedSearch(filters)
     ? titleParts.join(" ")
-    : "Free Job Search & Application Tracker";
+    : "Free Job Search & Application Tools";
   const description =
     filters.keyword ||
     filters.location ||
@@ -324,7 +324,7 @@ export default async function JobsPage({
       <section className="bg-gray-50 py-10">
         <div className="container-shell">
           <div className="mb-8 max-w-3xl">
-            <h1 className="text-4xl font-semibold text-ink-900">Free job search and application tracker</h1>
+            <h1 className="text-4xl font-semibold text-ink-900">Free job search and application tools</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
               Find recently refreshed jobs, open the available employer or hiring-source path,
               save promising roles, and organize each application from interest to decision.
@@ -539,6 +539,55 @@ export default async function JobsPage({
                 Hirevate helps users find, save, prepare, and track roles, then sends them to the
                 available employer, ATS, or verified hiring source. It does not auto-apply.
               </p>
+            </div>
+          </section>
+
+          <section className="mt-8 rounded-lg border border-gray-200 bg-white p-6 md:p-8">
+            <div className="max-w-3xl">
+              <h2 className="text-2xl font-semibold text-ink-900">
+                A clearer workflow from job search to application
+              </h2>
+              <p className="mt-3 text-base leading-7 text-ink-500">
+                Free job application tools are most useful when they help you make a better
+                decision before opening an employer form. Hirevate combines searchable listings,
+                source labels, freshness signals, saved jobs, resume preparation, and application
+                tracking in one workflow. You remain responsible for reviewing the vacancy and
+                submitting the application on the available employer, ATS, or trusted source.
+              </p>
+            </div>
+            <div className="mt-7 grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-semibold text-ink-900">Before you apply</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">
+                  Confirm the location, work authorization, closing date, seniority, and required
+                  experience. Open the source link and check that the employer is still accepting
+                  applications. Then use the job description to prepare a focused resume and cover
+                  letter instead of sending the same documents to every role.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
+                  <Link className="text-brand-700 hover:text-brand-800" href="/resume-builder">
+                    Build a targeted resume
+                  </Link>
+                  <Link className="text-brand-700 hover:text-brand-800" href="/cover-letter">
+                    Draft a cover letter
+                  </Link>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-ink-900">After you apply</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">
+                  Record the date, role, company, stage, and next action in the application tracker.
+                  A consistent record makes it easier to plan follow-ups, prepare for interviews,
+                  and avoid duplicate submissions. It also gives you a reliable view of which
+                  search channels and resume versions are producing responses.
+                </p>
+                <Link
+                  className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:text-brand-800"
+                  href="/dashboard/job-tracker"
+                >
+                  Open the application tracker
+                </Link>
+              </div>
             </div>
           </section>
 

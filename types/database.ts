@@ -37,6 +37,7 @@ export type Database = {
           stripe_subscription_id: string | null;
           stripe_subscription_status: string | null;
           stripe_trial_started_at: string | null;
+          free_trial_started_at: string | null;
           subscription_cancel_at_period_end: boolean;
           subscription_current_period_end: string | null;
           subscription_updated_at: string | null;
@@ -59,6 +60,7 @@ export type Database = {
           stripe_subscription_id?: string | null;
           stripe_subscription_status?: string | null;
           stripe_trial_started_at?: string | null;
+          free_trial_started_at?: string | null;
           subscription_cancel_at_period_end?: boolean;
           subscription_current_period_end?: string | null;
           subscription_updated_at?: string | null;
@@ -81,6 +83,7 @@ export type Database = {
           stripe_subscription_id?: string | null;
           stripe_subscription_status?: string | null;
           stripe_trial_started_at?: string | null;
+          free_trial_started_at?: string | null;
           subscription_cancel_at_period_end?: boolean;
           subscription_current_period_end?: string | null;
           subscription_updated_at?: string | null;
@@ -661,6 +664,15 @@ export type Database = {
           allowed: boolean;
           searches_used: number;
           searches_remaining: number;
+        }[];
+      };
+      start_account_trial: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          started: boolean;
+          trial_started_at: string | null;
+          trial_ends_at: string | null;
+          trial_status: string;
         }[];
       };
       reserve_trial_feature: {

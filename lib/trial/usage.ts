@@ -11,6 +11,48 @@ export type TrialReservation = {
   trialEndsAt: string | null;
 };
 
+export type TrialActivation = {
+  ok: boolean;
+  started: boolean;
+  status: string;
+  trialEndsAt: string | null;
+  trialStartedAt: string | null;
+};
+
+export async function startFreeTrial(): Promise<TrialActivation> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return {
+      ok: false,
+      started: false,
+      status: "setup_required",
+      trialEndsAt: null,
+      trialStartedAt: null
+    };
+  }
+
+  const { data, error } = await supabase.rpc("start_account_trial");
+  if (error) {
+    console.error("Failed to start account trial", { code: error.code });
+    return {
+      ok: false,
+      started: false,
+      status: "activation_failed",
+      trialEndsAt: null,
+      trialStartedAt: null
+    };
+  }
+
+  const activation = data?.[0];
+  return {
+    ok: Boolean(activation?.trial_started_at),
+    started: Boolean(activation?.started),
+    status: activation?.trial_status ?? "activation_failed",
+    trialEndsAt: activation?.trial_ends_at ?? null,
+    trialStartedAt: activation?.trial_started_at ?? null
+  };
+}
+
 export async function reserveTrialFeature(feature: TrialFeature): Promise<TrialReservation> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {

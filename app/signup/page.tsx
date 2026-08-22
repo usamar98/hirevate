@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getStartTrialHref } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -41,10 +42,10 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const redirect = getSafeRedirect(params.redirect);
 
   if (user) {
-    redirectTo(redirect);
+    redirectTo(getStartTrialHref(redirect));
   }
 
-  const loginHref = `/login?redirect=${encodeURIComponent(redirect)}`;
+  const loginHref = `/login?redirect=${encodeURIComponent(getStartTrialHref(redirect))}`;
   return (
     <section className="bg-gray-50 py-14">
       <div className="container-shell max-w-md">

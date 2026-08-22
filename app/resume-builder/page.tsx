@@ -7,7 +7,7 @@ import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
-  "Build a free ATS-friendly resume, analyze a job link or description, choose from six professional templates, and tailor every section using only your career facts.";
+  "Build a free ATS-friendly resume from a job link or description, choose from six professional templates, and tailor each section using your real career facts.";
 
 const resumeBuilderFaqItems = [
   {
@@ -43,6 +43,24 @@ const resumeBuilderInternalLinks = [
   { href: "/jobs/software-engineer", label: "Software engineer jobs" },
   { href: "/cover-letter", label: "Cover letter builder" },
   { href: "/pricing", label: "Pricing" }
+];
+
+const resumeWorkflowSteps = [
+  {
+    title: "Add the target job",
+    description:
+      "Paste a public job-posting link or the full job description. Hirevate identifies the role, responsibilities, qualifications, and recurring keywords so you can review the analysis before writing begins."
+  },
+  {
+    title: "Choose a professional template",
+    description:
+      "Select the layout that best fits your experience. Each template keeps contact details, experience, education, and skills in a clear reading order designed for recruiters and applicant tracking systems."
+  },
+  {
+    title: "Review every tailored section",
+    description:
+      "Use your real career history to refine the summary, skills, and achievement bullets. Check dates, metrics, role names, and keyword context before saving or printing the final resume."
+  }
 ];
 
 export const dynamic = "force-dynamic";
@@ -94,13 +112,22 @@ export default async function ResumeBuilderPage() {
               "Role-targeted resume editing",
               "Print-ready resume export"
             ],
-            offers: publicPricingFacts.map((plan) => ({
-              "@type": "Offer",
-              name: plan.plan,
-              price: plan.priceValue,
-              priceCurrency: "USD",
-              url: absoluteUrl("/pricing")
-            }))
+            offers: [
+              {
+                "@type": "Offer",
+                name: "Hirevate 3-day free trial",
+                price: "0",
+                priceCurrency: "USD",
+                url: absoluteUrl("/pricing")
+              },
+              ...publicPricingFacts.map((plan) => ({
+                "@type": "Offer",
+                name: plan.plan,
+                price: plan.priceValue,
+                priceCurrency: "USD",
+                url: absoluteUrl("/pricing")
+              }))
+            ]
           },
           {
             "@context": "https://schema.org",
@@ -135,6 +162,61 @@ export default async function ResumeBuilderPage() {
         ]}
       />
       <ResumeBuilder canExport={canExport} canUseAi={canExport} isAuthenticated={Boolean(user)} />
+      <section className="border-t border-gray-100 bg-gray-50 py-14">
+        <div className="container-shell">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl font-semibold text-ink-900">
+              Build a job-targeted resume in three clear steps
+            </h2>
+            <p className="mt-3 text-base leading-7 text-ink-500">
+              A useful free resume builder should do more than reformat a generic document.
+              Hirevate connects the job analysis to the resume workflow, while keeping you in
+              control of every claim that reaches an employer.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {resumeWorkflowSteps.map((step, index) => (
+              <article className="rounded-lg border border-gray-200 bg-white p-6" key={step.title}>
+                <p className="text-sm font-semibold text-brand-700">Step {index + 1}</p>
+                <h3 className="mt-2 text-xl font-semibold text-ink-900">{step.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-ink-500">{step.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="border-t border-gray-100 bg-white py-14">
+        <div className="container-shell grid gap-10 lg:grid-cols-2">
+          <div>
+            <h2 className="text-3xl font-semibold text-ink-900">
+              What makes a resume ATS-friendly?
+            </h2>
+            <p className="mt-4 text-base leading-7 text-ink-500">
+              Applicant tracking systems work best with recognizable headings, readable text, and
+              job-relevant language used in context. Hirevate&apos;s templates use conventional resume
+              sections and avoid layouts that depend on decorative graphics to communicate
+              essential information. The job analysis highlights vocabulary worth reviewing, but
+              keyword relevance matters more than repeating phrases unnaturally.
+            </p>
+            <p className="mt-4 text-base leading-7 text-ink-500">
+              No tool can guarantee an interview or a particular ATS score. A strong resume still
+              depends on accurate experience, specific outcomes, and a clear match between your
+              evidence and the employer&apos;s requirements.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-3xl font-semibold text-ink-900">
+              Review before you download
+            </h2>
+            <ul className="mt-4 space-y-3 text-base leading-7 text-ink-500">
+              <li>Confirm that names, dates, employers, qualifications, and contact details are correct.</li>
+              <li>Replace vague duties with concise achievements and measurable outcomes where available.</li>
+              <li>Keep only skills you can discuss confidently in an interview.</li>
+              <li>Read the finished resume aloud, then check the PDF for spacing and page breaks.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
       <section className="border-t border-gray-100 bg-white py-10">
         <div className="container-shell">
           <h2 className="text-2xl font-semibold text-ink-900">Create a resume from any relevant job</h2>

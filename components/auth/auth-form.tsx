@@ -11,6 +11,7 @@ import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { notifyAuthStatusChanged } from "@/lib/auth/client-events";
+import { getStartTrialHref } from "@/lib/pricing";
 import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validators/auth";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -20,6 +21,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const redirectParam = searchParams.get("redirect") ?? defaultRedirect;
   const redirectTo =
     redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : defaultRedirect;
+  const postAuthRedirect = mode === "signup" ? getStartTrialHref(redirectTo) : redirectTo;
   const passwordWasUpdated = mode === "login" && searchParams.get("password") === "updated";
   const accountWasDeactivated =
     mode === "login" && searchParams.get("account") === "deactivated";
@@ -56,7 +58,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     try {
       const result =
         mode === "signup"
-          ? await signUpAction(values, redirectTo)
+          ? await signUpAction(values, postAuthRedirect)
           : await signInAction(values);
 
       if (!result.ok) {
@@ -71,7 +73,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       }
 
       notifyAuthStatusChanged();
-      router.replace(redirectTo);
+      router.replace(postAuthRedirect);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Authentication failed.");

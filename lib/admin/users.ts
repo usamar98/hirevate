@@ -516,6 +516,7 @@ export async function getAdminUsersDashboard() {
       stripe_subscription_id: null,
       stripe_subscription_status: null,
       stripe_trial_started_at: null,
+      free_trial_started_at: null,
       subscription_cancel_at_period_end: false,
       subscription_current_period_end: null,
       subscription_updated_at: null,

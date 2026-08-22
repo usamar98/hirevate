@@ -77,16 +77,16 @@ export function hasPremiumAccess(
 }
 
 export function getFreeTrialEndsAt(
-  profile: Pick<Profile, "created_at"> | null | undefined
+  profile: Pick<Profile, "free_trial_started_at"> | null | undefined
 ) {
-  const createdAt = Date.parse(profile?.created_at ?? "");
-  return Number.isFinite(createdAt)
-    ? new Date(createdAt + 3 * 24 * 60 * 60 * 1000)
+  const trialStartedAt = Date.parse(profile?.free_trial_started_at ?? "");
+  return Number.isFinite(trialStartedAt)
+    ? new Date(trialStartedAt + 3 * 24 * 60 * 60 * 1000)
     : null;
 }
 
 export function hasActiveFreeTrial(
-  profile: Pick<Profile, "created_at"> | null | undefined,
+  profile: Pick<Profile, "free_trial_started_at"> | null | undefined,
   now = new Date()
 ) {
   const trialEndsAt = getFreeTrialEndsAt(profile);
@@ -95,7 +95,10 @@ export function hasActiveFreeTrial(
 
 export function hasProductAccess(
   profile:
-    | Pick<Profile, "created_at" | "role" | "subscription_status" | "stripe_subscription_status">
+    | Pick<
+        Profile,
+        "free_trial_started_at" | "role" | "subscription_status" | "stripe_subscription_status"
+      >
     | null
     | undefined,
   now = new Date()

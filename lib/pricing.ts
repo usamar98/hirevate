@@ -8,7 +8,17 @@ export type SubscriptionTier = "starter" | "silver" | "gold" | "platinum";
 export type PublicSubscriptionTier = Extract<SubscriptionTier, "gold" | "platinum">;
 export type BillingInterval = "day" | "week" | "month" | "year";
 
-export const startTrialHref = "/signup?redirect=%2Fjobs";
+export function getStartTrialHref(redirectTo = "/jobs") {
+  const safeRedirect =
+    redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/jobs";
+  if (safeRedirect === "/trial/start" || safeRedirect.startsWith("/trial/start?")) {
+    return safeRedirect;
+  }
+
+  return `/trial/start?redirect=${encodeURIComponent(safeRedirect)}`;
+}
+
+export const startTrialHref = getStartTrialHref();
 export const trialDurationDays = 3;
 export const trialReminderHoursBeforeEnd = 24;
 

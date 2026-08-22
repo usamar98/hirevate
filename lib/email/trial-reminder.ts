@@ -62,7 +62,7 @@ async function scheduleTrialEndingReminder(user: User) {
   const { data: profile, error: profileError } = await admin
     .from("profiles")
     .select(
-      "created_at,role,subscription_status,stripe_subscription_status,trial_reminder_email_id,trial_reminder_scheduled_for"
+      "free_trial_started_at,role,subscription_status,stripe_subscription_status,trial_reminder_email_id,trial_reminder_scheduled_for"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -72,10 +72,10 @@ async function scheduleTrialEndingReminder(user: User) {
     return Boolean(profile);
   }
 
-  const accountCreatedAt = Date.parse(profile.created_at || user.created_at);
-  if (!Number.isFinite(accountCreatedAt)) return false;
+  const trialStartedAt = Date.parse(profile.free_trial_started_at ?? "");
+  if (!Number.isFinite(trialStartedAt)) return false;
 
-  const trialEndsAt = accountCreatedAt + trialDurationMs;
+  const trialEndsAt = trialStartedAt + trialDurationMs;
   const now = Date.now();
   if (now >= trialEndsAt) return false;
 
