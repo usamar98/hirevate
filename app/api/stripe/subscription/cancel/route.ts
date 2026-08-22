@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
-import { cancelTrialEndingReminderSafely } from "@/lib/email/trial-reminder";
 import { getStripe } from "@/lib/stripe/server";
 import { syncSubscriptionState } from "@/lib/stripe/subscription-sync";
 
@@ -51,10 +50,6 @@ export async function POST() {
         subscriptionId: updated.id,
         userId: user.id
       });
-    }
-
-    if (updated.status === "trialing" && updated.cancel_at_period_end) {
-      await cancelTrialEndingReminderSafely(user.id);
     }
 
     return NextResponse.json({

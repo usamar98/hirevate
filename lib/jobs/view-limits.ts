@@ -21,9 +21,7 @@ export async function canViewJob(userId: string, jobId?: string) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select(
-      "role,subscription_status,stripe_subscription_status,subscription_current_period_end"
-    )
+    .select("role,subscription_status,stripe_subscription_status,created_at")
     .eq("id", userId)
     .maybeSingle();
 

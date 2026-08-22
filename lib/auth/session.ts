@@ -70,39 +70,32 @@ export function hasPremiumAccess(
   if (isAdminProfile(profile)) return true;
 
   const stripeStatus = profile?.stripe_subscription_status?.trim().toLowerCase();
+  if (stripeStatus === "trialing") return false;
   if (stripeStatus) return stripeStatus === "active";
 
   return isPaidSubscription(profile?.subscription_status);
 }
 
 export function getFreeTrialEndsAt(
-  profile: Pick<Profile, "subscription_current_period_end"> | null | undefined
+  profile: Pick<Profile, "created_at"> | null | undefined
 ) {
-  const periodEnd = Date.parse(profile?.subscription_current_period_end ?? "");
-  return Number.isFinite(periodEnd) ? new Date(periodEnd) : null;
+  const createdAt = Date.parse(profile?.created_at ?? "");
+  return Number.isFinite(createdAt)
+    ? new Date(createdAt + 3 * 24 * 60 * 60 * 1000)
+    : null;
 }
 
 export function hasActiveFreeTrial(
-  profile:
-    | Pick<Profile, "stripe_subscription_status" | "subscription_current_period_end">
-    | null
-    | undefined,
+  profile: Pick<Profile, "created_at"> | null | undefined,
   now = new Date()
 ) {
-  if (profile?.stripe_subscription_status?.trim().toLowerCase() !== "trialing") return false;
   const trialEndsAt = getFreeTrialEndsAt(profile);
   return Boolean(trialEndsAt && trialEndsAt.getTime() > now.getTime());
 }
 
 export function hasProductAccess(
   profile:
-    | Pick<
-        Profile,
-        | "role"
-        | "subscription_status"
-        | "stripe_subscription_status"
-        | "subscription_current_period_end"
-      >
+    | Pick<Profile, "created_at" | "role" | "subscription_status" | "stripe_subscription_status">
     | null
     | undefined,
   now = new Date()

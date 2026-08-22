@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function CancelSubscriptionButton({ isTrial = false }: { isTrial?: boolean }) {
+export function CancelSubscriptionButton() {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,11 +34,7 @@ export function CancelSubscriptionButton({ isTrial = false }: { isTrial?: boolea
           )
         : "the end of the current billing period";
 
-      setMessage(
-        isTrial
-          ? `Trial cancellation scheduled for ${cancellationDate}. The Monthly Plan will not start and no subscription charge will be made.`
-          : `Cancellation scheduled for ${cancellationDate}. Paid access remains available until then.`
-      );
+      setMessage(`Cancellation scheduled for ${cancellationDate}. Paid access remains available until then.`);
       setConfirming(false);
       router.refresh();
     } catch {
@@ -60,13 +56,9 @@ export function CancelSubscriptionButton({ isTrial = false }: { isTrial?: boolea
     <div>
       {confirming ? (
         <div className="rounded-md border border-red-100 bg-red-50 p-4">
-          <p className="text-sm font-semibold text-red-900">
-            {isTrial ? "Cancel the free trial?" : "Cancel at the end of this billing period?"}
-          </p>
+          <p className="text-sm font-semibold text-red-900">Cancel at the end of this billing period?</p>
           <p className="mt-1 text-sm leading-6 text-red-700">
-            {isTrial
-              ? "The Monthly Plan will not start, and your trial access will continue until the displayed trial end time."
-              : "Future renewals will stop. Your paid access will continue through the period already paid."}
+            Future renewals will stop. Your paid access will continue through the period already paid.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button disabled={loading} onClick={() => void cancelSubscription()} type="button" variant="danger">
@@ -80,7 +72,7 @@ export function CancelSubscriptionButton({ isTrial = false }: { isTrial?: boolea
         </div>
       ) : (
         <Button onClick={() => setConfirming(true)} type="button" variant="outline">
-          {isTrial ? "Cancel free trial" : "Cancel subscription"}
+          Cancel subscription
         </Button>
       )}
       {error ? (

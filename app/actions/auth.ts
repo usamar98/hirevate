@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/super-login";
 import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import { isAdminProfile } from "@/lib/auth/session";
+import { scheduleTrialEndingReminderSafely } from "@/lib/email/trial-reminder";
 import { triggerWelcomeAutomationSafely } from "@/lib/email/welcome";
 import { env } from "@/lib/env";
 import { getStripe } from "@/lib/stripe/server";
@@ -197,7 +198,10 @@ export async function signInAction(values: AuthFormValues): Promise<AuthResult> 
 
   if (data.user) {
     await ensureUserProfile(data.user, await getRequestGeo()).catch(() => false);
-    await triggerWelcomeAutomationSafely(data.user);
+    await Promise.all([
+      triggerWelcomeAutomationSafely(data.user),
+      scheduleTrialEndingReminderSafely(data.user)
+    ]);
   }
 
   return { ok: true };
@@ -256,7 +260,10 @@ export async function signUpAction(
 
   if (data.user) {
     await ensureUserProfile(data.user, geo).catch(() => false);
-    await triggerWelcomeAutomationSafely(data.user);
+    await Promise.all([
+      triggerWelcomeAutomationSafely(data.user),
+      scheduleTrialEndingReminderSafely(data.user)
+    ]);
   }
 
   return { ok: true };

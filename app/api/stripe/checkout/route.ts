@@ -4,13 +4,12 @@ import { z } from "zod";
 import { ensureUserProfile } from "@/lib/auth/ensure-profile";
 import { getCurrentUser, getProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
-import { checkoutPlanKeys, trialCheckoutPlanKey, trialDurationDays } from "@/lib/pricing";
+import { checkoutPlanKeys } from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getStripe, stripePlans, type StripePlanKey } from "@/lib/stripe/server";
 
 const checkoutSchema = z.object({
-  plan: z.enum([...checkoutPlanKeys] as [StripePlanKey, ...StripePlanKey[]]),
-  trial: z.boolean().optional().default(false)
+  plan: z.enum([...checkoutPlanKeys] as [StripePlanKey, ...StripePlanKey[]])
 });
 
 function getDatabaseErrorDetails(error: unknown) {
@@ -75,39 +74,6 @@ async function saveCheckoutCustomer(
   }
 }
 
-async function hasPreviouslyUsedTrial(
-  stripe: Stripe,
-  userId: string,
-  email: string,
-  knownCustomerId?: string
-) {
-  const customerIds = new Set<string>();
-  if (knownCustomerId) customerIds.add(knownCustomerId);
-
-  const customers = await stripe.customers.list({ email, limit: 10 });
-  for (const customer of customers.data) customerIds.add(customer.id);
-
-  for (const customerId of customerIds) {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "all",
-      limit: 100
-    });
-
-    if (
-      subscriptions.data.some(
-        (subscription) =>
-          subscription.metadata.userId === userId &&
-          Boolean(subscription.trial_start || subscription.metadata.trial === "three_day")
-      )
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 export async function POST(request: Request) {
   const stripe = getStripe();
   if (!stripe) {
@@ -125,13 +91,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
   }
 
-  const { plan: planKey, trial } = parsed.data;
-  if (trial && planKey !== trialCheckoutPlanKey) {
-    return NextResponse.json(
-      { error: "The 3-day trial is available with the Monthly Plan." },
-      { status: 400 }
-    );
-  }
+  const { plan: planKey } = parsed.data;
 
   try {
     const profilePrepared = await ensureUserProfile(user);
@@ -158,26 +118,13 @@ export async function POST(request: Request) {
   try {
     customerId = await getReusableCustomerId(stripe, profile?.stripe_customer_id);
 
-    if (
-      trial &&
-      (profile?.stripe_trial_started_at ||
-        (await hasPreviouslyUsedTrial(stripe, user.id, user.email, customerId)))
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "This account has already used its free trial. Choose a paid plan to continue."
-        },
-        { status: 409 }
-      );
-    }
   } catch (error) {
-    console.error("Stripe trial eligibility check failed", {
+    console.error("Stripe customer verification failed", {
       name: error instanceof Error ? error.name : "UnknownError",
       userId: user.id
     });
     return NextResponse.json(
-      { error: "We could not verify trial eligibility. Please try again." },
+      { error: "We could not prepare secure checkout. Please try again." },
       { status: 502 }
     );
   }
@@ -209,28 +156,15 @@ export async function POST(request: Request) {
       ],
       metadata: {
         userId: user.id,
-        plan: planKey,
-        trial: trial ? "three_day" : "none"
+        plan: planKey
       },
       subscription_data: {
-        ...(trial ? { trial_period_days: trialDurationDays } : {}),
         metadata: {
           userId: user.id,
-          plan: planKey,
-          trial: trial ? "three_day" : "none"
+          plan: planKey
         }
       },
-      ...(trial
-        ? {
-            custom_text: {
-              submit: {
-                message:
-                  "Card required. You will not be charged today. Unless you cancel before the 3-day trial ends, your trial automatically converts to the Hirevate Monthly Plan and Stripe will attempt to charge USD $24.99. It then renews monthly until canceled. Manage or cancel from Account > Subscription."
-              }
-            }
-          }
-        : {}),
-      success_url: `${env.appUrl}/dashboard?checkout=${trial ? "trial_started" : "processing"}&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${env.appUrl}/dashboard?checkout=processing&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${env.appUrl}/pricing?checkout=cancelled`
     });
 
@@ -241,7 +175,6 @@ export async function POST(request: Request) {
     console.error("Stripe Checkout session creation failed", {
       name: error instanceof Error ? error.name : "UnknownError",
       plan: planKey,
-      trial,
       userId: user.id
     });
     return NextResponse.json(

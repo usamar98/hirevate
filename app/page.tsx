@@ -369,7 +369,7 @@ export default async function LandingPage() {
               <Link href={startTrialHref}>Start a 3-day free trial</Link>
               <span className="font-medium text-ink-500">
                 {" "}
-                — card required; $24.99/month afterward unless canceled.
+                — no card required and no automatic charge.
               </span>
             </p>
             <p className="mt-5 max-w-lg text-sm leading-6 text-ink-500">

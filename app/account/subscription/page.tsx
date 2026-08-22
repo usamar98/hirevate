@@ -106,7 +106,7 @@ export default async function AccountSubscriptionPage() {
     }
   }
 
-  const isFreeTrialActive = hasActiveFreeTrial(profile);
+  const isFreeTrialActive = !isPaid && hasActiveFreeTrial(profile);
   const freeTrialEndsAt = getFreeTrialEndsAt(profile);
 
   return (
@@ -152,9 +152,9 @@ export default async function AccountSubscriptionPage() {
                   Free trial ends {new Intl.DateTimeFormat("en", { dateStyle: "long", timeStyle: "short" }).format(freeTrialEndsAt)}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-ink-500">
-                  {cancellationScheduled
-                    ? "Your trial will end without a charge, and the Monthly Plan will not start."
-                    : "Unless you cancel before then, Stripe will attempt to charge USD $24.99 and your Monthly Plan will begin automatically. A reminder is scheduled about 12 hours before the trial ends."}
+                  No payment method is required, and no membership starts automatically. We send
+                  a reminder about 24 hours before the trial ends so you can choose a plan if you
+                  want to continue.
                 </p>
               </div>
             </div>
@@ -186,11 +186,11 @@ export default async function AccountSubscriptionPage() {
             {(isPaid || isFreeTrialActive) &&
             profile?.stripe_subscription_id &&
             !cancellationScheduled ? (
-              <CancelSubscriptionButton isTrial={isFreeTrialActive} />
+              <CancelSubscriptionButton />
             ) : null}
-            {!isPaid && !isFreeTrialActive ? (
+            {!isPaid ? (
               <Button asChild href="/pricing">
-                View paid plans
+                {isFreeTrialActive ? "Start membership" : "View paid plans"}
               </Button>
             ) : null}
           </div>

@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/session";
-import { trialCheckoutPath } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +39,6 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
     getCurrentUser()
   ]);
   const redirect = getSafeRedirect(params.redirect);
-  const startsTrial = redirect === trialCheckoutPath;
 
   if (user) {
     redirectTo(redirect);
@@ -53,9 +51,8 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <Card className="p-6">
           <h1 className="text-3xl font-semibold text-ink-900">Create account</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            {startsTrial
-              ? "Create your account, then enter payment details securely in Stripe. Your card is not charged until the 3-day trial ends."
-              : "Create your Hirevate account to save your progress and continue your job search."}
+            Start your limited 3-day trial with no payment card required. The trial ends
+            automatically unless you choose a paid membership.
           </p>
           <div className="mt-6">
             <Suspense>

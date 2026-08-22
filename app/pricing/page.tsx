@@ -13,7 +13,7 @@ import {
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Start a card-backed 3-day Hirevate trial that converts to the monthly plan unless canceled, or compare monthly and annual access for jobs, resumes, cover letters, and application tracking.";
+  "Start a limited 3-day Hirevate trial with no card required, then compare monthly and annual access for jobs, resumes, cover letters, and application tracking.";
 
 const pricingFaqItems = [
   {
@@ -27,12 +27,12 @@ const pricingFaqItems = [
   },
   {
     question: "How does the 3-day Hirevate trial work?",
-    answer: `Eligible users enter payment details in Stripe Checkout. No charge is made when the trial starts. Unless canceled before the trial ends, it automatically becomes the USD $24.99 Monthly Plan. Hirevate schedules a reminder about ${trialReminderHoursBeforeEnd} hours before the trial ends.`
+    answer: `Create an eligible account to start a limited 3-day trial without entering payment details. The trial ends automatically and does not become a paid membership. Hirevate schedules a reminder about ${trialReminderHoursBeforeEnd} hours before the trial ends so you can choose a monthly or annual membership if you want to continue.`
   },
   {
     question: "Can I preview jobs before subscribing?",
     answer:
-      "Yes. Public job pages provide a discovery preview. Eligible account holders can choose to start the card-backed 3-day trial before subscribing."
+      "Yes. Public job pages provide a discovery preview, and eligible new accounts receive a limited 3-day trial with no card required."
   },
   {
     question: "Do paid plans include resume and cover letter tools?",
@@ -170,9 +170,8 @@ export default function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Start with 3 days free after entering payment details securely in Stripe. Unless
-              canceled before the trial ends, access continues automatically on the USD $24.99
-              Monthly Plan.
+              Create an account for 3 days of limited access with no card required. The trial ends
+              automatically. Choose a monthly or annual membership only if you want to continue.
             </p>
             <p className="mt-2 text-sm font-medium text-ink-600">
               All displayed subscription prices are in United States dollars (USD).
@@ -191,9 +190,9 @@ export default function PricingPage() {
           <h2 className="text-2xl font-semibold text-ink-900">What each plan connects to</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
             Public job pages can be previewed for discovery. An eligible account can start a
-            card-backed 3-day trial of the Monthly Plan, and a paid plan keeps the complete
-            workflow available afterward. Both paid plans unlock the same job, job-to-resume,
-            cover-letter, matching, and tracking features.
+            limited 3-day trial with no card required, and a paid plan keeps the complete workflow
+            available afterward. Both paid plans unlock the same job, job-to-resume, cover-letter,
+            matching, and tracking features.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             {pricingInternalLinks.map((item) => (

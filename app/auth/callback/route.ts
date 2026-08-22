@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ensureUserProfile } from "@/lib/auth/ensure-profile";
+import { scheduleTrialEndingReminderSafely } from "@/lib/email/trial-reminder";
 import { triggerWelcomeAutomationSafely } from "@/lib/email/welcome";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -33,7 +34,10 @@ export async function GET(request: NextRequest) {
     if (user) {
       await ensureUserProfile(user).catch(() => false);
       if (type !== "recovery" && nextPath !== "/reset-password") {
-        await triggerWelcomeAutomationSafely(user);
+        await Promise.all([
+          triggerWelcomeAutomationSafely(user),
+          scheduleTrialEndingReminderSafely(user)
+        ]);
       }
     }
 

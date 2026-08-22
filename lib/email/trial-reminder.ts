@@ -1,14 +1,20 @@
 import "server-only";
 
-import type Stripe from "stripe";
+import type { User } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { hasPremiumAccess } from "@/lib/auth/session";
 import { env } from "@/lib/env";
-import { getPricingOption } from "@/lib/pricing";
+import {
+  getPricingOption,
+  trialDurationDays,
+  trialReminderHoursBeforeEnd
+} from "@/lib/pricing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const trialReminderTemplateAlias = "hirevate-trial-ending-reminder";
-const trialReminderHoursBeforeEnd = 12;
-const trialReminderLeadMs = trialReminderHoursBeforeEnd * 60 * 60 * 1000;
+const hourMs = 60 * 60 * 1000;
+const trialDurationMs = trialDurationDays * 24 * hourMs;
+const trialReminderLeadMs = trialReminderHoursBeforeEnd * hourMs;
 const minimumSchedulingLeadMs = 60 * 1000;
 
 let resendClient: Resend | null = null;
@@ -19,16 +25,16 @@ function getResendClient() {
   return resendClient;
 }
 
-function metadataText(metadata: Record<string, unknown> | undefined, key: string) {
-  const value = metadata?.[key];
+function metadataText(user: User, key: string) {
+  const value = user.user_metadata?.[key];
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function getFirstName(metadata: Record<string, unknown> | undefined) {
-  const fullName = metadataText(metadata, "full_name") ?? metadataText(metadata, "name");
+function getFirstName(user: User) {
+  const fullName = metadataText(user, "full_name") ?? metadataText(user, "name");
   if (fullName) return fullName.split(/\s+/)[0];
 
-  return metadataText(metadata, "username") ?? "there";
+  return metadataText(user, "username") ?? "there";
 }
 
 function formatTrialEnd(timestamp: number) {
@@ -40,7 +46,7 @@ function formatTrialEnd(timestamp: number) {
     minute: "2-digit",
     timeZone: "UTC",
     timeZoneName: "short"
-  }).format(new Date(timestamp * 1000));
+  }).format(new Date(timestamp));
 }
 
 async function cancelScheduledEmail(resend: Resend, emailId: string) {
@@ -48,70 +54,69 @@ async function cancelScheduledEmail(resend: Resend, emailId: string) {
   if (error) throw new Error(error.message);
 }
 
-async function scheduleTrialEndingReminder(subscription: Stripe.Subscription) {
+async function scheduleTrialEndingReminder(user: User) {
   const admin = createSupabaseAdminClient();
   const resend = getResendClient();
-  const userId = subscription.metadata.userId;
-  const trialEnd = subscription.trial_end;
-
-  if (!admin || !resend || !userId || !trialEnd || subscription.status !== "trialing") {
-    return false;
-  }
-
-  if (subscription.cancel_at_period_end) return false;
-
-  const reminderAt = new Date(trialEnd * 1000 - trialReminderLeadMs);
-  if (reminderAt.getTime() <= Date.now() + minimumSchedulingLeadMs) return false;
+  if (!admin || !resend || !user.email) return false;
 
   const { data: profile, error: profileError } = await admin
     .from("profiles")
-    .select("trial_reminder_email_id, trial_reminder_scheduled_for")
-    .eq("id", userId)
+    .select(
+      "created_at,role,subscription_status,stripe_subscription_status,trial_reminder_email_id,trial_reminder_scheduled_for"
+    )
+    .eq("id", user.id)
     .maybeSingle();
 
   if (profileError) throw profileError;
-  if (!profile || profile.trial_reminder_email_id) return Boolean(profile);
+  if (!profile || profile.trial_reminder_email_id || hasPremiumAccess(profile)) {
+    return Boolean(profile);
+  }
 
-  const { data: authData, error: authError } = await admin.auth.admin.getUserById(userId);
-  if (authError) throw authError;
-  if (!authData.user?.email) return false;
+  const accountCreatedAt = Date.parse(profile.created_at || user.created_at);
+  if (!Number.isFinite(accountCreatedAt)) return false;
 
+  const trialEndsAt = accountCreatedAt + trialDurationMs;
+  const now = Date.now();
+  if (now >= trialEndsAt) return false;
+
+  const preferredReminderAt = trialEndsAt - trialReminderLeadMs;
+  const shouldSchedule = preferredReminderAt > now + minimumSchedulingLeadMs;
+  const deliveryAt = shouldSchedule ? preferredReminderAt : now;
   const monthlyPlan = getPricingOption("gold_monthly");
   const { data: email, error: emailError } = await resend.emails.send(
     {
       from: env.trialReminderEmailFrom,
-      to: authData.user.email,
-      subject: "Your Hirevate trial ends soon",
+      to: user.email,
+      subject: "Your Hirevate trial ends in about 24 hours",
       replyTo: "support@hirevate.com",
-      scheduledAt: reminderAt.toISOString(),
+      ...(shouldSchedule ? { scheduledAt: new Date(deliveryAt).toISOString() } : {}),
       template: {
         id: trialReminderTemplateAlias,
         variables: {
-          RECIPIENT_FIRST_NAME: getFirstName(authData.user.user_metadata),
-          TRIAL_ENDS_AT: formatTrialEnd(trialEnd),
+          RECIPIENT_FIRST_NAME: getFirstName(user),
+          TRIAL_ENDS_AT: formatTrialEnd(trialEndsAt),
           PLAN_PRICE: `USD $${monthlyPlan.priceValue} per month`,
-          MANAGE_SUBSCRIPTION_URL: new URL("/account/subscription", env.appUrl).toString()
+          MANAGE_SUBSCRIPTION_URL: new URL("/pricing", env.appUrl).toString()
         }
       },
       tags: [
         { name: "email_type", value: "trial_ending_reminder" },
-        { name: "subscription_id", value: subscription.id }
+        { name: "user_id", value: user.id }
       ]
     },
-    { idempotencyKey: `hirevate-trial-reminder-${subscription.id}` }
+    { idempotencyKey: `hirevate-trial-reminder-${user.id}` }
   );
 
   if (emailError) throw new Error(emailError.message);
-  if (!email?.id) throw new Error("Resend did not return a scheduled email ID.");
+  if (!email?.id) throw new Error("Resend did not return a trial reminder email ID.");
 
   const { data: claimedProfile, error: claimError } = await admin
     .from("profiles")
     .update({
       trial_reminder_email_id: email.id,
-      trial_reminder_scheduled_for: reminderAt.toISOString()
+      trial_reminder_scheduled_for: new Date(deliveryAt).toISOString()
     })
-    .eq("id", userId)
-    .eq("stripe_subscription_id", subscription.id)
+    .eq("id", user.id)
     .is("trial_reminder_email_id", null)
     .select("id")
     .maybeSingle();
@@ -119,23 +124,25 @@ async function scheduleTrialEndingReminder(subscription: Stripe.Subscription) {
   if (!claimError && claimedProfile) return true;
 
   if (!claimError) {
-    const { data: currentProfile, error: currentProfileError } = await admin
+    const { data: currentProfile } = await admin
       .from("profiles")
       .select("trial_reminder_email_id")
-      .eq("id", userId)
+      .eq("id", user.id)
       .maybeSingle();
 
-    if (!currentProfileError && currentProfile?.trial_reminder_email_id === email.id) return true;
+    if (currentProfile?.trial_reminder_email_id === email.id) return true;
   }
 
-  try {
-    await cancelScheduledEmail(resend, email.id);
-  } catch (cancelError) {
-    console.error("Failed to cancel an unclaimed Hirevate trial reminder", {
-      emailId: email.id,
-      subscriptionId: subscription.id,
-      error: cancelError
-    });
+  if (shouldSchedule) {
+    try {
+      await cancelScheduledEmail(resend, email.id);
+    } catch (cancelError) {
+      console.error("Failed to cancel an unclaimed Hirevate trial reminder", {
+        emailId: email.id,
+        userId: user.id,
+        error: cancelError
+      });
+    }
   }
 
   if (claimError) throw claimError;
@@ -149,14 +156,17 @@ async function cancelTrialEndingReminder(userId: string) {
 
   const { data: profile, error: profileError } = await admin
     .from("profiles")
-    .select("trial_reminder_email_id")
+    .select("trial_reminder_email_id,trial_reminder_scheduled_for")
     .eq("id", userId)
     .maybeSingle();
 
   if (profileError) throw profileError;
   if (!profile?.trial_reminder_email_id) return false;
 
-  await cancelScheduledEmail(resend, profile.trial_reminder_email_id);
+  const scheduledFor = Date.parse(profile.trial_reminder_scheduled_for ?? "");
+  if (Number.isFinite(scheduledFor) && scheduledFor > Date.now()) {
+    await cancelScheduledEmail(resend, profile.trial_reminder_email_id);
+  }
 
   const { error: clearError } = await admin
     .from("profiles")
@@ -171,13 +181,12 @@ async function cancelTrialEndingReminder(userId: string) {
   return true;
 }
 
-export async function scheduleTrialEndingReminderSafely(subscription: Stripe.Subscription) {
+export async function scheduleTrialEndingReminderSafely(user: User) {
   try {
-    return await scheduleTrialEndingReminder(subscription);
+    return await scheduleTrialEndingReminder(user);
   } catch (error) {
     console.error("Failed to schedule the Hirevate trial reminder", {
-      subscriptionId: subscription.id,
-      userId: subscription.metadata.userId,
+      userId: user.id,
       error
     });
     return false;
