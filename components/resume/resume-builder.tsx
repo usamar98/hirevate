@@ -685,7 +685,7 @@ export function ResumeBuilder({
       <section className="border-b border-gray-200 bg-white">
         <div className="container-shell flex flex-col justify-between gap-6 py-8 lg:flex-row lg:items-end">
           <div>
-            <h1 className="text-4xl font-semibold text-ink-900">Resume Builder</h1>
+            <h1 className="text-4xl font-semibold text-ink-900">Free resume builder with job analysis</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
               Turn a job link or description into a complete role-targeted resume, then review,
               edit, score, and export it with your chosen professional template.

@@ -44,6 +44,33 @@ type JoobleFetchBatch = {
   sourceKey: string;
 };
 
+type JoobleMarketCode = "ae" | "au";
+
+type JoobleMarket = {
+  apiLocation: string;
+  code: JoobleMarketCode;
+  countryCode: "AE" | "AU";
+  displayName: string;
+  locationPattern: RegExp;
+};
+
+const joobleMarkets: Record<JoobleMarketCode, JoobleMarket> = {
+  ae: {
+    apiLocation: "United Arab Emirates",
+    code: "ae",
+    countryCode: "AE",
+    displayName: "United Arab Emirates",
+    locationPattern: /\b(?:united arab emirates|uae)\b/i
+  },
+  au: {
+    apiLocation: "Australia",
+    code: "au",
+    countryCode: "AU",
+    displayName: "Australia",
+    locationPattern: /\baustralia\b/i
+  }
+};
+
 export type JoobleSyncOptions = {
   maxDaysOld?: number;
   queries?: string[];
@@ -72,8 +99,8 @@ function getResultsPerQuery(options: JoobleSyncOptions) {
   return parsePositiveInt(options.resultsPerQuery ?? env.joobleResultsPerQuery, 20, 50);
 }
 
-function getSourceKey(query: string) {
-  return `au:${query.toLowerCase().replace(/\s+/g, " ").trim()}`;
+function getSourceKey(market: JoobleMarket, query: string) {
+  return `${market.code}:${query.toLowerCase().replace(/\s+/g, " ").trim()}`;
 }
 
 async function mapWithConcurrency<T>(
@@ -140,13 +167,13 @@ function getCompanyName(job: JoobleJob) {
   return job.company?.trim() || "Unknown employer";
 }
 
-function getCompanySlug(job: JoobleJob) {
-  return `jooble-au-${slugifyCompanyName(getCompanyName(job))}`;
+function getCompanySlug(job: JoobleJob, market: JoobleMarket) {
+  return `jooble-${market.code}-${slugifyCompanyName(getCompanyName(job))}`;
 }
 
-function getLocation(job: JoobleJob) {
-  const location = formatJobLocation(job.location) ?? "Australia";
-  return /\baustralia\b/i.test(location) ? location : `${location}, Australia`;
+function getLocation(job: JoobleJob, market: JoobleMarket) {
+  const location = formatJobLocation(job.location) ?? market.displayName;
+  return market.locationPattern.test(location) ? location : `${location}, ${market.displayName}`;
 }
 
 function buildDescription(job: JoobleJob) {
@@ -159,7 +186,11 @@ function buildDescription(job: JoobleJob) {
     .join("\n\n");
 }
 
-async function fetchJoobleJobs(query: string, options: JoobleSyncOptions): Promise<JoobleFetchBatch> {
+async function fetchJoobleJobs(
+  market: JoobleMarket,
+  query: string,
+  options: JoobleSyncOptions
+): Promise<JoobleFetchBatch> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
@@ -167,7 +198,7 @@ async function fetchJoobleJobs(query: string, options: JoobleSyncOptions): Promi
     const response = await fetch(`https://jooble.org/api/${encodeURIComponent(env.joobleApiKey)}`, {
       body: JSON.stringify({
         keywords: query,
-        location: "Australia",
+        location: market.apiLocation,
         page: "1",
         ResultOnPage: getResultsPerQuery(options),
         SearchMode: "1"
@@ -189,7 +220,7 @@ async function fetchJoobleJobs(query: string, options: JoobleSyncOptions): Promi
     return {
       jobs: (payload.jobs ?? []).filter((job) => isUsableJob(job, maxDaysOld)),
       query,
-      sourceKey: getSourceKey(query)
+      sourceKey: getSourceKey(market, query)
     };
   } finally {
     clearTimeout(timeout);
@@ -198,16 +229,17 @@ async function fetchJoobleJobs(query: string, options: JoobleSyncOptions): Promi
 
 async function ensureCompanies(
   supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
-  jobs: JoobleJob[]
+  jobs: JoobleJob[],
+  market: JoobleMarket
 ) {
   const rowsBySlug = new Map<string, Database["public"]["Tables"]["companies"]["Insert"]>();
 
   for (const job of jobs) {
-    const slug = getCompanySlug(job);
+    const slug = getCompanySlug(job, market);
     if (!rowsBySlug.has(slug)) {
       rowsBySlug.set(slug, {
         greenhouse_slug: slug,
-        industry: "Jooble Australia",
+        industry: `Jooble ${market.displayName}`,
         is_active: true,
         name: getCompanyName(job),
         website: null
@@ -230,9 +262,9 @@ async function ensureCompanies(
   return new Map((data ?? []).map((company) => [company.greenhouse_slug, company]));
 }
 
-function normalizeJob(job: JoobleJob, companyId: string) {
+function normalizeJob(job: JoobleJob, companyId: string, market: JoobleMarket) {
   const applyUrl = isPublicHttpUrl(job.link) ? job.link : null;
-  const location = getLocation(job);
+  const location = getLocation(job, market);
   const title = job.title?.trim() || "Untitled role";
   const updatedAt = toIsoDate(job.updated);
 
@@ -240,7 +272,7 @@ function normalizeJob(job: JoobleJob, companyId: string) {
     apply_url: applyUrl,
     company_id: companyId,
     description: buildDescription(job) || null,
-    external_id: `jooble:au:${job.id}`,
+    external_id: `jooble:${market.code}:${job.id}`,
     freshness_score: calculateFreshnessScore({
       applyUrl,
       location,
@@ -251,7 +283,7 @@ function normalizeJob(job: JoobleJob, companyId: string) {
     last_seen_at: new Date().toISOString(),
     location,
     posted_at: updatedAt,
-    raw_data: { ...job, country: "AU", salary_text: job.salary ?? null } as unknown as Json,
+    raw_data: { ...job, country: market.countryCode, salary_text: job.salary ?? null } as unknown as Json,
     remote_type: inferRemoteType(title, location),
     source: "jooble",
     source_url: applyUrl,
@@ -261,13 +293,17 @@ function normalizeJob(job: JoobleJob, companyId: string) {
   } satisfies Database["public"]["Tables"]["jobs"]["Insert"];
 }
 
-export async function syncJoobleAustraliaJobs(options: JoobleSyncOptions = {}): Promise<JobSyncResult> {
+async function syncJoobleMarketJobs(
+  market: JoobleMarket,
+  options: JoobleSyncOptions = {}
+): Promise<JobSyncResult> {
+  const sourceName = `jooble-${market.code}`;
   const sourceResult: JobSyncSourceResult = {
     configured: hasJoobleConfig(),
     skippedReason: hasJoobleConfig()
       ? undefined
-      : "Add JOOBLE_API_KEY to enable the optional Jooble Australia discovery feed.",
-    source: "jooble-au",
+      : `Add JOOBLE_API_KEY to enable the ${market.displayName} discovery feed.`,
+    source: sourceName,
     totalJobsFetched: 0,
     totalJobsInserted: 0,
     totalJobsUpdated: 0,
@@ -290,9 +326,9 @@ export async function syncJoobleAustraliaJobs(options: JoobleSyncOptions = {}): 
   const batches: JoobleFetchBatch[] = [];
   await mapWithConcurrency(getQueries(options), 3, async (query) => {
     const identity = {
-      displayName: `Jooble Australia: ${query}`,
+      displayName: `Jooble ${market.displayName}: ${query}`,
       source: "jooble",
-      sourceKey: getSourceKey(query)
+      sourceKey: getSourceKey(market, query)
     };
     const health = await getSourceHealthStatus(supabase, identity);
 
@@ -303,22 +339,22 @@ export async function syncJoobleAustraliaJobs(options: JoobleSyncOptions = {}): 
 
     sourceResult.totalRequests += 1;
     try {
-      const batch = await fetchJoobleJobs(query, options);
+      const batch = await fetchJoobleJobs(market, query, options);
       sourceResult.totalJobsFetched += batch.jobs.length;
       batches.push(batch);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown Jooble sync error";
       await recordSourceFailure(supabase, identity, message);
-      result.errors.push({ source: "jooble-au", query, message });
+      result.errors.push({ source: sourceName, query, message });
     }
   });
 
   const jobs = batches.flatMap((batch) => batch.jobs);
-  const companies = await ensureCompanies(supabase, jobs);
+  const companies = await ensureCompanies(supabase, jobs, market);
   const normalized = jobs
     .map((job) => {
-      const company = companies.get(getCompanySlug(job));
-      return company ? normalizeJob(job, company.id) : null;
+      const company = companies.get(getCompanySlug(job, market));
+      return company ? normalizeJob(job, company.id, market) : null;
     })
     .filter(Boolean) as Database["public"]["Tables"]["jobs"]["Insert"][];
   const uniqueJobs = Array.from(
@@ -359,13 +395,15 @@ export async function syncJoobleAustraliaJobs(options: JoobleSyncOptions = {}): 
     await recordSourceSuccess(
       supabase,
       {
-        displayName: `Jooble Australia: ${batch.query}`,
+        displayName: `Jooble ${market.displayName}: ${batch.query}`,
         source: "jooble",
         sourceKey: batch.sourceKey
       },
       {
         jobsFetched: batch.jobs.length,
-        jobsInserted: batch.jobs.filter((job) => insertedIds.has(`jooble:au:${job.id}`)).length
+        jobsInserted: batch.jobs.filter((job) =>
+          insertedIds.has(`jooble:${market.code}:${job.id}`)
+        ).length
       }
     );
   }
@@ -376,4 +414,12 @@ export async function syncJoobleAustraliaJobs(options: JoobleSyncOptions = {}): 
 
   result.totalCompaniesChecked = companies.size;
   return result;
+}
+
+export function syncJoobleUaeJobs(options: JoobleSyncOptions = {}) {
+  return syncJoobleMarketJobs(joobleMarkets.ae, options);
+}
+
+export function syncJoobleAustraliaJobs(options: JoobleSyncOptions = {}) {
+  return syncJoobleMarketJobs(joobleMarkets.au, options);
 }

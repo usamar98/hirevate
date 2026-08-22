@@ -16,7 +16,7 @@ import { signInSchema, signUpSchema, type AuthFormValues } from "@/lib/validator
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultRedirect = mode === "signup" ? "/pricing" : "/jobs#results";
+  const defaultRedirect = mode === "signup" ? "/jobs" : "/jobs#results";
   const redirectParam = searchParams.get("redirect") ?? defaultRedirect;
   const redirectTo =
     redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : defaultRedirect;
@@ -153,8 +153,27 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       ) : null}
       <Button className="w-full" disabled={isSubmitting} size="lg" type="submit">
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-        {mode === "signup" ? "Create account" : "Log in"}
+        {mode === "signup" ? "Start 3-day free trial" : "Log in"}
       </Button>
+      {mode === "signup" ? (
+        <p className="text-center text-xs leading-5 text-ink-500">
+          By creating an account, you agree to the{" "}
+          <Link
+            className="font-semibold text-brand-700 hover:text-brand-800"
+            href="/legal/terms-of-service"
+          >
+            Terms of Service
+          </Link>{" "}
+          and acknowledge the{" "}
+          <Link
+            className="font-semibold text-brand-700 hover:text-brand-800"
+            href="/legal/privacy-policy"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      ) : null}
     </form>
   );
 }

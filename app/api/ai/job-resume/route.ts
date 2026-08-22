@@ -1,10 +1,16 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
+import {
+  getCurrentUser,
+  getProfile,
+  hasPremiumAccess,
+  hasProductAccess
+} from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import { readPublicJobPage } from "@/lib/jobs/read-public-job-page";
 import { resumeTemplateValues } from "@/lib/resume/templates";
+import { releaseTrialFeature, reserveTrialFeature } from "@/lib/trial/usage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -272,9 +278,9 @@ export async function POST(request: Request) {
   }
 
   const profile = await getProfile(user.id);
-  if (!hasPremiumAccess(profile)) {
+  if (!hasProductAccess(profile)) {
     return NextResponse.json(
-      { error: "Job-tailored resume generation is included with paid Hirevate plans." },
+      { error: "Your free access has ended. Choose a Hirevate plan to continue." },
       { status: 403 }
     );
   }
@@ -295,6 +301,18 @@ export async function POST(request: Request) {
       { error: "Job resume generation limit reached. Try again later." },
       { status: 429 }
     );
+  }
+
+  let reservedTrialResume = false;
+  if (parsed.data.task === "generate_resume" && !hasPremiumAccess(profile)) {
+    const reservation = await reserveTrialFeature("job_resume");
+    if (!reservation.allowed) {
+      return NextResponse.json(
+        { error: "Free access for this feature is no longer available. Choose a plan to continue." },
+        { status: 403 }
+      );
+    }
+    reservedTrialResume = true;
   }
 
   try {
@@ -372,6 +390,9 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "private, no-store" } }
     );
   } catch (error) {
+    if (reservedTrialResume) {
+      await releaseTrialFeature(user.id, "job_resume");
+    }
     const message = error instanceof Error ? error.message : "";
     const readableMessage = message.startsWith("That ") || message.startsWith("Use a ")
       ? message

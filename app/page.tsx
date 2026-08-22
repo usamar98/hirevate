@@ -365,6 +365,10 @@ export default async function LandingPage() {
                 {copy.hero.resumeCta}
               </Button>
             </div>
+            <p className="mt-4 text-sm font-semibold text-brand-700">
+              <Link href="/signup?redirect=%2Fjobs">Start a 3-day free trial</Link>
+              <span className="font-medium text-ink-500"> — no card required.</span>
+            </p>
             <p className="mt-5 max-w-lg text-sm leading-6 text-ink-500">
               Company career pages and public ATS boards are prioritized, with stale listings
               removed from active search. Read the{" "}

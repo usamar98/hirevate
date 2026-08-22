@@ -132,13 +132,23 @@ const configuredJobCountries = [
     popularCities: ["Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad"]
   },
   {
-    slug: "united-arab-emirates",
+    slug: "uae",
     code: "AE",
     name: "United Arab Emirates",
     demonym: "UAE",
-    path: "/jobs/country/united-arab-emirates",
-    locationTerms: ["United Arab Emirates", "UAE", "Dubai", "Abu Dhabi", "Sharjah"],
-    popularCities: ["Dubai", "Abu Dhabi", "Sharjah"]
+    path: "/jobs/country/uae",
+    locationTerms: [
+      "United Arab Emirates",
+      "UAE",
+      "Dubai",
+      "Abu Dhabi",
+      "Sharjah",
+      "Ajman",
+      "Ras Al Khaimah",
+      "Fujairah",
+      "Al Ain"
+    ],
+    popularCities: ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Al Ain"]
   },
   {
     slug: "singapore",
@@ -151,7 +161,7 @@ const configuredJobCountries = [
   }
 ] as const satisfies readonly JobCountry[];
 
-const dailyCoverageCountryCodes = new Set(["US", "GB", "CA", "AU"]);
+const dailyCoverageCountryCodes = new Set(["US", "GB", "CA", "AU", "AE"]);
 
 // Only advertise markets that the current source mix refreshes reliably every day.
 // Other countries can be re-enabled after they have dependable daily source coverage.

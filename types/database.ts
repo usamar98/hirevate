@@ -20,6 +20,7 @@ export type JobApplicationStatus =
 
 export type JobListingStatus = "active" | "closed" | "unavailable" | "unknown";
 export type JobApplicationPriority = "low" | "medium" | "high";
+export type TrialFeature = "job_apply" | "job_resume" | "cover_letter";
 
 export type Database = {
   public: {
@@ -296,6 +297,33 @@ export type Database = {
           source?: string;
           period_month?: string;
           searches_used?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      trial_feature_usage: {
+        Row: {
+          user_id: string;
+          feature: TrialFeature;
+          period_key: string;
+          usage_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          feature: TrialFeature;
+          period_key: string;
+          usage_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          feature?: TrialFeature;
+          period_key?: string;
+          usage_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -626,6 +654,24 @@ export type Database = {
           searches_remaining: number;
         }[];
       };
+      reserve_trial_feature: {
+        Args: {
+          p_feature: TrialFeature;
+        };
+        Returns: {
+          allowed: boolean;
+          remaining: number | null;
+          trial_ends_at: string | null;
+          denial_reason: string | null;
+        }[];
+      };
+      release_trial_feature: {
+        Args: {
+          p_user_id: string;
+          p_feature: TrialFeature;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;
@@ -645,6 +691,7 @@ export type JobApplication = Database["public"]["Tables"]["job_applications"]["R
 export type JobApplicationEvent = Database["public"]["Tables"]["job_application_events"]["Row"];
 export type JobSourceUsage = Database["public"]["Tables"]["job_source_usage"]["Row"];
 export type JobSourceHealth = Database["public"]["Tables"]["job_source_health"]["Row"];
+export type TrialFeatureUsage = Database["public"]["Tables"]["trial_feature_usage"]["Row"];
 export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applications"]["Row"];
 export type ResumeAbTest = Database["public"]["Tables"]["resume_ab_tests"]["Row"];
 

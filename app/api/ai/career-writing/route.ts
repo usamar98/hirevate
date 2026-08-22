@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
+import {
+  getCurrentUser,
+  getProfile,
+  hasPremiumAccess,
+  hasProductAccess
+} from "@/lib/auth/session";
 import { env } from "@/lib/env";
+import { releaseTrialFeature, reserveTrialFeature } from "@/lib/trial/usage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,8 +150,11 @@ export async function POST(request: Request) {
   }
 
   const profile = await getProfile(user.id);
-  if (!hasPremiumAccess(profile)) {
-    return NextResponse.json({ error: "AI writing is included with paid Hirevate plans." }, { status: 403 });
+  if (!hasProductAccess(profile)) {
+    return NextResponse.json(
+      { error: "Your free access has ended. Choose a Hirevate plan to continue." },
+      { status: 403 }
+    );
   }
 
   if (!env.openAiApiKey) {
@@ -169,6 +178,18 @@ export async function POST(request: Request) {
   }
 
   const output = getStructuredOutput(parsed.data.task);
+  let reservedTrialCoverLetter = false;
+
+  if (parsed.data.task === "cover_letter" && !hasPremiumAccess(profile)) {
+    const reservation = await reserveTrialFeature("cover_letter");
+    if (!reservation.allowed) {
+      return NextResponse.json(
+        { error: "Free access for this feature is no longer available. Choose a plan to continue." },
+        { status: 403 }
+      );
+    }
+    reservedTrialCoverLetter = true;
+  }
 
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -200,19 +221,13 @@ export async function POST(request: Request) {
         status: response.status,
         task: parsed.data.task
       });
-      return NextResponse.json(
-        { error: "AI writing could not finish right now. Try again shortly." },
-        { status: 502 }
-      );
+      throw new Error("AI_PROVIDER_ERROR");
     }
 
     const responsePayload = (await response.json()) as unknown;
     const responseText = extractResponseText(responsePayload);
     if (!responseText) {
-      return NextResponse.json(
-        { error: "AI writing returned an empty result. Try again." },
-        { status: 502 }
-      );
+      throw new Error("AI_EMPTY_RESULT");
     }
 
     const result = JSON.parse(responseText) as unknown;
@@ -223,10 +238,7 @@ export async function POST(request: Request) {
     const validated = resultSchema.safeParse(result);
 
     if (!validated.success) {
-      return NextResponse.json(
-        { error: "AI writing returned an invalid result. Try again." },
-        { status: 502 }
-      );
+      throw new Error("AI_INVALID_RESULT");
     }
 
     return NextResponse.json(
@@ -234,6 +246,9 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "private, no-store" } }
     );
   } catch (error) {
+    if (reservedTrialCoverLetter) {
+      await releaseTrialFeature(user.id, "cover_letter");
+    }
     console.error("AI writing request failed", {
       name: error instanceof Error ? error.name : "UnknownError",
       task: parsed.data.task

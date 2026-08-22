@@ -15,6 +15,7 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
     { href: "/jobs/student/us", label: "US student jobs" },
     { href: "/jobs/student/uk", label: "UK student jobs" },
     { href: "/jobs/uk", label: copy.links.ukJobs },
+    { href: "/jobs/country/uae", label: "UAE Jobs" },
     { href: "/jobs/engineering", label: copy.links.engineeringJobs },
     { href: "/resume-builder", label: copy.links.resume },
     { href: "/cover-letter", label: copy.links.coverLetter },

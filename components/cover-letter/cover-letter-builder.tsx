@@ -203,7 +203,7 @@ export function CoverLetterBuilder({
       <div className="container-shell space-y-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h1 className="text-4xl font-semibold text-ink-900">Cover letter builder</h1>
+            <h1 className="text-4xl font-semibold text-ink-900">Free cover letter builder</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
               Draft a targeted cover letter from the role, company, strengths, and proof points.
             </p>

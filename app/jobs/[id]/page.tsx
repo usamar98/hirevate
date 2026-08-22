@@ -10,20 +10,23 @@ import { JobSourceAttribution } from "@/components/jobs/job-source-attribution";
 import { ResumeMatchCard } from "@/components/jobs/resume-match-card";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
+import {
+  getCurrentUser,
+  getProfile,
+  hasPremiumAccess,
+  hasProductAccess
+} from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getJobBySlugOrId, getSavedJobIds } from "@/lib/jobs/queries";
 import {
   buildJobBreadcrumbJsonLd,
-  buildJobPostingJsonLd,
   getJobCompanyName,
   getJobMetaDescription,
   getJobMetaTitle,
   getJobPath,
   getJobSlug,
-  isJobPostingEligible
 } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
@@ -107,6 +110,7 @@ export default async function JobDetailPage({
     user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>()),
     user ? getProfile(user.id) : Promise.resolve(null)
   ]);
+  const hasAccess = hasProductAccess(profile);
   const isPaid = hasPremiumAccess(profile);
 
   if (user && access.allowed) {
@@ -126,14 +130,15 @@ export default async function JobDetailPage({
   });
 
   if (job.location) trackerParams.set("location", job.location);
-  if (job.apply_url ?? job.source_url) trackerParams.set("jobUrl", job.apply_url ?? job.source_url ?? "");
+  if (isPaid && (job.apply_url ?? job.source_url)) {
+    trackerParams.set("jobUrl", job.apply_url ?? job.source_url ?? "");
+  }
   if (compensationLabel) trackerParams.set("salaryRange", compensationLabel);
 
   return (
     <>
       <JsonLd
         data={[
-          ...(isJobPostingEligible(job) ? [buildJobPostingJsonLd(job)] : []),
           buildJobBreadcrumbJsonLd(job)
         ]}
       />
@@ -188,11 +193,13 @@ export default async function JobDetailPage({
                 </div>
               ) : null}
               <div className="mt-5 space-y-2">
-                {job.apply_url && isPaid ? (
-                  <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer" className="w-full">
-                    {sourceTrust.applyCta}
-                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Button>
+                {job.apply_url && hasAccess ? (
+                  <form action={`/api/jobs/${job.id}/apply`} method="post" target="_blank">
+                    <Button className="w-full" type="submit">
+                      {sourceTrust.applyCta}
+                      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </form>
                 ) : job.apply_url ? (
                   <Button
                     asChild

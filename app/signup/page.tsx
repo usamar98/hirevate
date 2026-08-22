@@ -18,7 +18,7 @@ type SignupPageProps = {
 
 function getSafeRedirect(value: string | string[] | undefined) {
   const redirect = Array.isArray(value) ? value[0] : value;
-  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/pricing";
+  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/jobs";
 }
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
@@ -31,7 +31,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <Card className="p-6">
           <h1 className="text-3xl font-semibold text-ink-900">Create account</h1>
           <p className="mt-2 text-sm leading-6 text-ink-500">
-            Create a free account with no card required. Choose paid access only when you are ready.
+            Start your 3-day free trial with no card required. Choose paid access only when you are ready.
           </p>
           <div className="mt-6">
             <Suspense>

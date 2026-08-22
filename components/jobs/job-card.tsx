@@ -106,10 +106,12 @@ export function JobCard({
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
           {showApplyAction && job.apply_url && canApply ? (
-            <Button asChild href={job.apply_url} target="_blank" rel="noopener noreferrer">
-              Apply now
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
+            <form action={`/api/jobs/${job.id}/apply`} method="post" target="_blank">
+              <Button type="submit">
+                Apply now
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </form>
           ) : showApplyAction && job.apply_url ? (
             <Button
               asChild

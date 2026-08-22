@@ -2,7 +2,7 @@ import { env } from "@/lib/env";
 import { getConfiguredAdzunaCountries, syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
-import { syncJoobleAustraliaJobs } from "@/lib/jobs/jooble";
+import { syncJoobleAustraliaJobs, syncJoobleUaeJobs } from "@/lib/jobs/jooble";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { deleteStaleJobs, expireDuplicateJobs, JOB_RETENTION_DAYS } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
@@ -190,7 +190,7 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
 function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
   result.sourceResults.unshift({
     configured: true,
-    skippedReason: `Daily fresh plan ${plan.runDate}: Adzuna ${plan.adzunaCountries.map((country) => country.toUpperCase()).join("/")} (${plan.adzunaQueries.length} searches per market), optional Jooble Australia (${plan.joobleQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; jobs not refreshed for ${plan.retentionDays} days are permanently deleted; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
+    skippedReason: `Daily fresh plan ${plan.runDate}: prioritized Jooble UAE (${plan.joobleQueries.length} searches), Adzuna ${plan.adzunaCountries.map((country) => country.toUpperCase()).join("/")} (${plan.adzunaQueries.length} searches per market), optional Jooble Australia (${plan.joobleQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; jobs not refreshed for ${plan.retentionDays} days are permanently deleted; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
     source: "freshness-planner",
     totalJobsExpired: 0,
     totalJobsFetched: 0,
@@ -198,7 +198,7 @@ function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
     totalJobsUpdated: 0,
     totalRequests:
       plan.adzunaQueries.length * plan.adzunaCountries.length +
-      plan.joobleQueries.length +
+      plan.joobleQueries.length * 2 +
       plan.ashbyCompanyCount +
       plan.leverCompanyCount +
       plan.greenhouseCompanyCount
@@ -229,6 +229,21 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
   const plan = buildDailyFreshJobPlan(now);
   const result = emptyResult();
   const startedAt = Date.now();
+
+  // UAE discovery runs first so the new market is refreshed every day even
+  // when later providers consume the remaining function time budget.
+  await runPlannedSource(
+    result,
+    "jooble-ae",
+    startedAt,
+    plan.syncBudgetMs,
+    () =>
+      syncJoobleUaeJobs({
+        maxDaysOld: plan.freshWindowDays,
+        queries: plan.joobleQueries
+      }),
+    "Jooble UAE sync failed."
+  );
 
   for (const country of plan.adzunaCountries) {
     await runPlannedSource(

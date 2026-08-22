@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
 import { getSavedJobs } from "@/lib/jobs/queries";
-import { getProfile, hasPremiumAccess, requireUser } from "@/lib/auth/session";
+import { getProfile, hasProductAccess, requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Saved Jobs",
@@ -19,7 +19,7 @@ export default async function SavedJobsPage() {
     getSavedJobs(user.id),
     getProfile(user.id)
   ]);
-  const isPaid = hasPremiumAccess(profile);
+  const isPaid = hasProductAccess(profile);
   const validSavedJobs = savedJobs.filter((item) => item.jobs);
 
   return (

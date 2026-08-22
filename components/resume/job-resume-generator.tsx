@@ -262,7 +262,7 @@ export function JobResumeGenerator({
                 ) : (
                   <SearchCheck className="h-4 w-4" aria-hidden="true" />
                 )}
-                {canUseAi ? "Read and analyze job" : "Unlock job analysis"}
+                {canUseAi ? "Read and analyze job" : "Create resume using job analysis"}
               </Button>
 
               {error ? (

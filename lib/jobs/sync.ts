@@ -1,7 +1,7 @@
 import { getConfiguredAdzunaCountries, syncAdzunaJobs } from "@/lib/jobs/adzuna";
 import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
-import { syncJoobleAustraliaJobs } from "@/lib/jobs/jooble";
+import { syncJoobleAustraliaJobs, syncJoobleUaeJobs } from "@/lib/jobs/jooble";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { deleteStaleJobs, expireDuplicateJobs } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
@@ -94,6 +94,12 @@ export async function syncAllJobs(): Promise<JobSyncResult> {
         )
       );
     }
+  }
+
+  try {
+    mergeResult(result, await syncJoobleUaeJobs());
+  } catch (error) {
+    mergeResult(result, failedSourceResult("jooble-ae", getSyncErrorMessage(error, "Jooble UAE sync failed.")));
   }
 
   try {

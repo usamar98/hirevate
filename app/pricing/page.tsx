@@ -3,11 +3,12 @@ import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
 import { PricingCards } from "@/components/pricing/pricing-cards";
 import { JsonLd } from "@/components/seo/json-ld";
+import { Button } from "@/components/ui/button";
 import { pricingSummary, publicPricingPlans } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const pricingDescription =
-  "Compare Hirevate paid plans for fresh job discovery, AI resume generation from a job link, six professional templates, resume matching, and lifecycle tracking.";
+  "Start a 3-day free Hirevate trial, then compare paid plans for fresh jobs, AI resume and cover-letter tools, application tracking, and professional templates.";
 
 const pricingFaqItems = [
   {
@@ -22,7 +23,7 @@ const pricingFaqItems = [
   {
     question: "Can I preview jobs before subscribing?",
     answer:
-      "Yes. Public job pages provide a limited discovery preview. A paid subscription is required for the complete job feed and Apply now links."
+      "Yes. Public job pages provide a discovery preview, and every new account starts with 3 days of free access before a paid subscription is required."
   },
   {
     question: "Do paid plans include resume and cover letter tools?",
@@ -63,6 +64,8 @@ const pricingInternalLinks = [
   { href: "/jobs?keyword=customer%20success", label: "Customer success jobs", requiresAccount: true },
   { href: "/resume-builder", label: "Preview resume templates", requiresAccount: false },
   { href: "/cover-letter", label: "Cover letter builder", requiresAccount: true },
+  { href: "/legal/terms-of-service", label: "Terms of service", requiresAccount: false },
+  { href: "/legal/privacy-policy", label: "Privacy policy", requiresAccount: false },
   { href: "/legal/subscription-terms", label: "Subscription terms", requiresAccount: false },
   { href: "/legal/eu-withdrawal-refund-policy", label: "EU refund policy", requiresAccount: false }
 ];
@@ -158,9 +161,15 @@ export default function PricingPage() {
           <div className="max-w-2xl">
             <h1 className="text-4xl font-semibold text-ink-900">Pricing</h1>
             <p className="mt-3 text-base leading-7 text-ink-500">
-              Choose monthly access for a complete search cycle or annual access for the lowest
-              equivalent weekly price.
+              Start with 3 days free and no card required. Continue with monthly access for a
+              focused search cycle or annual access for the lowest equivalent weekly price.
             </p>
+            <p className="mt-2 text-sm font-medium text-ink-600">
+              All displayed subscription prices are in United States dollars (USD).
+            </p>
+            <Button asChild className="mt-5" href="/signup?redirect=%2Fjobs">
+              Start 3-day free trial
+            </Button>
           </div>
           <div className="mt-8">
             <PricingCards />
@@ -171,8 +180,8 @@ export default function PricingPage() {
         <div className="container-shell">
           <h2 className="text-2xl font-semibold text-ink-900">What each plan connects to</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">
-            Public job pages can be previewed for discovery. Opening plan access from this page
-            requires an account, and a paid plan unlocks the complete job feed and Apply now links.
+            Public job pages can be previewed for discovery. A new account begins with 3 days of
+            free access, and a paid plan keeps the complete workflow available after the trial.
             Both paid plans unlock the same job, job-to-resume, cover-letter, matching, and
             tracking features. Choose a plan based on how long you want access.
           </p>

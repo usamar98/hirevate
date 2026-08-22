@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ResumeBuilder } from "@/components/resume/resume-builder";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasProductAccess } from "@/lib/auth/session";
 import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
-  "Paste a job link or description, choose from six professional templates, and generate an editable ATS-friendly resume tailored to the role using only your career facts.";
+  "Build a free ATS-friendly resume, analyze a job link or description, choose from six professional templates, and tailor every section using only your career facts.";
 
 const resumeBuilderFaqItems = [
   {
@@ -48,19 +48,19 @@ const resumeBuilderInternalLinks = [
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "AI Resume Builder from a Job Link",
+  title: "Free Resume Builder From a Job Link",
   description: resumeBuilderDescription,
   alternates: {
     canonical: "/resume-builder"
   },
   openGraph: {
-    title: "AI Resume Builder from a Job Link",
+    title: "Free Resume Builder From a Job Link",
     description: resumeBuilderDescription,
     url: "/resume-builder",
     images: [defaultOgImagePath]
   },
   twitter: {
-    title: "AI Resume Builder from a Job Link",
+    title: "Free Resume Builder From a Job Link",
     description: resumeBuilderDescription,
     card: "summary_large_image",
     images: [defaultOgImagePath]
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 export default async function ResumeBuilderPage() {
   const user = await getCurrentUser();
   const profile = user ? await getProfile(user.id) : null;
-  const canExport = hasPremiumAccess(profile);
+  const canExport = hasProductAccess(profile);
 
   return (
     <>

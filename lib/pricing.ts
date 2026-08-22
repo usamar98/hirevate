@@ -123,7 +123,7 @@ export const publicPricingFacts = publicPricingPlans.flatMap((plan) =>
 );
 
 export const pricingSummary =
-  "Hirevate costs $24.99 per month or $69.99 per year. Both plans are paid subscriptions and renew for the selected billing period until canceled.";
+  "Hirevate costs USD $24.99 per month or USD $69.99 per year. Both plans are paid subscriptions and renew for the selected billing period until canceled.";
 
 export function getPricingPlanForOption(key: CheckoutPlanKey) {
   const plan = publicPricingPlans.find((item) => item.options.some((option) => option.key === key));

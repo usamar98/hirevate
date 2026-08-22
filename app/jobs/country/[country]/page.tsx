@@ -28,13 +28,19 @@ export async function generateMetadata({ params }: CountryJobsPageProps): Promis
   const country = getJobCountryBySlug(slug);
   if (!country || country.path !== `/jobs/country/${country.slug}`) return {};
 
-  const title = `${country.name} Jobs From Public Hiring Sources`;
-  const description = `Find fresh jobs in ${country.name} from company career pages, public ATS boards, and trusted hiring sources, with clear location, source, and freshness signals.`;
+  const searchName = country.code === "AE" ? "UAE" : country.name;
+  const title = `${searchName} Jobs Updated Daily From Public Sources`;
+  const description = `Find fresh jobs in ${searchName}, including ${country.popularCities.slice(0, 3).join(", ")}. Search roles updated daily from public hiring sources with clear location and freshness signals.`;
 
   return {
     title: { absolute: `${title} | Hirevate` },
     description,
-    keywords: [`jobs in ${country.name}`, `${country.demonym} jobs`, `remote jobs in ${country.name}`],
+    keywords: [
+      `jobs in ${searchName}`,
+      `${country.demonym} jobs`,
+      `remote jobs in ${searchName}`,
+      ...country.popularCities.slice(0, 3).map((city) => `jobs in ${city}`)
+    ],
     alternates: { canonical: country.path },
     openGraph: { title, description, url: country.path, images: [defaultOgImagePath] },
     twitter: { title, description, card: "summary_large_image", images: [defaultOgImagePath] }
@@ -75,6 +81,8 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
   const visibleJobs = jobs.slice(0, 10);
   const faqs = getCountryFaqs(country);
   const siblingCountries = jobCountries.filter((item) => item.slug !== country.slug);
+  const searchName = country.code === "AE" ? "UAE" : country.name;
+  const isUae = country.code === "AE";
 
   return (
     <>
@@ -110,15 +118,6 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
               name: `${job.title} at ${getJobCompanyName(job)}`
             }))
           },
-          {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((item) => ({
-              "@type": "Question",
-              name: item.question,
-              acceptedAnswer: { "@type": "Answer", text: item.answer }
-            }))
-          }
         ]}
       />
       <section className="bg-gray-50 py-10">
@@ -127,13 +126,13 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
             <div>
               <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-brand-600">
                 <Globe2 className="h-4 w-4" aria-hidden="true" />
-                {country.name} job search
+                {searchName} job search
               </p>
-              <h1 className="mt-3 text-4xl font-semibold text-ink-900">Jobs in {country.name}</h1>
+              <h1 className="mt-3 text-4xl font-semibold text-ink-900">Jobs in {searchName}</h1>
               <p className="mt-3 max-w-3xl text-base leading-7 text-ink-500">
-                Browse fresh roles connected to {country.name} from company career pages, public ATS
-                boards, and trusted hiring sources. Location matching uses the information published
-                by each source and can include {country.popularCities.join(", ")}.
+                Browse fresh roles connected to {searchName} from company career pages, public ATS
+                boards, and trusted hiring sources. Supported sources refresh every day, while
+                location matching uses the information published by each source and can include {country.popularCities.join(", ")}.
               </p>
             </div>
             <Button asChild href={`/jobs?country=${country.slug}`}>
@@ -224,6 +223,37 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
               </p>
             </div>
           </section>
+
+          {isUae ? (
+            <section className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6">
+              <h2 className="text-2xl font-semibold text-ink-900">Search UAE jobs by city and role</h2>
+              <div className="mt-3 grid gap-4 text-sm leading-6 text-ink-600 md:grid-cols-2">
+                <p>
+                  The UAE feed targets public listings for Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al
+                  Khaimah, Fujairah, and Al Ain. Use the role filter for software, data, sales,
+                  marketing, finance, hospitality, healthcare, operations, construction, and
+                  customer-service opportunities.
+                </p>
+                <p>
+                  Each result keeps its original employer, ATS, or hiring-source link and displays
+                  when the listing was last refreshed. Always confirm visa, language, salary, and
+                  work-location requirements on the source page because eligibility varies by
+                  employer and role.
+                </p>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link className="font-semibold text-brand-700" href="/jobs?country=uae&location=Dubai">
+                  Jobs in Dubai
+                </Link>
+                <Link className="font-semibold text-brand-700" href="/jobs?country=uae&location=Abu%20Dhabi">
+                  Jobs in Abu Dhabi
+                </Link>
+                <Link className="font-semibold text-brand-700" href="/jobs?country=uae&workMode=remote">
+                  Remote jobs in the UAE
+                </Link>
+              </div>
+            </section>
+          ) : null}
 
           <section className="mt-8 rounded-lg border border-gray-200 bg-white p-5">
             <h2 className="text-xl font-semibold text-ink-900">{country.name} jobs FAQ</h2>

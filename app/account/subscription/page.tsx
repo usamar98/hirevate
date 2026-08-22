@@ -6,7 +6,13 @@ import { CancelSubscriptionButton } from "@/components/billing/cancel-subscripti
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getProfile, isPaidSubscription, requireUser } from "@/lib/auth/session";
+import {
+  getFreeTrialEndsAt,
+  getProfile,
+  hasActiveFreeTrial,
+  isPaidSubscription,
+  requireUser
+} from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/server";
 import {
   reconcilePaidSubscriptionForUser,
@@ -95,6 +101,9 @@ export default async function AccountSubscriptionPage() {
     }
   }
 
+  const isFreeTrialActive = !isPaid && hasActiveFreeTrial(profile);
+  const freeTrialEndsAt = getFreeTrialEndsAt(profile);
+
   return (
     <section className="bg-gray-50 py-12">
       <div className="container-shell max-w-3xl">
@@ -111,12 +120,30 @@ export default async function AccountSubscriptionPage() {
             <div>
               <div className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-brand-600" aria-hidden="true" />
-                <h2 className="text-xl font-semibold text-ink-900">{planLabel(profile?.subscription_status)}</h2>
+                <h2 className="text-xl font-semibold text-ink-900">
+                  {isFreeTrialActive ? "3-day free trial" : planLabel(profile?.subscription_status)}
+                </h2>
               </div>
               <p className="mt-2 text-sm text-ink-500">{user.email}</p>
             </div>
-            <Badge tone={isPaid ? "green" : "gray"}>{isPaid ? stripeStatus ?? "active" : "unsubscribed"}</Badge>
+            <Badge tone={isPaid || isFreeTrialActive ? "green" : "gray"}>
+              {isPaid ? stripeStatus ?? "active" : isFreeTrialActive ? "active" : "unsubscribed"}
+            </Badge>
           </div>
+
+          {isFreeTrialActive && freeTrialEndsAt ? (
+            <div className="mt-6 flex gap-3 rounded-md border border-brand-100 bg-brand-50 p-4">
+              <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold text-ink-900">
+                  Free trial ends {new Intl.DateTimeFormat("en", { dateStyle: "long", timeStyle: "short" }).format(freeTrialEndsAt)}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-ink-500">
+                  Choose a plan anytime to keep access after the trial.
+                </p>
+              </div>
+            </div>
+          ) : null}
 
           {periodEnd ? (
             <div className="mt-6 flex gap-3 rounded-md border border-gray-100 bg-gray-50 p-4">

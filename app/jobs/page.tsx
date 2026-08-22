@@ -8,7 +8,7 @@ import { JobCard } from "@/components/jobs/job-card";
 import { CountryPreferenceLink } from "@/components/jobs/country-preference-select";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasProductAccess } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCountryBySlug, jobCountries } from "@/lib/jobs/countries";
 import { resolveJobCountryPreference } from "@/lib/jobs/country-preference";
@@ -24,7 +24,7 @@ import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 import type { JobSearchInput } from "@/lib/validators/jobs";
 
 const jobsDescription =
-  "Search fresh jobs from company career pages, public ATS boards, and trusted hiring sources, with filters for title, location, remote work, and freshness.";
+  "Use a free job search and application tracker for fresh roles from company career pages, public ATS boards, and trusted hiring sources, with clear freshness signals.";
 
 const jobsFaqItems = [
   {
@@ -172,7 +172,9 @@ export async function generateMetadata({
     filters.company ? `at ${filters.company}` : null,
     locationName ? `in ${locationName}` : null
   ].filter(Boolean);
-  const title = titleParts.join(" ");
+  const title = hasFacetedSearch(filters)
+    ? titleParts.join(" ")
+    : "Free Job Search & Application Tracker";
   const description =
     filters.keyword ||
     filters.location ||
@@ -223,7 +225,7 @@ export default async function JobsPage({
     getCurrentUser()
   ]);
   const profile = user ? await getProfile(user.id) : null;
-  const isPaid = hasPremiumAccess(profile);
+  const isPaid = hasProductAccess(profile);
   const effectiveSearchParams = {
     ...(resolvedSearchParams ?? {}),
     country: countryPreference.slug
@@ -321,7 +323,13 @@ export default async function JobsPage({
       />
       <section className="bg-gray-50 py-10">
         <div className="container-shell">
-          <h1 className="sr-only">Hidden jobs</h1>
+          <div className="mb-8 max-w-3xl">
+            <h1 className="text-4xl font-semibold text-ink-900">Free job search and application tracker</h1>
+            <p className="mt-3 text-base leading-7 text-ink-500">
+              Find recently refreshed jobs, open the available employer or hiring-source path,
+              save promising roles, and organize each application from interest to decision.
+            </p>
+          </div>
           {countryPreference.country ? (
             <div className="flex flex-col gap-3 rounded-lg border border-brand-100 bg-brand-50 p-4 text-sm md:flex-row md:items-center">
               <Globe2 className="h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />

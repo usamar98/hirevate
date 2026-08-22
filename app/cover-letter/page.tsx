@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CoverLetterBuilder } from "@/components/cover-letter/cover-letter-builder";
-import { getCurrentUser, getProfile, hasPremiumAccess } from "@/lib/auth/session";
+import { getCurrentUser, getProfile, hasProductAccess } from "@/lib/auth/session";
 import { publicPricingFacts } from "@/lib/pricing";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const coverLetterDescription =
-  "Create a job-specific cover letter with secure AI writing, proof points, role keywords, copy, and download tools.";
+  "Use Hirevate's free cover letter builder to create a job-specific draft with proof points, role keywords, secure AI writing, copy, and download tools.";
 
 const coverLetterFaqItems = [
   {
@@ -38,19 +38,19 @@ const coverLetterInternalLinks = [
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Cover Letter Builder",
+  title: "Free Cover Letter Builder",
   description: coverLetterDescription,
   alternates: {
     canonical: "/cover-letter"
   },
   openGraph: {
-    title: "Cover Letter Builder",
+    title: "Free Cover Letter Builder",
     description: coverLetterDescription,
     url: "/cover-letter",
     images: [defaultOgImagePath]
   },
   twitter: {
-    title: "Cover Letter Builder",
+    title: "Free Cover Letter Builder",
     description: coverLetterDescription,
     card: "summary_large_image",
     images: [defaultOgImagePath]
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
 export default async function CoverLetterPage() {
   const user = await getCurrentUser();
   const profile = user ? await getProfile(user.id) : null;
-  const canUseAi = hasPremiumAccess(profile);
+  const canUseAi = hasProductAccess(profile);
 
   return (
     <>

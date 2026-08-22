@@ -124,12 +124,12 @@ export const siteCopy = {
 export const landingCopy = {
   en: {
     landingDescription:
-      "Turn a job link or description into a professional tailored resume, find fresh hidden jobs, write cover letters, and manage every application from interest to decision.",
+      "Build a free tailored resume from a job link, find fresh UAE and remote jobs, create cover letters, and manage every application from interest to decision.",
     hero: {
       title: "Find hidden jobs and turn them into stronger applications",
       countedTitle: "Find {count} hidden jobs and turn them into stronger applications",
       description:
-        "Discover fresh roles from company career pages, public ATS boards, and trusted hiring sources. Paste any readable job link or description to create a tailored resume with your chosen professional template.",
+        "Discover fresh UAE, remote, and professional roles from public hiring sources. Paste any readable job link or description to create a tailored resume with your chosen professional template.",
       jobsCta: "Find fresh jobs",
       resumeCta: "Build my resume"
     },

@@ -66,3 +66,29 @@ export function hasPremiumAccess(
 ) {
   return isAdminProfile(profile) || isPaidSubscription(profile?.subscription_status);
 }
+
+export const FREE_TRIAL_DAYS = 3;
+export const FREE_TRIAL_DURATION_MS = FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+
+export function getFreeTrialEndsAt(
+  profile: Pick<Profile, "created_at"> | null | undefined
+) {
+  const createdAt = Date.parse(profile?.created_at ?? "");
+  if (!Number.isFinite(createdAt)) return null;
+  return new Date(createdAt + FREE_TRIAL_DURATION_MS);
+}
+
+export function hasActiveFreeTrial(
+  profile: Pick<Profile, "created_at"> | null | undefined,
+  now = new Date()
+) {
+  const trialEndsAt = getFreeTrialEndsAt(profile);
+  return Boolean(trialEndsAt && trialEndsAt.getTime() > now.getTime());
+}
+
+export function hasProductAccess(
+  profile: Pick<Profile, "created_at" | "role" | "subscription_status"> | null | undefined,
+  now = new Date()
+) {
+  return hasPremiumAccess(profile) || hasActiveFreeTrial(profile, now);
+}

@@ -13,6 +13,7 @@ function getSourceLabel(source: string) {
     return `Adzuna ${country}`;
   }
   if (source === "jooble-au") return "Jooble Australia";
+  if (source === "jooble-ae") return "Jooble UAE";
   if (source === "lever") return "Lever";
   if (source === "maintenance") return "Maintenance";
   return source;
