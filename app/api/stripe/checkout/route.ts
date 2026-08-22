@@ -12,6 +12,27 @@ const checkoutSchema = z.object({
   plan: z.enum([...checkoutPlanKeys] as [StripePlanKey, ...StripePlanKey[]])
 });
 
+function getDatabaseErrorDetails(error: unknown) {
+  if (!error || typeof error !== "object") return { message: "Unknown profile error" };
+
+  const databaseError = error as {
+    code?: unknown;
+    details?: unknown;
+    hint?: unknown;
+    message?: unknown;
+  };
+
+  return {
+    code: typeof databaseError.code === "string" ? databaseError.code : undefined,
+    details: typeof databaseError.details === "string" ? databaseError.details : undefined,
+    hint: typeof databaseError.hint === "string" ? databaseError.hint : undefined,
+    message:
+      typeof databaseError.message === "string"
+        ? databaseError.message
+        : "Unknown profile error"
+  };
+}
+
 async function getReusableCustomerId(stripe: Stripe, customerId: string | null | undefined) {
   if (!customerId) return undefined;
 
@@ -70,14 +91,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
   }
   try {
-    await ensureUserProfile(user);
-  } catch {
+    const profilePrepared = await ensureUserProfile(user);
+    if (!profilePrepared) {
+      console.error("Checkout profile preparation is unavailable", {
+        reason: "Supabase admin configuration is missing"
+      });
+      return NextResponse.json(
+        { error: "Checkout is temporarily unavailable. Please contact support if this continues." },
+        { status: 503 }
+      );
+    }
+  } catch (error) {
+    console.error("Checkout profile preparation failed", getDatabaseErrorDetails(error));
     return NextResponse.json(
-      { error: "We could not prepare your account for checkout. Please try again." },
+      { error: "Checkout is temporarily unavailable. Please contact support if this continues." },
       { status: 500 }
     );
   }
-
 
   const profile = await getProfile(user.id);
   const customerId = await getReusableCustomerId(stripe, profile?.stripe_customer_id);

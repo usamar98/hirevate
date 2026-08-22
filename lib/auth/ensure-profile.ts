@@ -16,7 +16,6 @@ export async function ensureUserProfile(user: User, geo: ProfileGeo = {}) {
   if (!admin) return false;
 
   const fullName = metadataText(user, "full_name");
-  const username = metadataText(user, "username")?.toLowerCase() ?? null;
   const countryCode = geo.countryCode ?? metadataText(user, "country_code");
   const countryName = geo.countryName ?? metadataText(user, "country_name");
   const lastSeenAt = new Date().toISOString();
@@ -26,7 +25,6 @@ export async function ensureUserProfile(user: User, geo: ProfileGeo = {}) {
       id: user.id,
       email: user.email ?? null,
       full_name: fullName,
-      username,
       country_code: countryCode,
       country_name: countryName,
       last_seen_at: lastSeenAt
@@ -44,7 +42,6 @@ export async function ensureUserProfile(user: User, geo: ProfileGeo = {}) {
     country_name?: string | null;
     email?: string | null;
     full_name?: string | null;
-    username?: string | null;
     last_seen_at: string;
   } = {
     last_seen_at: lastSeenAt
@@ -52,7 +49,6 @@ export async function ensureUserProfile(user: User, geo: ProfileGeo = {}) {
 
   if (user.email) updates.email = user.email;
   if (fullName) updates.full_name = fullName;
-  if (username) updates.username = username;
   if (countryCode) updates.country_code = countryCode;
   if (countryName) updates.country_name = countryName;
 

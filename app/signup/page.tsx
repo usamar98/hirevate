@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect as redirectTo } from "next/navigation";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Card } from "@/components/ui/card";
+import { getCurrentUser } from "@/lib/auth/session";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Create Account",
@@ -12,18 +16,34 @@ export const metadata: Metadata = {
   }
 };
 
+type SignupSearchParams = Record<string, string | string[] | undefined>;
+
 type SignupPageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Promise<SignupSearchParams>;
 };
 
 function getSafeRedirect(value: string | string[] | undefined) {
   const redirect = Array.isArray(value) ? value[0] : value;
-  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/jobs";
+  if (!redirect?.startsWith("/") || redirect.startsWith("//")) return "/jobs";
+
+  const pathname = redirect.split(/[?#]/, 1)[0];
+  const authPaths = ["/signup", "/login", "/forgot-password", "/reset-password", "/auth"];
+  return authPaths.some((path) => pathname === path || pathname?.startsWith(`${path}/`))
+    ? "/jobs"
+    : redirect;
 }
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
-  const params = searchParams ? await searchParams : {};
+  const [params, user] = await Promise.all([
+    searchParams ?? Promise.resolve<SignupSearchParams>({}),
+    getCurrentUser()
+  ]);
   const redirect = getSafeRedirect(params.redirect);
+
+  if (user) {
+    redirectTo(redirect);
+  }
+
   const loginHref = `/login?redirect=${encodeURIComponent(redirect)}`;
   return (
     <section className="bg-gray-50 py-14">
