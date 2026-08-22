@@ -1,6 +1,7 @@
 import { env, hasAdzunaConfig } from "@/lib/env";
 import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
+import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
 import type { Company, Database, Json } from "@/types/database";
@@ -429,16 +430,25 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
   }
 
   const existingKeys = new Set((existingJobs ?? []).map((job) => `${job.company_id}:${job.external_id}`));
-  const { error: upsertError } = await supabase.from("jobs").upsert(uniqueJobs, {
-    onConflict: "company_id,external_id"
+  const validation = await validateNewJobLinks(uniqueJobs, {
+    isExisting: (job) => existingKeys.has(`${job.company_id}:${job.external_id}`)
   });
+  const jobsToUpsert = validation.acceptedJobs;
+  sourceResult.totalJobLinksChecked = validation.totalChecked;
+  sourceResult.totalJobLinksUncertain = validation.totalUncertain;
+  sourceResult.totalJobsExcluded = validation.rejected.length;
+  if (jobsToUpsert.length > 0) {
+    const { error: upsertError } = await supabase.from("jobs").upsert(jobsToUpsert, {
+      onConflict: "company_id,external_id"
+    });
 
-  if (upsertError) {
-    throw upsertError;
+    if (upsertError) {
+      throw upsertError;
+    }
   }
 
   const insertedExternalIds = new Set<string>();
-  for (const job of uniqueJobs) {
+  for (const job of jobsToUpsert) {
     if (existingKeys.has(`${job.company_id}:${job.external_id}`)) {
       sourceResult.totalJobsUpdated += 1;
       result.totalJobsUpdated += 1;

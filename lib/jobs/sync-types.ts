@@ -19,6 +19,9 @@ export type JobSyncSourceResult = {
   source: string;
   totalJobsFetched: number;
   totalJobsInserted: number;
+  totalJobLinksChecked?: number;
+  totalJobLinksUncertain?: number;
+  totalJobsExcluded?: number;
   totalJobsUpdated: number;
   totalRequests: number;
   totalSkipped?: number;

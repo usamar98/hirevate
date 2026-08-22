@@ -1,5 +1,6 @@
 import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
+import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
@@ -272,23 +273,35 @@ export async function syncGreenhouseJobs(options: SourceBatchOptions = {}): Prom
           .in("external_id", externalIds);
 
         const existingIds = new Set((existingJobs ?? []).map((job) => job.external_id));
-
-        const { error: upsertError } = await supabase.from("jobs").upsert(normalizedJobs, {
-          onConflict: "company_id,external_id"
+        const validation = await validateNewJobLinks(normalizedJobs, {
+          isExisting: (job) => existingIds.has(job.external_id)
         });
+        const jobsToUpsert = validation.acceptedJobs;
+        result.sourceResult.totalJobLinksChecked =
+          (result.sourceResult.totalJobLinksChecked ?? 0) + validation.totalChecked;
+        result.sourceResult.totalJobLinksUncertain =
+          (result.sourceResult.totalJobLinksUncertain ?? 0) + validation.totalUncertain;
+        result.sourceResult.totalJobsExcluded =
+          (result.sourceResult.totalJobsExcluded ?? 0) + validation.rejected.length;
 
-        if (upsertError) {
-          throw upsertError;
-        }
+        if (jobsToUpsert.length > 0) {
+          const { error: upsertError } = await supabase.from("jobs").upsert(jobsToUpsert, {
+            onConflict: "company_id,external_id"
+          });
 
-        for (const job of normalizedJobs) {
-          if (existingIds.has(job.external_id)) {
-            result.totalJobsUpdated += 1;
-            result.sourceResult.totalJobsUpdated += 1;
-          } else {
-            result.totalJobsInserted += 1;
-            result.sourceResult.totalJobsInserted += 1;
-            companyJobsInserted += 1;
+          if (upsertError) {
+            throw upsertError;
+          }
+
+          for (const job of jobsToUpsert) {
+            if (existingIds.has(job.external_id)) {
+              result.totalJobsUpdated += 1;
+              result.sourceResult.totalJobsUpdated += 1;
+            } else {
+              result.totalJobsInserted += 1;
+              result.sourceResult.totalJobsInserted += 1;
+              companyJobsInserted += 1;
+            }
           }
         }
       }

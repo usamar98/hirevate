@@ -3,6 +3,7 @@ import { env, hasAshbyConfig } from "@/lib/env";
 import { defaultAshbySources } from "@/lib/jobs/default-ashby-sources";
 import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
+import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Company, Database, Json } from "@/types/database";
@@ -590,14 +591,24 @@ export async function syncAshbyJobs(options: SourceBatchOptions = {}): Promise<J
       const existingIds = externalIds.length > 0
         ? await getExistingJobIds(supabase, company.id, externalIds)
         : new Set<string>();
+      const validation = await validateNewJobLinks(normalizedJobs, {
+        isExisting: (job) => existingIds.has(job.external_id)
+      });
+      const jobsToUpsert = validation.acceptedJobs;
+      sourceResult.totalJobLinksChecked =
+        (sourceResult.totalJobLinksChecked ?? 0) + validation.totalChecked;
+      sourceResult.totalJobLinksUncertain =
+        (sourceResult.totalJobLinksUncertain ?? 0) + validation.totalUncertain;
+      sourceResult.totalJobsExcluded =
+        (sourceResult.totalJobsExcluded ?? 0) + validation.rejected.length;
       let sourceJobsInserted = 0;
 
       sourceResult.totalJobsFetched += jobs.length;
 
-      if (normalizedJobs.length > 0) {
-        await upsertJobs(supabase, normalizedJobs);
+      if (jobsToUpsert.length > 0) {
+        await upsertJobs(supabase, jobsToUpsert);
 
-        for (const job of normalizedJobs) {
+        for (const job of jobsToUpsert) {
           if (existingIds.has(job.external_id)) {
             result.totalJobsUpdated += 1;
             sourceResult.totalJobsUpdated += 1;
