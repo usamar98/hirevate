@@ -90,13 +90,13 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
         </nav>
         <div className="flex items-center gap-2">
           {!authStatus.authenticated ? (
-            <Button asChild href="/login" variant="ghost">
+            <Button asChild className="min-h-12" href="/login" variant="ghost">
               {copy.login}
             </Button>
           ) : null}
           <Button
             asChild
-            className="bg-black text-white hover:bg-gray-800 focus-visible:outline-black"
+            className="min-h-12 bg-black text-white hover:bg-gray-800 focus-visible:outline-black"
             href="/pricing"
             variant="secondary"
           >

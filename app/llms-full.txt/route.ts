@@ -78,7 +78,8 @@ export async function GET() {
   return new Response(body, {
     headers: {
       "cache-control": "public, max-age=1800, s-maxage=3600",
-      "content-type": "text/plain; charset=utf-8"
+      "content-type": "text/plain; charset=utf-8",
+      "x-robots-tag": "noindex, follow"
     }
   });
 }

@@ -39,15 +39,15 @@ export function CookieConsent({ language }: { language: SupportedLanguage }) {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <p className="text-sm leading-6 text-ink-600">
           {copy.message}{" "}
-          <Link className="font-semibold text-brand-700" href="/legal/cookie-policy">
+          <Link className="inline-flex min-h-12 items-center font-semibold text-brand-700" href="/legal/cookie-policy">
             {copy.policy}
           </Link>
         </p>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Button onClick={() => saveChoice("essential")} size="sm" type="button" variant="outline">
+          <Button onClick={() => saveChoice("essential")} size="lg" type="button" variant="outline">
             {copy.essential}
           </Button>
-          <Button onClick={() => saveChoice("optional")} size="sm" type="button">
+          <Button onClick={() => saveChoice("optional")} size="lg" type="button">
             {copy.optional}
           </Button>
         </div>

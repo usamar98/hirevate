@@ -8,8 +8,9 @@ function removeTrailingSlash(value: string) {
 
 export const siteName = "Hirevate";
 export const siteUrl = removeTrailingSlash(env.appUrl || "https://www.hirevate.com");
+export const defaultTitle = "Hidden Jobs & AI Resume Builder for Job Seekers | Hirevate";
 export const defaultDescription =
-  "Paste a job link or description to generate a professional tailored resume with your chosen template, find fresh hidden jobs, and manage applications from interest to decision.";
+  "Find fresh hidden jobs from company career pages and public ATS boards, then build tailored resumes, cover letters, and track every application with Hirevate.";
 export const defaultOgImagePath = "/opengraph-image";
 
 export const crawlDisallowPaths = [
@@ -18,8 +19,7 @@ export const crawlDisallowPaths = [
   "/account/",
   "/api/",
   "/auth/",
-  "/dashboard/",
-  "/jobs?*"
+  "/dashboard/"
 ] as const;
 
 export const aiSearchCrawlerUserAgents = [

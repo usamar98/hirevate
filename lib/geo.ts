@@ -1,4 +1,6 @@
 import { absoluteUrl } from "@/lib/seo";
+import { comparisons } from "@/lib/content/comparisons";
+import { guides } from "@/lib/content/guides";
 import { pricingSummary, publicPricingFacts } from "@/lib/pricing";
 import { jobCountries } from "@/lib/jobs/countries";
 
@@ -40,7 +42,7 @@ export const hirevateAnswerBriefs = [
   {
     question: "What job sources does Hirevate use?",
     answer:
-      "Hirevate imports jobs from official/public hiring sources including company career pages, employer ATS boards, public job discovery results, and trusted hiring partners, then stores normalized active jobs in Supabase."
+      "Hirevate imports jobs from official and public hiring sources, including company career pages, employer ATS boards, public job discovery results, and trusted hiring partners, then normalizes active listings for search."
   },
   {
     question: "Does Hirevate auto-apply for users?",
@@ -158,7 +160,32 @@ export const hirevatePublicPages = [
     title: "Job search comparisons",
     path: "/compare",
     description: "Fact-checked comparisons with LinkedIn and Indeed using first-party help documentation."
-  }
+  },
+  {
+    title: "Student job source and freshness methodology",
+    path: "/research/student-part-time-jobs",
+    description: "First-party methodology, source classifications, live coverage context, limitations, and freshness rules."
+  },
+  {
+    title: "Job source and takedown policy",
+    path: "/legal/job-source-takedown-policy",
+    description: "How Hirevate handles public job sources, listing freshness, corrections, and removal requests."
+  },
+  {
+    title: "AI and resume-match disclosure",
+    path: "/legal/ai-resume-match-disclosure",
+    description: "How AI-assisted writing and resume matching work, including safeguards and limitations."
+  },
+  ...guides.map((guide) => ({
+    title: guide.title,
+    path: `/guides/${guide.slug}`,
+    description: guide.description
+  })),
+  ...comparisons.map((comparison) => ({
+    title: comparison.title,
+    path: `/compare/${comparison.slug}`,
+    description: comparison.description
+  }))
 ] as const;
 
 export function formatMarkdownLinks(items: typeof hirevatePublicPages) {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { defaultOgImagePath } from "@/lib/seo";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -99,7 +99,7 @@ export default async function JobDetailPage({
   const canonicalPath = getJobPath(job);
 
   if (id.toLowerCase() !== canonicalSlug) {
-    redirect(canonicalPath);
+    permanentRedirect(canonicalPath);
   }
 
   const [access, savedJobIds, profile] = await Promise.all([

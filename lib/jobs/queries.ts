@@ -35,7 +35,8 @@ const CATEGORY_JOB_FETCH_LIMIT = 11;
 const JOB_SLUG_LOOKUP_LIMIT = 250;
 const PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS = 30 * 60;
 const SITEMAP_FRESH_DAYS = 30;
-const SITEMAP_JOBS_LIMIT = 300;
+const SITEMAP_JOBS_LIMIT = 50_000;
+const SITEMAP_JOBS_BATCH_SIZE = 1_000;
 const STUDENT_JOB_CANDIDATE_LIMIT = 240;
 
 function createAnonPublicJobsClient() {
@@ -472,23 +473,33 @@ async function getSitemapJobsUncached(limit = SITEMAP_JOBS_LIMIT) {
     Date.now() - SITEMAP_FRESH_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .select(jobListWithCompanySelect)
-    .eq("status", "active")
-    .gte("last_seen_at", freshCutoff)
-    .not("apply_url", "is", null)
-    .order("updated_at", { ascending: false, nullsFirst: false })
-    .order("last_seen_at", { ascending: false, nullsFirst: false })
-    .order("discovered_at", { ascending: false })
-    .limit(safeLimit);
+  const jobs: JobWithCompany[] = [];
 
-  if (error) {
-    console.error("Failed to load sitemap jobs", error);
-    return [] as JobWithCompany[];
+  for (let offset = 0; offset < safeLimit; offset += SITEMAP_JOBS_BATCH_SIZE) {
+    const batchSize = Math.min(SITEMAP_JOBS_BATCH_SIZE, safeLimit - offset);
+    const { data, error } = await supabase
+      .from("jobs")
+      .select(jobListWithCompanySelect)
+      .eq("status", "active")
+      .gte("last_seen_at", freshCutoff)
+      .not("apply_url", "is", null)
+      .order("updated_at", { ascending: false, nullsFirst: false })
+      .order("last_seen_at", { ascending: false, nullsFirst: false })
+      .order("discovered_at", { ascending: false })
+      .range(offset, offset + batchSize - 1);
+
+    if (error) {
+      console.error("Failed to load sitemap jobs", error);
+      break;
+    }
+
+    const batch = (data ?? []) as JobWithCompany[];
+    jobs.push(...batch);
+
+    if (batch.length < batchSize) break;
   }
 
-  return dedupeJobs((data ?? []) as JobWithCompany[]);
+  return dedupeJobs(jobs);
 }
 
 const getCachedSitemapJobs = unstable_cache(

@@ -23,7 +23,17 @@ export default async function StudentPartTimeResearchPage() {
     getStudentPartTimeJobs("student", "us", 200),
     getStudentPartTimeJobs("student", "uk", 200)
   ]);
-  const updatedAt = new Date();
+  const snapshotJobs = [
+    ...usPartTime.jobs,
+    ...ukPartTime.jobs,
+    ...usStudent.jobs,
+    ...ukStudent.jobs
+  ];
+  const latestSourceTimestamp = snapshotJobs.reduce((latest, job) => {
+    const timestamp = new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at).getTime();
+    return Number.isFinite(timestamp) ? Math.max(latest, timestamp) : latest;
+  }, 0);
+  const updatedAt = new Date(latestSourceTimestamp || Date.UTC(2026, 7, 22));
   const metrics = [
     { label: "US part-time matches", value: usPartTime.jobs.length, href: "/jobs/part-time/us" },
     { label: "UK part-time matches", value: ukPartTime.jobs.length, href: "/jobs/part-time/uk" },
@@ -33,17 +43,13 @@ export default async function StudentPartTimeResearchPage() {
   const jsonLd = [
     {
       "@context": "https://schema.org", "@type": "WebPage", name: title,
-      url: absoluteUrl(path), description, dateModified: updatedAt.toISOString()
-    },
-    {
-      "@context": "https://schema.org", "@type": "Dataset",
-      name: "Hirevate US and UK student and part-time job snapshot",
-      description: "A rolling snapshot of active public-source jobs matched through explicit schedule, student, campus, internship and authorization wording.",
-      url: absoluteUrl(path), dateModified: updatedAt.toISOString(),
-      creator: { "@type": "Organization", name: "Hirevate", url: absoluteUrl("/") },
-      spatialCoverage: ["United States", "United Kingdom"],
-      temporalCoverage: `${new Date(updatedAt.getTime() - 10 * 86400000).toISOString()}/${updatedAt.toISOString()}`,
-      measurementTechnique: "Deterministic evidence matching against normalized public job titles, descriptions and source employment fields"
+      url: absoluteUrl(path), description, dateModified: updatedAt.toISOString(),
+      about: [
+        { "@type": "Thing", name: "Student jobs" },
+        { "@type": "Thing", name: "Part-time jobs" },
+        { "@type": "Thing", name: "Job source freshness" }
+      ],
+      publisher: { "@type": "Organization", name: "Hirevate", url: absoluteUrl("/") }
     }
   ];
 

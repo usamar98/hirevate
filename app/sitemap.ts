@@ -9,49 +9,32 @@ import { absoluteUrl, publicSeoRoutes } from "@/lib/seo";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const contentLastModified = new Date("2026-08-06T00:00:00.000Z");
+  const contentLastModified = new Date("2026-08-22T00:00:00.000Z");
   const jobs = await getSitemapJobs();
 
   const publicRoutes = publicSeoRoutes.map((route) => ({
     url: absoluteUrl(route.path),
-    lastModified: contentLastModified,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority
+    lastModified: contentLastModified
   }));
 
   const legalRoutes = legalDocuments.map((document) => ({
     url: absoluteUrl("/legal/" + document.slug),
-    lastModified: new Date(legalEffectiveDate + "T00:00:00.000Z"),
-    changeFrequency: "yearly" as const,
-    priority: 0.3
-  }));
-
-  const publicDiscoveryRoutes = ["/llms.txt", "/llms-full.txt", "/ai.txt"].map((path) => ({
-    url: absoluteUrl(path),
-    lastModified: contentLastModified,
-    changeFrequency: "weekly" as const,
-    priority: 0.35
+    lastModified: new Date(legalEffectiveDate + "T00:00:00.000Z")
   }));
 
   const guideRoutes = guides.map((guide) => ({
     url: absoluteUrl(`/guides/${guide.slug}`),
-    lastModified: new Date(`${guide.updatedAt}T00:00:00.000Z`),
-    changeFrequency: "monthly" as const,
-    priority: 0.72
+    lastModified: new Date(`${guide.updatedAt}T00:00:00.000Z`)
   }));
 
   const comparisonRoutes = comparisons.map((comparison) => ({
     url: absoluteUrl(`/compare/${comparison.slug}`),
-    lastModified: contentLastModified,
-    changeFrequency: "monthly" as const,
-    priority: 0.66
+    lastModified: contentLastModified
   }));
 
   const jobRoutes = jobs.map((job) => ({
     url: absoluteUrl(getJobPath(job)),
-    lastModified: new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at),
-    changeFrequency: "daily" as const,
-    priority: 0.85
+    lastModified: new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at)
   }));
 
   return [
@@ -59,7 +42,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...legalRoutes,
     ...guideRoutes,
     ...comparisonRoutes,
-    ...publicDiscoveryRoutes,
     ...jobRoutes
   ];
 }

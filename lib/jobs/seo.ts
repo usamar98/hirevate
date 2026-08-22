@@ -1,4 +1,5 @@
 import { getJobStructuredSalary } from "@/lib/jobs/compensation";
+import { jobCountries } from "@/lib/jobs/countries";
 import { getJobLocationLabel } from "@/lib/jobs/display";
 import { isEmployerOrAtsApplyUrl } from "@/lib/jobs/sources";
 import { classifyStudentJob } from "@/lib/jobs/student-part-time";
@@ -102,11 +103,14 @@ function inferEmploymentType(job: JobWithCompany) {
 }
 
 function buildJobLocation(job: JobWithCompany) {
+  const country = inferApplicantCountry(job.location);
+
   return {
     "@type": "Place",
     address: {
       "@type": "PostalAddress",
-      addressLocality: getJobLocationLabel(job)
+      addressLocality: getJobLocationLabel(job),
+      addressCountry: country?.code
     }
   };
 }
@@ -130,19 +134,11 @@ function buildBaseSalary(job: JobWithCompany) {
 function inferApplicantCountry(location: string | null) {
   const text = (location ?? "").toLowerCase();
 
-  if (/\b(united states|usa|u\.s\.|us|new york|san francisco|california|texas)\b/.test(text)) {
-    return "USA";
-  }
-
-  if (/\b(united kingdom|uk|england|london|manchester|scotland|wales)\b/.test(text)) {
-    return "United Kingdom";
-  }
-
-  if (/\b(canada|toronto|vancouver|montreal)\b/.test(text)) {
-    return "Canada";
-  }
-
-  return null;
+  return (
+    jobCountries.find((country) =>
+      country.locationTerms.some((term) => text.includes(term.toLowerCase()))
+    ) ?? null
+  );
 }
 
 export function isJobPostingEligible(job: JobWithCompany) {
@@ -160,7 +156,7 @@ export function isJobPostingEligible(job: JobWithCompany) {
   const hasValidLocation =
     job.remote_type === "remote"
       ? Boolean(inferApplicantCountry(job.location))
-      : Boolean(job.location?.trim());
+      : Boolean(job.location?.trim() && inferApplicantCountry(job.location));
 
   return hasCurrentSource && hasRequiredContent && hasValidLocation;
 }
@@ -199,11 +195,11 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
     applicantLocationRequirements: applicantCountry
       ? {
           "@type": "Country",
-          name: applicantCountry
+          name: applicantCountry.name
         }
       : undefined,
     jobLocationType: job.remote_type === "remote" ? "TELECOMMUTE" : undefined,
-    directApply: isEmployerOrAtsApplyUrl(job),
+    directApply: false,
     url: absoluteUrl(getJobPath(job))
   };
 }

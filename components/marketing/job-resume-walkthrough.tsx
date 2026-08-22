@@ -236,7 +236,7 @@ export function JobResumeWalkthrough() {
                 </div>
                 <button
                   aria-label={isPlaying ? "Pause walkthrough" : "Play walkthrough"}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-ink-600 transition hover:border-brand-200 hover:text-brand-700"
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-ink-600 transition hover:border-brand-200 hover:text-brand-700"
                   onClick={() => setIsPlaying((current) => !current)}
                   type="button"
                 >
@@ -250,11 +250,18 @@ export function JobResumeWalkthrough() {
                 {walkthroughSteps.map((step, index) => (
                   <button
                     aria-label={`Show step ${index + 1}: ${step.title}`}
-                    className={cn("h-1.5 rounded-full transition", index === activeStep ? "bg-brand-600" : "bg-gray-200")}
+                    className="flex h-12 items-center"
                     key={step.number}
                     onClick={() => setActiveStep(index)}
                     type="button"
-                  />
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-full rounded-full transition",
+                        index === activeStep ? "bg-brand-600" : "bg-gray-200"
+                      )}
+                    />
+                  </button>
                 ))}
               </div>
             </div>

@@ -27,25 +27,29 @@ import { getLandingCopy } from "@/lib/i18n/content";
 import type { SupportedLanguage } from "@/lib/i18n/config";
 import { resolveLanguagePreference } from "@/lib/i18n/server";
 import { publicPricingPlans } from "@/lib/pricing";
-import { absoluteUrl, siteName, defaultOgImagePath } from "@/lib/seo";
-
-const landingDescription =
-  "Turn a job link or description into a professional tailored resume, find fresh hidden jobs, write cover letters, and manage every application from interest to decision.";
+import {
+  absoluteUrl,
+  defaultDescription,
+  defaultOgImagePath,
+  defaultTitle,
+  siteName
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
-  description: landingDescription,
+  title: { absolute: defaultTitle },
+  description: defaultDescription,
   alternates: {
     canonical: "/"
   },
   openGraph: {
-    title: siteName,
-    description: landingDescription,
+    title: defaultTitle,
+    description: defaultDescription,
     url: "/",
     images: [defaultOgImagePath]
   },
   twitter: {
-    title: siteName,
-    description: landingDescription,
+    title: defaultTitle,
+    description: defaultDescription,
     card: "summary_large_image",
     images: [defaultOgImagePath]
   }
@@ -298,7 +302,24 @@ export default async function LandingPage() {
         data={[
           {
             "@context": "https://schema.org",
+            "@type": "WebPage",
+            "@id": absoluteUrl("/#webpage"),
+            url: absoluteUrl("/"),
+            name: defaultTitle,
+            description: defaultDescription,
+            isPartOf: {
+              "@id": absoluteUrl("/#website")
+            },
+            about: {
+              "@id": absoluteUrl("/#software-application")
+            },
+            primaryImageOfPage: absoluteUrl(defaultOgImagePath),
+            inLanguage: language === "de" ? "de-DE" : language === "sv" ? "sv-SE" : "en-US"
+          },
+          {
+            "@context": "https://schema.org",
             "@type": "SoftwareApplication",
+            "@id": absoluteUrl("/#software-application"),
             name: siteName,
             url: absoluteUrl("/"),
             applicationCategory: "BusinessApplication",
@@ -310,11 +331,7 @@ export default async function LandingPage() {
               "@type": "Audience",
               audienceType: "Job seekers"
             },
-            offers: {
-              "@type": "OfferCatalog",
-              name: "Hirevate plans",
-              itemListElement: homeOfferItems
-            }
+            offers: homeOfferItems
           },
           {
             "@context": "https://schema.org",
@@ -331,15 +348,15 @@ export default async function LandingPage() {
         ]}
       />
       <section className="border-b border-gray-100 bg-white">
-        <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-12 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:py-20">
+        <div className="container-shell grid min-h-[calc(100svh-64px)] items-center gap-10 py-10 sm:py-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12 lg:py-20">
           <div className="w-[calc(100vw-32px)] min-w-0 max-w-[358px] sm:w-full sm:max-w-none">
-            <h1 className="max-w-[358px] text-4xl font-semibold leading-[1.04] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl md:text-6xl">
+            <h1 className="max-w-[358px] text-[2rem] font-semibold leading-[1.08] tracking-normal text-ink-900 sm:max-w-4xl sm:text-5xl sm:leading-[1.04] md:text-6xl">
               {heroTitle}
             </h1>
-            <p className="mt-6 max-w-[358px] break-words text-base leading-8 text-ink-500 sm:text-lg md:max-w-2xl">
+            <p className="mt-5 max-w-[358px] break-words text-base leading-7 text-ink-500 sm:mt-6 sm:text-lg sm:leading-8 md:max-w-2xl">
               {copy.hero.description}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3 sm:mt-8">
               <Button asChild href="/jobs#results" size="lg">
                 {copy.hero.jobsCta}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -348,6 +365,17 @@ export default async function LandingPage() {
                 {copy.hero.resumeCta}
               </Button>
             </div>
+            <p className="mt-5 max-w-lg text-sm leading-6 text-ink-500">
+              Company career pages and public ATS boards are prioritized, with stale listings
+              removed from active search. Read the{" "}
+              <Link
+                className="font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800"
+                href="/research/student-part-time-jobs"
+              >
+                source and freshness methodology
+              </Link>
+              .
+            </p>
           </div>
           <HeroFeaturePreview
             copy={copy.preview}

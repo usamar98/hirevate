@@ -119,11 +119,7 @@ export default function PricingPage() {
             operatingSystem: "Web",
             image: absoluteUrl(defaultOgImagePath),
             description: pricingDescription,
-            offers: {
-              "@type": "OfferCatalog",
-              name: "Hirevate subscriptions",
-              itemListElement: pricingOffers
-            }
+            offers: pricingOffers
           },
           {
             "@context": "https://schema.org",

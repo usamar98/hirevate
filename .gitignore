@@ -20,3 +20,5 @@ next-detached.*
 
 .vercel
 .tmp/
+.seo-cache/
+.seo-audit-output/

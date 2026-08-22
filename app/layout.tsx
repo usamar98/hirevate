@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { VisitorTracker } from "@/components/analytics/visitor-tracker";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -9,11 +9,11 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
 import { resolveLanguagePreference } from "@/lib/i18n/server";
-import { publicPricingPlans } from "@/lib/pricing";
 import {
   absoluteUrl,
   defaultDescription,
   defaultOgImagePath,
+  defaultTitle,
   geoAudienceKeywords,
   siteName,
   siteUrl
@@ -22,7 +22,7 @@ import {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: siteName,
+    default: defaultTitle,
     template: `%s | ${siteName}`
   },
   applicationName: siteName,
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     }
   },
   openGraph: {
-    title: siteName,
+    title: defaultTitle,
     description: defaultDescription,
     url: "/",
     siteName,
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: siteName,
+    title: defaultTitle,
     description: defaultDescription,
     images: [defaultOgImagePath]
   },
@@ -102,25 +102,6 @@ export const viewport: Viewport = {
 
 const organizationId = absoluteUrl("/#organization");
 const websiteId = absoluteUrl("/#website");
-const softwareApplicationId = absoluteUrl("/#software-application");
-
-const paidPlanOfferItems = publicPricingPlans.flatMap((plan) =>
-  plan.options.map((option) => ({
-    "@type": "Offer",
-    name: option.schemaName,
-    price: option.priceValue,
-    priceCurrency: "USD",
-    availability: "https://schema.org/InStock",
-    url: absoluteUrl("/pricing"),
-    category: plan.name,
-    priceSpecification: {
-      "@type": "UnitPriceSpecification",
-      price: option.priceValue,
-      priceCurrency: "USD",
-      unitText: option.interval
-    }
-  }))
-);
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -132,12 +113,6 @@ const organizationJsonLd = {
   logo: absoluteUrl("/icon.svg"),
   image: absoluteUrl(defaultOgImagePath),
   description: defaultDescription,
-  featureList: [
-    "Generate a tailored resume from a public job link or pasted job description",
-    "Choose from six professional resume templates before generation",
-    "Discover fresh public-source jobs",
-    "Track applications, follow-ups, interviews, and outcomes"
-  ],
   knowsAbout: geoAudienceKeywords
 };
 
@@ -151,54 +126,6 @@ const websiteJsonLd = {
   inLanguage: "en-US",
   publisher: {
     "@id": organizationId
-  },
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${absoluteUrl("/jobs")}?keyword={search_term_string}`,
-    "query-input": "required name=search_term_string"
-  }
-};
-
-const softwareApplicationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "@id": softwareApplicationId,
-  name: siteName,
-  url: siteUrl,
-  applicationCategory: "BusinessApplication",
-  applicationSubCategory: "Job search and career management",
-  operatingSystem: "Web",
-  image: absoluteUrl(defaultOgImagePath),
-  description: defaultDescription,
-  publisher: {
-    "@id": organizationId
-  },
-  offers: {
-    "@type": "OfferCatalog",
-    name: "Hirevate subscriptions",
-    itemListElement: paidPlanOfferItems
-  }
-};
-
-const jobSearchServiceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  "@id": absoluteUrl("/#job-search-service"),
-  name: "Hidden job discovery and application workflow",
-  serviceType: "Public-source job discovery and application workflow",
-  provider: {
-    "@id": organizationId
-  },
-  areaServed: "Global",
-  audience: {
-    "@type": "Audience",
-    audienceType: "Job seekers"
-  },
-  description: defaultDescription,
-  hasOfferCatalog: {
-    "@type": "OfferCatalog",
-    name: "Hirevate plans",
-    itemListElement: paidPlanOfferItems
   }
 };
 
@@ -211,25 +138,12 @@ export default async function RootLayout({
 
   return (
     <html lang={language}>
-      <head>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-5SHGLEP5RX"
-          strategy="beforeInteractive"
-        />
-        <Script id="google-tag" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-5SHGLEP5RX');
-          `}
-        </Script>
-      </head>
       <body>
-        <JsonLd data={[organizationJsonLd, websiteJsonLd, softwareApplicationJsonLd, jobSearchServiceJsonLd]} />
+        <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
         <SiteHeader language={language} />
         <main className="flex-1">{children}</main>
         <SiteFooter language={language} />
+        <GoogleAnalytics />
         <VisitorTracker />
         <CookieConsent language={language} />
         <LanguageSwitcher language={language} regionalLanguage={regionalLanguage} />
