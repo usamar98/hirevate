@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin } from "lucide-react";
+import { ArrowUpRight, BadgeDollarSign, Building2, CalendarDays, MapPin, Target } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -126,6 +126,10 @@ export function JobCard({
           ) : null}
           <Button asChild href={jobPath} variant="outline">
             View details
+          </Button>
+          <Button asChild href={`${jobPath}#resume-match`} variant="outline">
+            <Target className="h-4 w-4" aria-hidden="true" />
+            Resume match
           </Button>
         </div>
       </div>

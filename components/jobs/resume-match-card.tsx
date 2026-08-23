@@ -308,7 +308,7 @@ export function ResumeMatchCard({ companyName, jobDescription, jobLocation, jobT
   }
 
   return (
-    <Card className="p-5">
+    <Card className="scroll-mt-24 p-5" id="resume-match">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-ink-900">Resume match</h2>
