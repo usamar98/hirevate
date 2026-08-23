@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getGuide, guides } from "@/lib/content/guides";
+import { getGuide, getGuideReadMinutes, guides } from "@/lib/content/guides";
 import { absoluteUrl, defaultOgImagePath, siteName } from "@/lib/seo";
 
 export function generateStaticParams() {
@@ -51,6 +51,7 @@ export default async function GuidePage({
   if (!guide) notFound();
 
   const path = `/guides/${guide.slug}`;
+  const readMinutes = getGuideReadMinutes(guide);
 
   return (
     <>
@@ -66,7 +67,7 @@ export default async function GuidePage({
             image: absoluteUrl(defaultOgImagePath),
             mainEntityOfPage: absoluteUrl(path),
             author: { "@type": "Organization", name: siteName, url: absoluteUrl("/") },
-            publisher: { "@type": "Organization", name: siteName, url: absoluteUrl("/") }
+            publisher: { "@id": absoluteUrl("/#organization") }
           },
           {
             "@context": "https://schema.org",
@@ -116,8 +117,21 @@ export default async function GuidePage({
           <h1 className="mt-3 text-4xl font-semibold leading-tight text-ink-900">{guide.title}</h1>
           <p className="mt-5 text-lg leading-8 text-ink-500">{guide.description}</p>
           <p className="mt-4 text-sm text-ink-500">
-            Updated {guide.updatedAt} | {guide.readMinutes} minute read
+            Updated {guide.updatedAt} | {readMinutes} minute read
           </p>
+
+          <aside className="mt-6 rounded-lg border border-brand-100 bg-brand-50 p-5 text-sm leading-6 text-ink-700">
+            <p className="font-semibold text-ink-900">How this guide is maintained</p>
+            <p className="mt-2">
+              This guide reflects Hirevate&apos;s current public-source workflow and is updated when
+              its source, freshness, or access rules change. Job inventory changes continuously,
+              and the original employer or ATS page remains the final authority. Read the{" "}
+              <Link className="font-semibold text-brand-700 underline underline-offset-4" href="/research/student-part-time-jobs">
+                live source and freshness methodology
+              </Link>
+              .
+            </p>
+          </aside>
 
           <div className="mt-10 space-y-10">
             {guide.sections.map((section) => (

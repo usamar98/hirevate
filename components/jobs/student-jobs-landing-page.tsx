@@ -24,8 +24,7 @@ function buildJsonLd(config: StudentJobsPageConfig, jobs: Awaited<ReturnType<typ
       "@type": "CollectionPage",
       name: config.label,
       url: absoluteUrl(config.path),
-      description: config.description,
-      dateModified: new Date().toISOString()
+      description: config.description
     },
     {
       "@context": "https://schema.org",

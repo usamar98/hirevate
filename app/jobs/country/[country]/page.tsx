@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: CountryJobsPageProps): Promis
   if (!country || country.path !== `/jobs/country/${country.slug}`) return {};
 
   const searchName = country.code === "AE" ? "UAE" : country.name;
-  const title = `${searchName} Jobs Updated Daily From Public Sources`;
-  const description = `Find fresh jobs in ${searchName}, including ${country.popularCities.slice(0, 3).join(", ")}. Search roles updated daily from public hiring sources with clear location and freshness signals.`;
+  const title = `${searchName} Jobs Updated Daily`;
+  const description = `Fresh jobs in ${searchName}, including ${country.popularCities.slice(0, 3).join(", ")}. Browse daily-updated roles from public hiring sources with clear freshness and location signals.`;
 
   return {
     title: { absolute: `${title} | Hirevate` },

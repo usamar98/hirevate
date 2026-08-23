@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CoverLetterBuilder } from "@/components/cover-letter/cover-letter-builder";
-import { getCurrentUser, getProfile, hasProductAccess } from "@/lib/auth/session";
 import { publicPricingFacts } from "@/lib/pricing";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const coverLetterDescription =
-  "Use Hirevate's free cover letter builder to create a job-specific draft with proof points, role keywords, secure AI writing, copy, and download tools.";
+  "Use Hirevate's free cover letter editor to create a job-specific draft with proof points and role keywords. Eligible users can add AI-assisted writing.";
 
 const coverLetterFaqItems = [
   {
@@ -53,8 +52,6 @@ const coverLetterSteps = [
   }
 ];
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Free Cover Letter Builder for Any Job",
   description: coverLetterDescription,
@@ -76,10 +73,6 @@ export const metadata: Metadata = {
 };
 
 export default async function CoverLetterPage() {
-  const user = await getCurrentUser();
-  const profile = user ? await getProfile(user.id) : null;
-  const canUseAi = hasProductAccess(profile);
-
   return (
     <>
       <JsonLd
@@ -148,7 +141,7 @@ export default async function CoverLetterPage() {
           }
         ]}
       />
-      <CoverLetterBuilder canUseAi={canUseAi} isAuthenticated={Boolean(user)} />
+      <CoverLetterBuilder canUseAi={false} isAuthenticated={false} />
       <section className="border-t border-gray-100 bg-gray-50 py-14">
         <div className="container-shell">
           <div className="max-w-3xl">

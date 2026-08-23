@@ -7,6 +7,8 @@ import { absoluteUrl, siteName } from "@/lib/seo";
 import type { Company, Job, JobWithCompany } from "@/types/database";
 
 const JOB_SCHEMA_MAX_AGE_DAYS = 10;
+const JOB_META_TITLE_MAX_LENGTH = 60;
+const JOB_META_DESCRIPTION_MAX_LENGTH = 155;
 
 type JobSlugSource = Pick<Job, "id" | "title" | "location"> & {
   companies: Pick<Company, "name"> | null;
@@ -69,8 +71,20 @@ export function getJobCompanyName(job: JobWithCompany) {
   return job.companies?.name ?? "Company";
 }
 
+function truncateMetaText(value: string, maxLength: number) {
+  if (value.length <= maxLength) return value;
+
+  const clipped = value.slice(0, maxLength - 1);
+  const lastSpace = clipped.lastIndexOf(" ");
+  const safeClip = lastSpace >= Math.floor(maxLength * 0.65) ? clipped.slice(0, lastSpace) : clipped;
+  return `${safeClip.replace(/[,:;\s]+$/, "")}…`;
+}
+
 export function getJobMetaTitle(job: JobWithCompany) {
-  return `${job.title} at ${getJobCompanyName(job)} | ${siteName}`;
+  return truncateMetaText(
+    `${job.title} at ${getJobCompanyName(job)} | ${siteName}`,
+    JOB_META_TITLE_MAX_LENGTH
+  );
 }
 
 export function getJobMetaDescription(job: JobWithCompany) {
@@ -79,7 +93,10 @@ export function getJobMetaDescription(job: JobWithCompany) {
     ? "Apply on the available employer or ATS page."
     : "Review the available hiring source and apply there.";
 
-  return `${job.title} at ${getJobCompanyName(job)}${location}. ${applyDescription}`;
+  return truncateMetaText(
+    `${job.title} at ${getJobCompanyName(job)}${location}. ${applyDescription}`,
+    JOB_META_DESCRIPTION_MAX_LENGTH
+  );
 }
 
 function stripHtml(value: string | null | undefined) {

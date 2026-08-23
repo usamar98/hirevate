@@ -66,11 +66,13 @@ function Step({ active, complete, label, number }: { active: boolean; complete: 
 }
 
 export function JobResumeGenerator({
+  accessReady,
   canUseAi,
   draft,
   isAuthenticated,
   onGenerated
 }: {
+  accessReady: boolean;
   canUseAi: boolean;
   draft: ResumeDraft;
   isAuthenticated: boolean;
@@ -88,6 +90,7 @@ export function JobResumeGenerator({
   const [generated, setGenerated] = useState(false);
 
   function requireAccess() {
+    if (!accessReady) return false;
     if (canUseAi) return true;
     const destination = encodeURIComponent("/resume-builder#tailor-from-job");
     window.location.assign(isAuthenticated ? "/pricing" : `/login?redirect=${destination}`);
@@ -256,7 +259,7 @@ export function JobResumeGenerator({
                 </label>
               )}
 
-              <Button className="mt-5 w-full" disabled={loading !== null} onClick={analyzeJob} size="lg" type="button">
+              <Button className="mt-5 w-full" disabled={!accessReady || loading !== null} onClick={analyzeJob} size="lg" type="button">
                 {loading === "analyze" ? (
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
@@ -375,7 +378,7 @@ export function JobResumeGenerator({
                   <ShieldCheck className="h-4 w-4 text-emerald-600" aria-hidden="true" /> Review every AI-generated change before applying.
                 </p>
                 <Button
-                  disabled={loading !== null || !selectedTemplate || !factsConfirmed}
+                  disabled={!accessReady || loading !== null || !selectedTemplate || !factsConfirmed}
                   onClick={generateResume}
                   size="lg"
                   type="button"

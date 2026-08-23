@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ResumeBuilder } from "@/components/resume/resume-builder";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, hasProductAccess } from "@/lib/auth/session";
 import { publicPricingFacts } from "@/lib/pricing";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const resumeBuilderDescription =
-  "Build a free ATS-friendly resume from a job link or description, choose from six professional templates, and tailor each section using your real career facts.";
+  "Use Hirevate's free ATS resume editor and checks. An eligible trial or plan adds job-analysis tailoring, six templates, AI assistance, and PDF export.";
 
 const resumeBuilderFaqItems = [
   {
@@ -33,7 +32,7 @@ const resumeBuilderFaqItems = [
   {
     question: "Does the resume builder export to PDF?",
     answer:
-      "Yes. Hirevate supports print-ready browser export so users can save a polished resume as a PDF from their browser."
+      "Yes. An eligible trial or paid plan includes print-ready browser export so users can save a polished resume as a PDF from their browser."
   }
 ];
 
@@ -63,8 +62,6 @@ const resumeWorkflowSteps = [
   }
 ];
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Free Resume Builder From a Job Link",
   description: resumeBuilderDescription,
@@ -86,10 +83,6 @@ export const metadata: Metadata = {
 };
 
 export default async function ResumeBuilderPage() {
-  const user = await getCurrentUser();
-  const profile = user ? await getProfile(user.id) : null;
-  const canExport = hasProductAccess(profile);
-
   return (
     <>
       <JsonLd
@@ -161,7 +154,7 @@ export default async function ResumeBuilderPage() {
           }
         ]}
       />
-      <ResumeBuilder canExport={canExport} canUseAi={canExport} isAuthenticated={Boolean(user)} />
+      <ResumeBuilder canExport={false} canUseAi={false} isAuthenticated={false} />
       <section className="border-t border-gray-100 bg-gray-50 py-14">
         <div className="container-shell">
           <div className="max-w-3xl">

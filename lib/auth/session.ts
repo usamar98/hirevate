@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
@@ -11,6 +12,15 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   return user;
+}
+
+export async function getCurrentUserIfSessionPresent() {
+  const cookieStore = await cookies();
+  const hasSessionCookie = cookieStore
+    .getAll()
+    .some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+
+  return hasSessionCookie ? getCurrentUser() : null;
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {

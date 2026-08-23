@@ -14,6 +14,18 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|xml|txt)$).*)"
+    {
+      source: "/",
+      has: [{ type: "query", key: "code" }]
+    },
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/trial/:path*",
+    "/account/:path*",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/adminhirevate01"
   ]
 };

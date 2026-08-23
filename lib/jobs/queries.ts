@@ -35,7 +35,9 @@ const CATEGORY_JOB_FETCH_LIMIT = 11;
 const JOB_SLUG_LOOKUP_LIMIT = 250;
 const PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS = 30 * 60;
 const SITEMAP_FRESH_DAYS = 30;
-const SITEMAP_JOBS_LIMIT = 50_000;
+// Leave room for static, legal, guide, comparison and future sitemap entries so
+// the generated file never crosses the protocol's 50,000-URL ceiling.
+const SITEMAP_JOBS_LIMIT = 48_000;
 const SITEMAP_JOBS_BATCH_SIZE = 1_000;
 const STUDENT_JOB_CANDIDATE_LIMIT = 240;
 

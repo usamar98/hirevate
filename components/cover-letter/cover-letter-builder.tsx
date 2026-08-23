@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Clipboard, Download, FileText, Loader2, Sparkles, Wand2 } from "lucide-react";
+import { useAuthStatus } from "@/components/auth/auth-status-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -96,6 +97,14 @@ export function CoverLetterBuilder({
   canUseAi: boolean;
   isAuthenticated: boolean;
 }) {
+  const authStatus = useAuthStatus();
+  const effectiveIsAuthenticated = authStatus.loaded
+    ? authStatus.authenticated
+    : isAuthenticated;
+  const effectiveCanUseAi = authStatus.loaded
+    ? authStatus.hasProductAccess
+    : canUseAi;
+  const accessReady = authStatus.loaded || isAuthenticated || canUseAi;
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState("");
   const [company, setCompany] = useState("");
@@ -140,8 +149,11 @@ export function CoverLetterBuilder({
   );
 
   async function writeWithAi() {
-    if (!canUseAi) {
-      window.location.assign(isAuthenticated ? "/pricing" : "/login?redirect=%2Fcover-letter");
+    if (!accessReady) return;
+    if (!effectiveCanUseAi) {
+      window.location.assign(
+        effectiveIsAuthenticated ? "/pricing" : "/login?redirect=%2Fcover-letter"
+      );
       return;
     }
 
@@ -286,13 +298,13 @@ export function CoverLetterBuilder({
                 <h2 className="text-xl font-semibold text-ink-900">Draft</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button disabled={aiLoading} type="button" onClick={writeWithAi} variant="outline">
+                <Button disabled={!accessReady || aiLoading} type="button" onClick={writeWithAi} variant="outline">
                   {aiLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   ) : (
                     <Sparkles className="h-4 w-4" aria-hidden="true" />
                   )}
-                  {canUseAi ? "Write with AI" : "Unlock AI writing"}
+                  {!accessReady ? "Checking access" : effectiveCanUseAi ? "Write with AI" : "Unlock AI writing"}
                 </Button>
                 <Button type="button" onClick={copyLetter} variant="outline">
                   <Clipboard className="h-4 w-4" aria-hidden="true" />

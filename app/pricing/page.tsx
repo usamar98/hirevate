@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { LockKeyhole } from "lucide-react";
 import { PricingCards } from "@/components/pricing/pricing-cards";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -110,20 +111,8 @@ export default function PricingPage() {
         data={[
           {
             "@context": "https://schema.org",
-            "@type": "Product",
-            name: "Hirevate",
-            url: absoluteUrl("/pricing"),
-            image: absoluteUrl(defaultOgImagePath),
-            description: pricingDescription,
-            brand: {
-              "@type": "Brand",
-              name: "Hirevate"
-            },
-            offers: pricingOffers
-          },
-          {
-            "@context": "https://schema.org",
             "@type": "SoftwareApplication",
+            "@id": absoluteUrl("/#software-application"),
             name: "Hirevate",
             url: absoluteUrl("/pricing"),
             applicationCategory: "BusinessApplication",
@@ -181,7 +170,20 @@ export default function PricingPage() {
             </Button>
           </div>
           <div className="mt-8">
-            <PricingCards />
+            <Suspense
+              fallback={
+                <div
+                  aria-label="Loading pricing options"
+                  className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2"
+                  role="status"
+                >
+                  <div className="h-[510px] animate-pulse rounded-lg border border-gray-200 bg-white" />
+                  <div className="h-[510px] animate-pulse rounded-lg border border-gray-200 bg-gray-200" />
+                </div>
+              }
+            >
+              <PricingCards />
+            </Suspense>
           </div>
         </div>
       </section>

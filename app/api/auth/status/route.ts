@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getProfile, isAdminProfile } from "@/lib/auth/session";
+import {
+  getCurrentUserIfSessionPresent,
+  getProfile,
+  hasProductAccess,
+  isAdminProfile
+} from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserIfSessionPresent();
   const profile = user ? await getProfile(user.id) : null;
 
   return NextResponse.json(
     {
       authenticated: Boolean(user),
+      hasProductAccess: hasProductAccess(profile),
       isAdmin: isAdminProfile(profile)
     },
     {

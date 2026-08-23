@@ -1,6 +1,7 @@
 export type Comparison = {
   slug: string;
   competitor: string;
+  checkedAt: string;
   title: string;
   description: string;
   officialReferences: Array<{
@@ -24,6 +25,7 @@ export const comparisons: Comparison[] = [
   {
     slug: "hirevate-vs-linkedin",
     competitor: "LinkedIn",
+    checkedAt: "2026-08-23",
     title: "Hirevate vs LinkedIn for Job Search",
     description:
       "A factual comparison of Hirevate's public-source job workflow with LinkedIn's job search, professional network, Easy Apply, and external apply paths.",
@@ -97,6 +99,7 @@ export const comparisons: Comparison[] = [
   {
     slug: "hirevate-vs-indeed",
     competitor: "Indeed",
+    checkedAt: "2026-08-23",
     title: "Hirevate vs Indeed for Job Search",
     description:
       "A factual comparison of Hirevate's public-source workflow with Indeed's broad job search, filters, alerts, application paths, and My Jobs tracking.",

@@ -188,6 +188,8 @@ export type Database = {
           discovered_at: string;
           updated_at: string | null;
           last_seen_at: string | null;
+          last_link_checked_at: string | null;
+          link_check_failures: number;
           freshness_score: number;
           status: string;
           raw_data: Json | null;
@@ -207,6 +209,8 @@ export type Database = {
           discovered_at?: string;
           updated_at?: string | null;
           last_seen_at?: string | null;
+          last_link_checked_at?: string | null;
+          link_check_failures?: number;
           freshness_score?: number;
           status?: string;
           raw_data?: Json | null;
@@ -226,6 +230,8 @@ export type Database = {
           discovered_at?: string;
           updated_at?: string | null;
           last_seen_at?: string | null;
+          last_link_checked_at?: string | null;
+          link_check_failures?: number;
           freshness_score?: number;
           status?: string;
           raw_data?: Json | null;

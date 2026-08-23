@@ -8,7 +8,11 @@ import { JobCard } from "@/components/jobs/job-card";
 import { CountryPreferenceLink } from "@/components/jobs/country-preference-select";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getCurrentUser, getProfile, hasProductAccess } from "@/lib/auth/session";
+import {
+  getCurrentUserIfSessionPresent,
+  getProfile,
+  hasProductAccess
+} from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCountryBySlug, jobCountries } from "@/lib/jobs/countries";
 import { resolveJobCountryPreference } from "@/lib/jobs/country-preference";
@@ -222,7 +226,7 @@ export default async function JobsPage({
   const resolvedSearchParams = await searchParams;
   const [countryPreference, user] = await Promise.all([
     resolveJobCountryPreference(resolvedSearchParams),
-    getCurrentUser()
+    getCurrentUserIfSessionPresent()
   ]);
   const profile = user ? await getProfile(user.id) : null;
   const isPaid = hasProductAccess(profile);

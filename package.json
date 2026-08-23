@@ -29,7 +29,7 @@
     "@supabase/supabase-js": "^2.108.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.18",
+    "next": "^15.5.23",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.53.2",
@@ -40,7 +40,9 @@
     "zod": "^3.23.8"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "nanoid": "^3.3.18",
+    "postcss": "^8.5.23",
+    "sharp": "^0.35.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.10",
@@ -49,8 +51,8 @@
     "@types/sanitize-html": "^2.13.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^15.5.18",
-    "postcss": "^8.5.10",
+    "eslint-config-next": "^15.5.23",
+    "postcss": "^8.5.23",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
   }

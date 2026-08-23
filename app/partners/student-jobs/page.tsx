@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl, defaultOgImagePath } from "@/lib/seo";
 
 const path = "/partners/student-jobs";
-const title = "Student Jobs Partnerships for Universities & Employers | Hirevate";
+const title = "Student Job Partnerships for Universities | Hirevate";
 const description = "Share fresh, source-linked US and UK student jobs with your careers hub, student society or employer job feed.";
 export const metadata: Metadata = { title: { absolute: title }, description, alternates: { canonical: path }, openGraph: { title, description, url: path, images: [defaultOgImagePath] }, twitter: { card: "summary_large_image", title, description, images: [defaultOgImagePath] } };
 

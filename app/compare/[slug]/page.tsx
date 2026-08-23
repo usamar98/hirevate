@@ -60,11 +60,11 @@ export default async function ComparisonPage({
             headline: comparison.title,
             description: comparison.description,
             datePublished: "2026-07-09",
-            dateModified: "2026-07-09",
+            dateModified: comparison.checkedAt,
             image: absoluteUrl(defaultOgImagePath),
             mainEntityOfPage: absoluteUrl(path),
             author: { "@type": "Organization", name: siteName, url: absoluteUrl("/") },
-            publisher: { "@type": "Organization", name: siteName, url: absoluteUrl("/") }
+            publisher: { "@id": absoluteUrl("/#organization") }
           },
           {
             "@context": "https://schema.org",
@@ -113,8 +113,18 @@ export default async function ComparisonPage({
           <h1 className="mt-8 text-4xl font-semibold text-ink-900">{comparison.title}</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-500">{comparison.description}</p>
           <p className="mt-4 text-sm text-ink-500">
-            Product facts checked against official help documentation on July 9, 2026.
+            Product facts checked against official help documentation on August 23, 2026.
           </p>
+
+          <section className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-6">
+            <h2 className="text-xl font-semibold text-ink-900">How this comparison was prepared</h2>
+            <p className="mt-3 text-sm leading-7 text-ink-600">
+              Hirevate details come from the current product workflow. {comparison.competitor}{" "}
+              capabilities are summarized from the official help pages linked below. This page
+              compares workflow and documented features; it does not claim equal job coverage,
+              predict application outcomes, or rank either service for every job seeker.
+            </p>
+          </section>
 
           <div className="mt-10 overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full min-w-[720px] border-collapse text-left">
@@ -163,6 +173,23 @@ export default async function ComparisonPage({
               </ul>
             </section>
           </div>
+
+          <section className="mt-12 border-t border-gray-200 pt-10">
+            <h2 className="text-2xl font-semibold text-ink-900">A practical way to use both</h2>
+            <p className="mt-4 max-w-3xl text-base leading-8 text-ink-700">
+              Use {comparison.competitor} when its broader ecosystem, alerts, or application path
+              fits the search. Use Hirevate to review public-source roles, compare a resume with a
+              specific description, prepare accurate materials, and keep the application context
+              together. Whichever discovery route you use, verify the employer or ATS destination
+              before submitting and avoid creating duplicate applications for the same requisition.
+            </p>
+            <ol className="mt-5 grid gap-3 text-sm leading-6 text-ink-600 sm:grid-cols-2">
+              <li className="rounded-md border border-gray-200 p-4"><strong className="text-ink-900">1. Discover:</strong> build a relevant shortlist.</li>
+              <li className="rounded-md border border-gray-200 p-4"><strong className="text-ink-900">2. Verify:</strong> open the canonical job page.</li>
+              <li className="rounded-md border border-gray-200 p-4"><strong className="text-ink-900">3. Prepare:</strong> tailor only with truthful evidence.</li>
+              <li className="rounded-md border border-gray-200 p-4"><strong className="text-ink-900">4. Track:</strong> record the source, version, and next action.</li>
+            </ol>
+          </section>
 
           <section className="mt-12 border-t border-gray-200 pt-10">
             <h2 className="text-2xl font-semibold text-ink-900">Official references</h2>

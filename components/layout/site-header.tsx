@@ -1,61 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useAuthStatus } from "@/components/auth/auth-status-provider";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
-import { AUTH_STATUS_CHANGED_EVENT } from "@/lib/auth/client-events";
 import { getSiteCopy } from "@/lib/i18n/content";
 import type { SupportedLanguage } from "@/lib/i18n/config";
 
-type AuthStatus = {
-  authenticated: boolean;
-  isAdmin: boolean;
-};
-
-const anonymousStatus: AuthStatus = {
-  authenticated: false,
-  isAdmin: false
-};
-
 export function SiteHeader({ language }: { language: SupportedLanguage }) {
-  const pathname = usePathname();
-  const [authStatus, setAuthStatus] = useState<AuthStatus>(anonymousStatus);
+  const authStatus = useAuthStatus();
   const copy = getSiteCopy(language).navigation;
-
-  const refreshAuthStatus = useCallback(async (signal?: AbortSignal) => {
-    try {
-      const response = await fetch("/api/auth/status", {
-        cache: "no-store",
-        signal
-      });
-      const nextStatus = response.ok
-        ? ((await response.json()) as AuthStatus)
-        : anonymousStatus;
-
-      setAuthStatus(nextStatus);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      setAuthStatus(anonymousStatus);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const handleAuthChange = () => {
-      void refreshAuthStatus();
-    };
-
-    void refreshAuthStatus(controller.signal);
-    window.addEventListener(AUTH_STATUS_CHANGED_EVENT, handleAuthChange);
-
-    return () => {
-      controller.abort();
-      window.removeEventListener(AUTH_STATUS_CHANGED_EVENT, handleAuthChange);
-    };
-  }, [pathname, refreshAuthStatus]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/92 backdrop-blur">

@@ -17,6 +17,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useAuthStatus } from "@/components/auth/auth-status-provider";
 import { JobResumeGenerator } from "@/components/resume/job-resume-generator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -266,7 +267,7 @@ function ResumePreview({ draft }: { draft: ResumeDraft }) {
             <header>
               <div className="flex flex-col justify-between gap-3 border-b border-gray-200 pb-5 md:flex-row">
                 <div>
-                  <h1 className="text-4xl font-semibold leading-tight">{draft.fullName}</h1>
+                  <p className="text-4xl font-semibold leading-tight">{draft.fullName}</p>
                   <p className="mt-1 text-base font-medium" style={{ color: draft.accent }}>
                     {draft.headline}
                   </p>
@@ -505,6 +506,17 @@ export function ResumeBuilder({
   canUseAi: boolean;
   isAuthenticated: boolean;
 }) {
+  const authStatus = useAuthStatus();
+  const effectiveIsAuthenticated = authStatus.loaded
+    ? authStatus.authenticated
+    : isAuthenticated;
+  const effectiveCanExport = authStatus.loaded
+    ? authStatus.hasProductAccess
+    : canExport;
+  const effectiveCanUseAi = authStatus.loaded
+    ? authStatus.hasProductAccess
+    : canUseAi;
+  const accessReady = authStatus.loaded || isAuthenticated || canUseAi || canExport;
   const [draft, setDraft] = useState<ResumeDraft>(initialDraft);
   const [activeTab, setActiveTab] = useState("profile");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -554,8 +566,10 @@ export function ResumeBuilder({
   }
 
   function requireAiAccess() {
-    if (canUseAi) return true;
-    window.location.assign(isAuthenticated ? "/pricing" : "/login?redirect=%2Fresume-builder");
+    if (effectiveCanUseAi) return true;
+    window.location.assign(
+      effectiveIsAuthenticated ? "/pricing" : "/login?redirect=%2Fresume-builder"
+    );
     return false;
   }
 
@@ -652,8 +666,10 @@ export function ResumeBuilder({
   function exportResume() {
     setCheckoutError(null);
 
-    if (!canExport) {
-      window.location.assign(isAuthenticated ? "/pricing" : "/login?redirect=%2Fpricing");
+    if (!effectiveCanExport) {
+      window.location.assign(
+        effectiveIsAuthenticated ? "/pricing" : "/login?redirect=%2Fpricing"
+      );
       return;
     }
 
@@ -687,14 +703,14 @@ export function ResumeBuilder({
           <div>
             <h1 className="text-4xl font-semibold text-ink-900">Free resume builder with job analysis</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-              Turn a job link or description into a complete role-targeted resume, then review,
-              edit, score, and export it with your chosen professional template.
+              Edit and score your resume for free. An eligible trial or plan adds job-analysis
+              tailoring, AI assistance, professional templates, and PDF export.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button onClick={exportResume}>
+            <Button disabled={!accessReady} onClick={exportResume}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              {canExport ? "Export resume" : "Unlock export"}
+              {!accessReady ? "Checking access" : effectiveCanExport ? "Export resume" : "Unlock export"}
             </Button>
             <Button variant="outline" onClick={() => setDraft(initialDraft)}>
               Reset demo
@@ -704,9 +720,10 @@ export function ResumeBuilder({
       </section>
 
       <JobResumeGenerator
-        canUseAi={canUseAi}
+        accessReady={accessReady}
+        canUseAi={effectiveCanUseAi}
         draft={draft}
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={effectiveIsAuthenticated}
         onGenerated={applyTailoredResume}
       />
 
@@ -756,7 +773,7 @@ export function ResumeBuilder({
                   ) : (
                     <Sparkles className="h-4 w-4" aria-hidden="true" />
                   )}
-                  {canUseAi ? "Improve summary with AI" : "Unlock AI summary"}
+                  {effectiveCanUseAi ? "Improve summary with AI" : "Unlock AI summary"}
                 </Button>
                 <TextArea label="Skills" value={draft.skills} onChange={(skills) => updateDraft({ skills })} />
               </>
@@ -822,7 +839,9 @@ export function ResumeBuilder({
                         ) : (
                           <Sparkles className="h-4 w-4" aria-hidden="true" />
                         )}
-                        {canUseAi ? "Strengthen bullets with AI" : "Unlock AI bullet editor"}
+                        {effectiveCanUseAi
+                          ? "Strengthen bullets with AI"
+                          : "Unlock AI bullet editor"}
                       </Button>
                     </div>
                   </div>
@@ -1040,23 +1059,23 @@ export function ResumeBuilder({
           ) : null}
 
           <Card className="border-brand-100 bg-brand-50 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">Paid plan export</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-brand-700">Resume export access</p>
             <h2 className="mt-2 text-xl font-semibold text-ink-900">
-              {canExport ? "Export is unlocked" : "Unlock resume export"}
+              {effectiveCanExport ? "Export is unlocked" : "Unlock resume export"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink-600">
-              {canExport
+              {effectiveCanExport
                 ? "Print or save your finished resume as a PDF. AI suggestions use only the facts you provide and should be reviewed before applying."
-                : "Resume export and AI writing are included with every Hirevate paid plan."}
+                : "Resume export and AI writing are available during an eligible trial or with a paid plan."}
             </p>
             {checkoutError ? (
               <div className="mt-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {checkoutError}
               </div>
             ) : null}
-            <Button className="mt-5 w-full" onClick={exportResume}>
+            <Button className="mt-5 w-full" disabled={!accessReady} onClick={exportResume}>
               <Download className="h-4 w-4" aria-hidden="true" />
-              {canExport ? "Export resume" : "View paid plans"}
+              {!accessReady ? "Checking access" : effectiveCanExport ? "Export resume" : "View access options"}
             </Button>
           </Card>
         </aside>

@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LatestJobsPage() {
-  const jobs = await getSitemapJobs(50);
+  const jobs = await getSitemapJobs(20);
 
   return (
     <>
@@ -133,12 +133,11 @@ export default async function LatestJobsPage() {
           </div>
 
           <div className="mt-8 grid gap-3">
-            {jobs.map((job) => (
-              <Card className="p-5" key={job.id}>
-                {(() => {
-                  const sourceTrust = getJobSourceTrust(job);
+            {jobs.map((job) => {
+              const sourceTrust = getJobSourceTrust(job);
 
-                  return (
+              return (
+                <Card className="p-5" key={job.id}>
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap gap-2">
@@ -170,10 +169,9 @@ export default async function LatestJobsPage() {
                     View role
                   </Button>
                 </div>
-                  );
-                })()}
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
 
           {jobs.length === 0 ? (

@@ -2,13 +2,12 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { VisitorTracker } from "@/components/analytics/visitor-tracker";
-import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { AuthStatusProvider } from "@/components/auth/auth-status-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { CookieConsent } from "@/components/legal/cookie-consent";
 import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
-import { resolveLanguagePreference } from "@/lib/i18n/server";
 import {
   absoluteUrl,
   defaultDescription,
@@ -44,7 +43,6 @@ export const metadata: Metadata = {
     ...geoAudienceKeywords
   ],
   alternates: {
-    canonical: "/",
     types: {
       "text/plain": [
         { title: "Hirevate LLM context", url: "/llms.txt" },
@@ -129,24 +127,23 @@ const websiteJsonLd = {
   }
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { language, regionalLanguage } = await resolveLanguagePreference();
-
   return (
-    <html lang={language}>
+    <html lang="en">
       <body>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
-        <SiteHeader language={language} />
-        <main className="flex-1">{children}</main>
-        <SiteFooter language={language} />
+        <AuthStatusProvider>
+          <SiteHeader language="en" />
+          <main className="flex-1">{children}</main>
+          <SiteFooter language="en" />
+        </AuthStatusProvider>
         <GoogleAnalytics />
         <VisitorTracker />
-        <CookieConsent language={language} />
-        <LanguageSwitcher language={language} regionalLanguage={regionalLanguage} />
+        <CookieConsent language="en" />
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { syncAshbyJobs } from "@/lib/jobs/ashby";
 import { syncGreenhouseJobs } from "@/lib/jobs/greenhouse";
 import { syncJoobleAustraliaJobs, syncJoobleUaeJobs } from "@/lib/jobs/jooble";
 import { syncLeverJobs } from "@/lib/jobs/lever";
+import { revalidateExistingJobLinks } from "@/lib/jobs/existing-link-validation";
 import { deleteStaleJobs, expireDuplicateJobs, JOB_RETENTION_DAYS } from "@/lib/jobs/maintenance";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
@@ -322,6 +323,20 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
     },
     "Greenhouse sync failed."
   );
+
+  // Recheck a bounded rotating queue after source upserts so a dead link cannot
+  // be reactivated later in this run. Only a second permanent failure expires it.
+  try {
+    mergeResult(result, await revalidateExistingJobLinks());
+  } catch (error) {
+    mergeResult(
+      result,
+      failedSourceResult(
+        "link-validation",
+        getSyncErrorMessage(error, "Existing job link validation failed.")
+      )
+    );
+  }
 
   // Always enforce retention after refresh attempts, even when a source used the time budget.
   try {

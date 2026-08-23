@@ -11,7 +11,7 @@ import { ResumeMatchCard } from "@/components/jobs/resume-match-card";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
-  getCurrentUser,
+  getCurrentUserIfSessionPresent,
   getProfile,
   hasPremiumAccess,
   hasProductAccess
@@ -94,7 +94,10 @@ export default async function JobDetailPage({
 }) {
   const { id } = await params;
   const resolvedSearchParams = await searchParams;
-  const [job, user] = await Promise.all([getJobBySlugOrId(id), getCurrentUser()]);
+  const [job, user] = await Promise.all([
+    getJobBySlugOrId(id),
+    getCurrentUserIfSessionPresent()
+  ]);
 
   if (!job) notFound();
 

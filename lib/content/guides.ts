@@ -10,7 +10,6 @@ export type Guide = {
   description: string;
   eyebrow: string;
   updatedAt: string;
-  readMinutes: number;
   sections: GuideSection[];
   faqs: Array<{
     question: string;
@@ -25,8 +24,7 @@ export const guides: Guide[] = [
     description:
       "A practical process for finding public job openings on company career pages and ATS boards before relying on crowded aggregators.",
     eyebrow: "Job discovery",
-    updatedAt: "2026-07-09",
-    readMinutes: 6,
+    updatedAt: "2026-08-23",
     sections: [
       {
         heading: "What a hidden job actually means",
@@ -54,6 +52,19 @@ export const guides: Guide[] = [
           "A recent timestamp is useful, but it is not proof that a role was newly created. Some sources refresh existing listings. Combine recency with a working apply path, complete location data, and a description that still matches the employer page.",
           "Hirevate's freshness score is a ranking aid. It does not guarantee that a role is new, exclusive, or still accepting applications, so always verify the destination before applying."
         ]
+      },
+      {
+        heading: "Decide whether the role deserves an application",
+        paragraphs: [
+          "Finding an opening early only matters when the role is relevant. Separate must-have requirements from preferences, then match each important requirement to evidence you can support in your resume. A smaller, well-qualified shortlist is usually more actionable than a large collection of vaguely related links.",
+          "Before investing in a tailored resume or cover letter, reopen the original destination and confirm the title, location, work authorization language, closing date, and apply action. Save the canonical URL and the version of your materials so you can explain exactly what you submitted later."
+        ],
+        bullets: [
+          "Apply when the core responsibilities match evidence you already have.",
+          "Treat missing salary, location, or eligibility details as questions, not assumptions.",
+          "Do not copy qualifications you cannot support.",
+          "Track the application date and next action after submitting."
+        ]
       }
     ],
     faqs: [
@@ -80,8 +91,7 @@ export const guides: Guide[] = [
     description:
       "Build a repeatable company career-page search that catches new openings without manually checking every page all day.",
     eyebrow: "Source strategy",
-    updatedAt: "2026-07-09",
-    readMinutes: 5,
+    updatedAt: "2026-08-23",
     sections: [
       {
         heading: "Build a company watchlist",
@@ -107,6 +117,19 @@ export const guides: Guide[] = [
         heading: "Avoid stale-page traps",
         paragraphs: [
           "A search engine can retain an old job URL after the employer closes it. Treat the employer or ATS page as the final authority. If the apply action is gone, the role redirects, or the page says closed, do not submit through an unrelated mirror."
+        ]
+      },
+      {
+        heading: "Keep a lightweight review log",
+        paragraphs: [
+          "Record the date you checked each employer, the role terms that produced useful results, and any new canonical job URLs. On the next review, start with employers that hire frequently and skip pages you already confirmed recently. This turns an open-ended search into a repeatable routine.",
+          "Do not treat a search-result snippet as proof that a role remains open. Snippets can outlive the source page, and identical titles can refer to different locations or requisitions. The detail page and its apply action are the evidence that matters."
+        ],
+        bullets: [
+          "Use one row per employer in your watchlist.",
+          "Store the career-page URL separately from individual job URLs.",
+          "Note location and work-mode restrictions beside each result.",
+          "Archive closed links instead of repeatedly checking them."
         ]
       }
     ],
@@ -134,8 +157,7 @@ export const guides: Guide[] = [
     description:
       "Find remote jobs while checking location restrictions, source quality, freshness, and role fit before investing in an application.",
     eyebrow: "Remote work",
-    updatedAt: "2026-07-09",
-    readMinutes: 6,
+    updatedAt: "2026-08-23",
     sections: [
       {
         heading: "Remote does not always mean worldwide",
@@ -161,6 +183,19 @@ export const guides: Guide[] = [
         heading: "Tailor for remote evidence",
         paragraphs: [
           "A remote resume should show outcomes, ownership, written communication, asynchronous work, and collaboration across teams or time zones when those facts are true. Avoid adding remote-work claims you cannot support."
+        ]
+      },
+      {
+        heading: "Check eligibility before tailoring",
+        paragraphs: [
+          "Read the whole location statement before spending time on application materials. Phrases such as remote in the United States, UK-based remote, EMEA hours, or must be able to work in the UAE describe different constraints. A city in the header may identify an office rather than a mandatory work location, so confirm the wording in the description.",
+          "Also distinguish employment type from work mode. A remote role may be permanent, fixed-term, contract, or employer-of-record employment. If the source does not explain payroll location, sponsorship, or travel requirements, do not infer an answer from the word remote alone."
+        ],
+        bullets: [
+          "Confirm the permitted country or region.",
+          "Check time-zone overlap and travel expectations.",
+          "Verify employment type and work-authorization wording.",
+          "Use the employer or ATS description as the final source."
         ]
       }
     ],
@@ -188,8 +223,7 @@ export const guides: Guide[] = [
     description:
       "Understand what Hirevate's freshness score measures, what it does not prove, and how to use it when prioritizing applications.",
     eyebrow: "Product guide",
-    updatedAt: "2026-07-09",
-    readMinutes: 4,
+    updatedAt: "2026-08-23",
     sections: [
       {
         heading: "A ranking signal, not a promise",
@@ -209,6 +243,19 @@ export const guides: Guide[] = [
         heading: "How to use the score",
         paragraphs: [
           "Use freshness to order a shortlist, then verify role fit and source validity. A lower-scored role that strongly matches your experience can still be more valuable than a newer but irrelevant one."
+        ]
+      },
+      {
+        heading: "What the current score uses",
+        paragraphs: [
+          "The current calculation starts at 40 points. A source timestamp can add 40 points for one day or less, 30 for up to three days, 20 for up to seven days, or 10 for up to fourteen days. A stated location adds 10 points, and an available source or apply URL adds 10 points. The total is capped at 100.",
+          "The calculation is sector-neutral: a software title receives no advantage over healthcare, operations, finance, education, or any other role. The score also does not use employer popularity, salary, applicant counts, or personal eligibility. Those factors require separate judgment."
+        ],
+        bullets: [
+          "Strong freshness: 90 to 100.",
+          "Good signals: 70 to 89.",
+          "Limited signals: 50 to 69.",
+          "Review source: below 50."
         ]
       }
     ],
@@ -236,8 +283,7 @@ export const guides: Guide[] = [
     description:
       "Use a resume-to-job comparison as a practical editing checklist without treating a match score as a hiring decision.",
     eyebrow: "Resume strategy",
-    updatedAt: "2026-07-09",
-    readMinutes: 6,
+    updatedAt: "2026-08-23",
     sections: [
       {
         heading: "Start with required evidence",
@@ -263,6 +309,19 @@ export const guides: Guide[] = [
         heading: "Treat the score as guidance",
         paragraphs: [
           "Hirevate's resume match is a comparison aid, not an employer ATS and not a prediction of selection. Use the gaps to guide editing, then review the final resume for accuracy, readability, and role fit."
+        ]
+      },
+      {
+        heading: "Run a requirement-to-evidence review",
+        paragraphs: [
+          "Create a short list of the role's most important requirements and place one piece of evidence beside each. Evidence can be a measurable result, a project, a responsibility with clear scope, a qualification, or a tool you used in context. If the resume contains the evidence but hides it low on the page, move it closer to the summary or first relevant role.",
+          "Then read the resume without the job description beside it. The document should still sound natural and make sense to a recruiter. A useful comparison preserves your voice and facts; it does not turn the resume into a copied list of requirements."
+        ],
+        bullets: [
+          "Required skill: show where and how you used it.",
+          "Responsibility: show a comparable decision or outcome.",
+          "Preferred qualification: include it only when accurate.",
+          "Unmatched requirement: leave it as a genuine gap."
         ]
       }
     ],
@@ -290,8 +349,7 @@ export const guides: Guide[] = [
     description:
       "Use a simple application tracker to record sources, resume versions, dates, stages, and interview outcomes.",
     eyebrow: "Search workflow",
-    updatedAt: "2026-07-09",
-    readMinutes: 5,
+    updatedAt: "2026-08-23",
     sections: [
       {
         heading: "Track decisions, not just job links",
@@ -319,6 +377,19 @@ export const guides: Guide[] = [
           "Application-to-interview rate can reveal patterns, but small samples are noisy. Compare similar job titles and resume versions over enough applications before drawing a conclusion.",
           "A tracker cannot identify every cause. Market conditions, eligibility, timing, competition, and employer process also affect outcomes."
         ]
+      },
+      {
+        heading: "Review the tracker once a week",
+        paragraphs: [
+          "A weekly review is frequent enough to catch overdue follow-ups without turning the tracker into another inbox. Close unavailable listings, add the next concrete action for live conversations, and check whether any application has been recorded twice under slightly different company or role names.",
+          "Look for patterns only among comparable applications. For example, compare the same role family, seniority range, geography, and resume version. If one version produces more interviews, inspect the evidence and clarity before assuming the design alone caused the difference."
+        ],
+        bullets: [
+          "Follow up only when the employer's process makes it appropriate.",
+          "Record a confirmed rejection separately from no response.",
+          "Archive closed roles while retaining your application history.",
+          "Choose one change to test in the next group of applications."
+        ]
       }
     ],
     faqs: [
@@ -343,4 +414,19 @@ export const guides: Guide[] = [
 
 export function getGuide(slug: string) {
   return guides.find((guide) => guide.slug === slug);
+}
+
+export function getGuideReadMinutes(guide: Guide) {
+  const text = [
+    guide.title,
+    guide.description,
+    ...guide.sections.flatMap((section) => [
+      section.heading,
+      ...section.paragraphs,
+      ...(section.bullets ?? [])
+    ]),
+    ...guide.faqs.flatMap((item) => [item.question, item.answer])
+  ].join(" ");
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(2, Math.ceil(words / 225));
 }

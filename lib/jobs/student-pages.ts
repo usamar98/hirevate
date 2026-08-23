@@ -90,7 +90,7 @@ export const studentJobsPages = {
     country: "uk",
     path: "/jobs/part-time/uk",
     label: "Part-time jobs in the UK",
-    title: "Part-Time Jobs in the UK for International Students | Hirevate",
+    title: "UK Part-Time Jobs for International Students | Hirevate",
     description:
       "Find fresh UK part-time jobs with weekly-hours, evening, weekend, student and work-authorization evidence from original public listings.",
     heading: "Part-time jobs in the UK for international students",
@@ -105,7 +105,7 @@ export const studentJobsPages = {
     country: "us",
     path: "/jobs/student/us",
     label: "Student jobs in the US",
-    title: "Student Jobs in the US: Campus, Part-Time & Internships | Hirevate",
+    title: "US Student Jobs: Campus, Part-Time & Internships | Hirevate",
     description:
       "Discover fresh US student jobs, internships and on-campus opportunities with CPT/OPT and authorization wording clearly labeled when present.",
     heading: "Student jobs, campus roles and internships in the US",
@@ -120,7 +120,7 @@ export const studentJobsPages = {
     country: "uk",
     path: "/jobs/student/uk",
     label: "Student jobs in the UK",
-    title: "Student Jobs in the UK: Part-Time, Weekend & Internships | Hirevate",
+    title: "UK Student Jobs: Part-Time, Weekend & Internships | Hirevate",
     description:
       "Discover fresh UK student jobs, part-time roles and internships with schedule and authorization wording clearly labeled when present.",
     heading: "Student jobs, part-time roles and internships in the UK",

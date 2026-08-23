@@ -24,8 +24,6 @@ import { getActiveJobsCount, getSalaryFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { getLandingCopy } from "@/lib/i18n/content";
-import type { SupportedLanguage } from "@/lib/i18n/config";
-import { resolveLanguagePreference } from "@/lib/i18n/server";
 import { publicPricingPlans, startTrialHref } from "@/lib/pricing";
 import {
   absoluteUrl,
@@ -233,16 +231,10 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
   }))
 );
 
-const numberLocaleByLanguage: Record<SupportedLanguage, string> = {
-  en: "en-US",
-  de: "de-DE",
-  sv: "sv-SE"
-};
-
 export const revalidate = 3600;
 
 export default async function LandingPage() {
-  const { language } = await resolveLanguagePreference();
+  const language = "en" as const;
   const copy = getLandingCopy(language);
   const [featuredJobs, activeJobsCount] = await Promise.all([
     getSalaryFeaturedJobs(3),
@@ -251,7 +243,7 @@ export default async function LandingPage() {
   const heroTitle = activeJobsCount > 0
     ? copy.hero.countedTitle.replace(
         "{count}",
-        new Intl.NumberFormat(numberLocaleByLanguage[language]).format(activeJobsCount)
+        new Intl.NumberFormat("en-US").format(activeJobsCount)
       )
     : copy.hero.title;
   const localizedEmptyPreviewJobs =
@@ -314,7 +306,7 @@ export default async function LandingPage() {
               "@id": absoluteUrl("/#software-application")
             },
             primaryImageOfPage: absoluteUrl(defaultOgImagePath),
-            inLanguage: language === "de" ? "de-DE" : language === "sv" ? "sv-SE" : "en-US"
+            inLanguage: "en-US"
           },
           {
             "@context": "https://schema.org",
@@ -366,7 +358,9 @@ export default async function LandingPage() {
               </Button>
             </div>
             <p className="mt-4 text-sm font-semibold text-brand-700">
-              <Link href={startTrialHref}>Start a 3-day free trial</Link>
+              <Link className="inline-flex min-h-11 items-center" href={startTrialHref}>
+                Start a 3-day free trial
+              </Link>
               <span className="font-medium text-ink-500">
                 {" "}
                 — no card required and no automatic charge.
@@ -376,7 +370,7 @@ export default async function LandingPage() {
               Company career pages and public ATS boards are prioritized, with stale listings
               removed from active search. Read the{" "}
               <Link
-                className="font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800"
+                className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800"
                 href="/research/student-part-time-jobs"
               >
                 source and freshness methodology
