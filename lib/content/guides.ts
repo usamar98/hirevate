@@ -24,7 +24,7 @@ export const guides: Guide[] = [
     description:
       "A practical process for finding public job openings on company career pages and ATS boards before relying on crowded aggregators.",
     eyebrow: "Job discovery",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-24",
     sections: [
       {
         heading: "What a hidden job actually means",
@@ -91,7 +91,7 @@ export const guides: Guide[] = [
     description:
       "Build a repeatable company career-page search that catches new openings without manually checking every page all day.",
     eyebrow: "Source strategy",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-24",
     sections: [
       {
         heading: "Build a company watchlist",
@@ -157,7 +157,7 @@ export const guides: Guide[] = [
     description:
       "Find remote jobs while checking location restrictions, source quality, freshness, and role fit before investing in an application.",
     eyebrow: "Remote work",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-24",
     sections: [
       {
         heading: "Remote does not always mean worldwide",
@@ -223,7 +223,7 @@ export const guides: Guide[] = [
     description:
       "Understand what Hirevate's freshness score measures, what it does not prove, and how to use it when prioritizing applications.",
     eyebrow: "Product guide",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-24",
     sections: [
       {
         heading: "A ranking signal, not a promise",
@@ -283,7 +283,7 @@ export const guides: Guide[] = [
     description:
       "Use a resume-to-job comparison as a practical editing checklist without treating a match score as a hiring decision.",
     eyebrow: "Resume strategy",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-24",
     sections: [
       {
         heading: "Start with required evidence",
@@ -345,11 +345,11 @@ export const guides: Guide[] = [
   },
   {
     slug: "application-tracking",
-    title: "How to Track Job Applications Without Losing Context",
+    title: "How to Track Job Applications Effectively",
     description:
       "Use a simple application tracker to record sources, resume versions, dates, stages, and interview outcomes.",
     eyebrow: "Search workflow",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-24",
     sections: [
       {
         heading: "Track decisions, not just job links",

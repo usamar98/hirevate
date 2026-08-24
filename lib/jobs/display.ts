@@ -1,22 +1,46 @@
 import type { Job } from "@/types/database";
+import { configuredJobCountries, type JobCountry } from "@/lib/jobs/countries";
 
 type DisplayJob = Pick<Job, "location" | "remote_type">;
 
 const countryLabels = new Set([
+  "argentina",
   "australia",
+  "austria",
+  "belgium",
+  "brazil",
   "canada",
+  "chile",
+  "china",
+  "colombia",
+  "denmark",
+  "egypt",
   "france",
   "germany",
   "india",
+  "indonesia",
   "ireland",
   "italy",
+  "japan",
+  "malaysia",
   "mexico",
   "netherlands",
   "new zealand",
+  "norway",
   "pakistan",
+  "peru",
+  "philippines",
   "poland",
+  "portugal",
+  "saudi arabia",
   "singapore",
+  "south africa",
+  "south korea",
   "spain",
+  "sweden",
+  "switzerland",
+  "turkey",
+  "uae",
   "u k",
   "uk",
   "united arab emirates",
@@ -25,34 +49,8 @@ const countryLabels = new Set([
   "united states of america",
   "u s",
   "us",
-  "usa"
-]);
-
-const administrativeCodes = new Set([
-  "AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
-  "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
-  "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM",
-  "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX",
-  "UT", "VA", "VT", "WA", "WI", "WV", "WY", "AB", "BC", "MB", "NB",
-  "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT", "ACT", "NSW",
-  "QLD", "SA", "TAS", "VIC"
-]);
-
-const administrativeNames = new Set([
-  "alabama", "alaska", "alberta", "arizona", "arkansas", "australian capital territory",
-  "british columbia", "california", "colorado", "connecticut", "delaware",
-  "district of columbia", "england", "florida", "georgia", "hawaii", "idaho",
-  "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine",
-  "manitoba", "maryland", "massachusetts", "michigan", "minnesota", "mississippi",
-  "missouri", "montana", "nebraska", "nevada", "new brunswick", "new hampshire",
-  "new jersey", "new mexico", "new south wales", "new york", "newfoundland and labrador",
-  "north carolina", "north dakota", "northern ireland", "northern territory",
-  "northwest territories", "nova scotia", "nunavut", "ohio", "oklahoma", "ontario",
-  "oregon", "pennsylvania", "prince edward island", "quebec", "queensland",
-  "rhode island", "saskatchewan", "scotland", "south australia", "south carolina",
-  "south dakota", "tasmania", "tennessee", "texas", "utah", "vermont", "victoria",
-  "virginia", "wales", "washington", "west virginia", "western australia",
-  "wisconsin", "wyoming", "yukon"
+  "usa",
+  "vietnam"
 ]);
 
 function locationKey(value: string) {
@@ -67,14 +65,6 @@ function isCountry(value: string) {
   return countryLabels.has(locationKey(value));
 }
 
-function isAdministrativeCode(value: string) {
-  return administrativeCodes.has(value.replace(/\./g, "").trim().toUpperCase());
-}
-
-function isAdministrativePart(value: string) {
-  return isAdministrativeCode(value) || administrativeNames.has(locationKey(value));
-}
-
 function cleanLocationPart(value: string) {
   return value
     .replace(/\s+/g, " ")
@@ -82,13 +72,17 @@ function cleanLocationPart(value: string) {
     .trim();
 }
 
-export function formatJobLocation(value: string | null | undefined) {
-  const parts = (value ?? "")
+function getLocationParts(value: string | null | undefined) {
+  return (value ?? "")
     .replace(/\s+\/\s+/g, ",")
     .replace(/[;|\n]+/g, ",")
     .split(",")
     .map(cleanLocationPart)
     .filter(Boolean);
+}
+
+export function formatJobLocation(value: string | null | undefined) {
+  const parts = getLocationParts(value);
 
   if (parts.length === 0) return null;
 
@@ -102,31 +96,74 @@ export function formatJobLocation(value: string | null | undefined) {
     uniqueParts.push(part);
   }
 
-  if (uniqueParts.length === 1) return uniqueParts[0];
+  return uniqueParts.join(", ");
+}
 
-  const explicitCityBases = new Set(
-    uniqueParts
-      .map(locationKey)
-      .filter((key) => key.endsWith(" city"))
-      .map((key) => key.slice(0, -5).trim())
+const countryAliasesByCode: Record<string, readonly string[]> = {
+  AE: ["uae", "united arab emirates"],
+  GB: ["uk", "u k", "united kingdom"],
+  US: ["us", "u s", "usa", "united states", "united states of america"]
+};
+
+function partMatchesTerm(part: string, term: string) {
+  const partKey = locationKey(part);
+  const termKey = locationKey(term);
+  return (
+    partKey === termKey ||
+    partKey.startsWith(`${termKey} `) ||
+    partKey.endsWith(` ${termKey}`)
   );
+}
 
-  const result = uniqueParts.filter((part, index) => {
-    const key = locationKey(part);
+function getCountryAliases(country: JobCountry) {
+  return new Set(
+    [country.name, country.code, ...(countryAliasesByCode[country.code] ?? [])].map(locationKey)
+  );
+}
 
-    if (isCountry(part)) return false;
+function getCountryCardName(country: JobCountry) {
+  if (country.code === "AE") return "UAE";
+  if (country.code === "GB") return "UK";
+  if (country.code === "US") return "US";
+  return country.name;
+}
 
-    // "New York City, New York" is a city followed by its parent state.
-    if (explicitCityBases.has(key)) return false;
+function getCountryLocationLabel(value: string, country: JobCountry) {
+  const parts = getLocationParts(value);
+  const selectedIndexes = new Set<number>();
+  const cityMatches: Array<{ index: number; label: string }> = [];
 
-    if (isAdministrativeCode(part) && index > 0) return false;
-    if (!administrativeNames.has(key) || index === 0) return true;
+  parts.forEach((part, index) => {
+    if (country.locationTerms.some((term) => partMatchesTerm(part, term))) {
+      selectedIndexes.add(index);
+    }
 
-    const previousPart = uniqueParts[index - 1];
-    return !previousPart || isCountry(previousPart) || isAdministrativePart(previousPart);
+    const city = country.popularCities.find((term) => partMatchesTerm(part, term));
+    if (city) cityMatches.push({ index, label: city });
   });
 
-  return (result.length > 0 ? result : uniqueParts.slice(0, 1)).join(", ");
+  if (selectedIndexes.size === 0) return null;
+
+  const selectedAliases = getCountryAliases(country);
+  const hasOtherCountry = parts.some((part, index) => {
+    if (selectedIndexes.has(index)) return false;
+    const key = locationKey(part);
+    return isCountry(part) && !selectedAliases.has(key);
+  });
+  const hasOtherConfiguredCity = parts.some((part, index) => {
+    if (selectedIndexes.has(index)) return false;
+    return configuredJobCountries.some(
+      (item) =>
+        item.code !== country.code && item.popularCities.some((city) => partMatchesTerm(part, city))
+    );
+  });
+  const distinctCityIndexes = new Set(cityMatches.map((match) => match.index));
+  const isMultiLocation =
+    hasOtherCountry || hasOtherConfiguredCity || distinctCityIndexes.size > 1;
+  const city = cityMatches[0]?.label;
+  const label = city ? `${city}, ${getCountryCardName(country)}` : getCountryCardName(country);
+
+  return isMultiLocation ? `${label} (multi-location)` : label;
 }
 
 export function getWorkModeLabel(remoteType: string | null | undefined) {
@@ -143,7 +180,12 @@ export function getWorkModeTone(remoteType: string | null | undefined): "green" 
   return "amber";
 }
 
-export function getJobLocationLabel(job: DisplayJob) {
+export function getJobLocationLabel(job: DisplayJob, country?: JobCountry | null) {
+  if (country && job.location) {
+    const countryLabel = getCountryLocationLabel(job.location, country);
+    if (countryLabel) return countryLabel;
+  }
+
   const location = formatJobLocation(job.location);
 
   if (location) {

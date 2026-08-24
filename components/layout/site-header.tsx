@@ -23,7 +23,7 @@ export function SiteHeader({ language }: { language: SupportedLanguage }) {
           <Link className="transition hover:text-ink-900" href="/resume-builder">
             {copy.resume}
           </Link>
-          <Link className="transition hover:text-ink-900" href="/account/job-tracker">
+          <Link className="transition hover:text-ink-900" href="/job-application-tracker">
             {copy.jobTracker}
           </Link>
           <Link className="transition hover:text-ink-900" href="/account/cover-letters">

@@ -148,6 +148,7 @@ export type Database = {
           industry: string | null;
           is_active: boolean;
           last_synced_at: string | null;
+          prominence_rank: number | null;
           created_at: string;
         };
         Insert: {
@@ -158,6 +159,7 @@ export type Database = {
           industry?: string | null;
           is_active?: boolean;
           last_synced_at?: string | null;
+          prominence_rank?: number | null;
           created_at?: string;
         };
         Update: {
@@ -168,6 +170,7 @@ export type Database = {
           industry?: string | null;
           is_active?: boolean;
           last_synced_at?: string | null;
+          prominence_rank?: number | null;
           created_at?: string;
         };
         Relationships: [];
@@ -723,7 +726,7 @@ export type ResumeAbApplication = Database["public"]["Tables"]["resume_ab_applic
 export type ResumeAbTest = Database["public"]["Tables"]["resume_ab_tests"]["Row"];
 
 export type JobWithCompany = Job & {
-  companies: Pick<Company, "id" | "name" | "greenhouse_slug" | "website"> | null;
+  companies: Pick<Company, "id" | "name" | "greenhouse_slug" | "prominence_rank" | "website"> | null;
 };
 
 export type SavedJobWithJob = SavedJob & {

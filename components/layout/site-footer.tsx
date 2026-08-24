@@ -18,6 +18,7 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
     { href: "/jobs/country/uae", label: "UAE Jobs" },
     { href: "/jobs/engineering", label: copy.links.engineeringJobs },
     { href: "/resume-builder", label: copy.links.resume },
+    { href: "/job-application-tracker", label: copy.links.jobTracker },
     { href: "/cover-letter", label: copy.links.coverLetter },
     { href: "/pricing", label: copy.links.pricing },
     { href: "/guides", label: copy.links.guides },

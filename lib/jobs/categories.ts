@@ -85,7 +85,7 @@ export const jobCategoryPages: Record<JobCategorySlug, JobCategoryPage> = {
     label: "UK jobs",
     title: "UK Jobs From Public Hiring Sources | Hirevate",
     description:
-      "Find fresh UK jobs from company career pages, public ATS boards, and trusted hiring sources across London, Manchester, Birmingham, Edinburgh, and other UK locations.",
+      "Find fresh UK jobs from company career pages and public hiring sources across London, Manchester, Birmingham, Edinburgh, and other UK locations.",
     heading: "UK jobs with clear source and freshness signals",
     eyebrow: "United Kingdom job search",
     emptyTitle: "No UK jobs found",

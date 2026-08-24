@@ -29,7 +29,9 @@ export const aiSearchCrawlerUserAgents = [
   "PerplexityBot",
   "ClaudeBot",
   "Claude-SearchBot",
+  "Claude-User",
   "anthropic-ai",
+  "Perplexity-User",
   "Google-Extended",
   "Bingbot",
   "Applebot"
@@ -82,6 +84,7 @@ export const publicSeoRoutes = [
   { path: "/jobs/data-analyst", changeFrequency: "hourly", priority: 0.85 },
   { path: "/jobs/customer-success", changeFrequency: "hourly", priority: 0.84 },
   { path: "/resume-builder", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/job-application-tracker", changeFrequency: "weekly", priority: 0.88 },
   { path: "/cover-letter", changeFrequency: "weekly", priority: 0.78 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
   { path: "/legal", changeFrequency: "yearly", priority: 0.3 },

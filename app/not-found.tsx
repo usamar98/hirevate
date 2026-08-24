@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
@@ -9,8 +8,8 @@ export default function NotFound() {
       <p className="mt-4 max-w-lg text-base leading-7 text-ink-500">
         The job or page you are looking for is not available. Try browsing the latest hidden jobs.
       </p>
-      <Button asChild className="mt-8">
-        <Link href="/jobs">Browse jobs</Link>
+      <Button asChild className="mt-8" href="/jobs">
+        Browse jobs
       </Button>
     </section>
   );

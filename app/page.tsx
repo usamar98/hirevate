@@ -325,18 +325,6 @@ export default async function LandingPage() {
             },
             offers: homeOfferItems
           },
-          {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: localizedFaqItems.map((item) => ({
-              "@type": "Question",
-              name: item.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: item.answer
-              }
-            }))
-          }
         ]}
       />
       <section className="border-b border-gray-100 bg-white">
@@ -375,6 +363,27 @@ export default async function LandingPage() {
               >
                 source and freshness methodology
               </Link>
+              .
+            </p>
+            <p className="mt-3 max-w-lg text-xs leading-5 text-ink-500">
+              Publishing standards: {" "}
+              <a
+                className="font-semibold text-brand-700 underline underline-offset-4"
+                href="https://developers.google.com/search/docs/appearance/structured-data/job-posting"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Google job content policies
+              </a>{" "}
+              and {" "}
+              <a
+                className="font-semibold text-brand-700 underline underline-offset-4"
+                href="https://github.com/lever/postings-api"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Lever public postings documentation
+              </a>
               .
             </p>
           </div>

@@ -10,7 +10,14 @@ export type JobCountry = {
   popularCities: readonly string[];
 };
 
-const configuredJobCountries = [
+export type JobLocationCountry = {
+  aliases: readonly string[];
+  cityTerms: readonly string[];
+  code: string;
+  name: string;
+};
+
+export const configuredJobCountries = [
   {
     slug: "united-states",
     code: "US",
@@ -160,6 +167,114 @@ const configuredJobCountries = [
     popularCities: ["Singapore"]
   }
 ] as const satisfies readonly JobCountry[];
+
+const additionalLocationCountries: readonly JobLocationCountry[] = [
+  { code: "AR", name: "Argentina", aliases: ["Argentina"], cityTerms: [] },
+  { code: "AT", name: "Austria", aliases: ["Austria"], cityTerms: [] },
+  { code: "BE", name: "Belgium", aliases: ["Belgium"], cityTerms: [] },
+  { code: "BR", name: "Brazil", aliases: ["Brazil"], cityTerms: [] },
+  { code: "CL", name: "Chile", aliases: ["Chile"], cityTerms: [] },
+  { code: "CN", name: "China", aliases: ["China"], cityTerms: [] },
+  { code: "CO", name: "Colombia", aliases: ["Colombia"], cityTerms: [] },
+  { code: "CZ", name: "Czechia", aliases: ["Czechia", "Czech Republic"], cityTerms: [] },
+  { code: "DK", name: "Denmark", aliases: ["Denmark"], cityTerms: [] },
+  { code: "EG", name: "Egypt", aliases: ["Egypt"], cityTerms: [] },
+  { code: "FI", name: "Finland", aliases: ["Finland"], cityTerms: [] },
+  { code: "GR", name: "Greece", aliases: ["Greece"], cityTerms: [] },
+  { code: "HK", name: "Hong Kong", aliases: ["Hong Kong"], cityTerms: [] },
+  { code: "ID", name: "Indonesia", aliases: ["Indonesia"], cityTerms: [] },
+  { code: "IL", name: "Israel", aliases: ["Israel"], cityTerms: [] },
+  { code: "IT", name: "Italy", aliases: ["Italy"], cityTerms: [] },
+  { code: "JP", name: "Japan", aliases: ["Japan"], cityTerms: [] },
+  { code: "KW", name: "Kuwait", aliases: ["Kuwait"], cityTerms: [] },
+  { code: "MY", name: "Malaysia", aliases: ["Malaysia"], cityTerms: [] },
+  { code: "MX", name: "Mexico", aliases: ["Mexico"], cityTerms: [] },
+  { code: "NZ", name: "New Zealand", aliases: ["New Zealand"], cityTerms: [] },
+  { code: "NO", name: "Norway", aliases: ["Norway"], cityTerms: [] },
+  { code: "PE", name: "Peru", aliases: ["Peru"], cityTerms: [] },
+  { code: "PH", name: "Philippines", aliases: ["Philippines"], cityTerms: [] },
+  { code: "PL", name: "Poland", aliases: ["Poland"], cityTerms: [] },
+  { code: "PT", name: "Portugal", aliases: ["Portugal"], cityTerms: [] },
+  { code: "QA", name: "Qatar", aliases: ["Qatar"], cityTerms: [] },
+  { code: "SA", name: "Saudi Arabia", aliases: ["Saudi Arabia"], cityTerms: [] },
+  { code: "ZA", name: "South Africa", aliases: ["South Africa"], cityTerms: [] },
+  { code: "KR", name: "South Korea", aliases: ["South Korea"], cityTerms: [] },
+  { code: "ES", name: "Spain", aliases: ["Spain"], cityTerms: [] },
+  { code: "CH", name: "Switzerland", aliases: ["Switzerland"], cityTerms: [] },
+  { code: "TW", name: "Taiwan", aliases: ["Taiwan"], cityTerms: [] },
+  { code: "TH", name: "Thailand", aliases: ["Thailand"], cityTerms: [] },
+  { code: "TR", name: "Turkey", aliases: ["Turkey", "Turkiye"], cityTerms: [] },
+  { code: "VN", name: "Vietnam", aliases: ["Vietnam"], cityTerms: [] }
+];
+
+const configuredCountryAliases: Record<string, readonly string[]> = {
+  AE: ["United Arab Emirates", "UAE"],
+  AU: ["Australia", "AU"],
+  GB: ["United Kingdom", "UK", "Great Britain"],
+  US: ["United States", "United States of America", "USA", "US"]
+};
+
+const structuredLocationCountries: readonly JobLocationCountry[] = [
+  ...configuredJobCountries.map((country) => ({
+    aliases: configuredCountryAliases[country.code] ?? [country.name],
+    cityTerms: country.popularCities,
+    code: country.code,
+    name: country.name
+  })),
+  ...additionalLocationCountries
+];
+
+function normalizeLocationText(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function containsLocationTerm(value: string, term: string) {
+  const haystack = normalizeLocationText(value);
+  const needle = normalizeLocationText(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^a-z0-9])${needle}([^a-z0-9]|$)`).test(haystack);
+}
+
+export function getJobLocationCountries(value: string | null | undefined) {
+  if (!value) return [];
+
+  return structuredLocationCountries.filter((country) => {
+    const configuredCountry = configuredJobCountries.find((item) => item.code === country.code);
+    const terms = configuredCountry
+      ? [...country.aliases, ...configuredCountry.locationTerms]
+      : country.aliases;
+    return terms.some((term) => containsLocationTerm(value, term));
+  });
+}
+
+export function getJobLocationLocalities(
+  value: string | null | undefined,
+  country: JobLocationCountry,
+  countryCount: number
+) {
+  if (!value) return [];
+
+  const cities = country.cityTerms.filter((term) => containsLocationTerm(value, term));
+  if (cities.length > 0) return cities;
+  if (countryCount > 1) return [];
+
+  const fallback = value
+    .replace(/\s+\/\s+/g, ",")
+    .split(/[,;|\n]+/)
+    .map((part) => part.trim())
+    .find(
+      (part) =>
+        part &&
+        !structuredLocationCountries.some((item) =>
+          item.aliases.some((alias) => containsLocationTerm(part, alias))
+        ) &&
+        !/^(remote|hybrid|onsite|on-site)$/i.test(part)
+    );
+
+  return fallback ? [fallback] : [];
+}
 
 const dailyCoverageCountryCodes = new Set(["US", "GB", "CA", "AU", "AE"]);
 

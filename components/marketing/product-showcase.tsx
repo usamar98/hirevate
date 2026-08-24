@@ -44,7 +44,7 @@ const showcaseCopy = {
           "Keep stages, priorities, follow-up dates, listing health, and next actions together from first interest through interview and decision.",
         bullets: ["Application-stage pipeline", "Follow-up reminders", "Progress and outcome signals"],
         cta: "Open job tracker",
-        href: "/account/job-tracker",
+        href: "/job-application-tracker",
         previewTitle: "Application command center"
       },
       {
@@ -90,7 +90,7 @@ const showcaseCopy = {
           "Verwalten Sie Phasen, Prioritäten, Nachfassdaten, Anzeigenstatus und nächste Aktionen vom ersten Interesse bis zur Entscheidung.",
         bullets: ["Pipeline für Bewerbungsphasen", "Erinnerungen zum Nachfassen", "Fortschritts- und Ergebnissignale"],
         cta: "Bewerbungs-Tracker öffnen",
-        href: "/account/job-tracker",
+        href: "/job-application-tracker",
         previewTitle: "Bewerbungszentrale"
       },
       {

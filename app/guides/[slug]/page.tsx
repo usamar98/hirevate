@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
+import { guideReferences } from "@/lib/content/guide-references";
 import { getGuide, getGuideReadMinutes, guides } from "@/lib/content/guides";
 import { absoluteUrl, defaultOgImagePath, siteName } from "@/lib/seo";
 
@@ -52,6 +53,7 @@ export default async function GuidePage({
 
   const path = `/guides/${guide.slug}`;
   const readMinutes = getGuideReadMinutes(guide);
+  const references = guideReferences[guide.slug] ?? [];
 
   return (
     <>
@@ -67,16 +69,8 @@ export default async function GuidePage({
             image: absoluteUrl(defaultOgImagePath),
             mainEntityOfPage: absoluteUrl(path),
             author: { "@type": "Organization", name: siteName, url: absoluteUrl("/") },
-            publisher: { "@id": absoluteUrl("/#organization") }
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: guide.faqs.map((item) => ({
-              "@type": "Question",
-              name: item.question,
-              acceptedAnswer: { "@type": "Answer", text: item.answer }
-            }))
+            publisher: { "@id": absoluteUrl("/#organization") },
+            citation: references.map((reference) => reference.url)
           },
           {
             "@context": "https://schema.org",
@@ -117,7 +111,7 @@ export default async function GuidePage({
           <h1 className="mt-3 text-4xl font-semibold leading-tight text-ink-900">{guide.title}</h1>
           <p className="mt-5 text-lg leading-8 text-ink-500">{guide.description}</p>
           <p className="mt-4 text-sm text-ink-500">
-            Updated {guide.updatedAt} | {readMinutes} minute read
+            Maintained by Hirevate | Updated {guide.updatedAt} | {readMinutes} minute read
           </p>
 
           <aside className="mt-6 rounded-lg border border-brand-100 bg-brand-50 p-5 text-sm leading-6 text-ink-700">
@@ -166,6 +160,24 @@ export default async function GuidePage({
                 </div>
               ))}
             </div>
+          </section>
+
+          <section className="mt-10 border-t border-gray-200 pt-8">
+            <h2 className="text-xl font-semibold text-ink-900">Evidence and references</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-6">
+              {references.map((reference) => (
+                <li key={reference.url}>
+                  <a
+                    className="font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800"
+                    href={reference.url}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {reference.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <div className="mt-10 flex flex-wrap gap-4 border-t border-gray-200 pt-8">

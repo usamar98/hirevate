@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: CountryJobsPageProps): Promis
 
   const searchName = country.code === "AE" ? "UAE" : country.name;
   const title = `${searchName} Jobs Updated Daily`;
-  const description = `Fresh jobs in ${searchName}, including ${country.popularCities.slice(0, 3).join(", ")}. Browse daily-updated roles from public hiring sources with clear freshness and location signals.`;
+  const description = `Browse fresh ${searchName} jobs in ${country.popularCities.slice(0, 3).join(", ")} from public hiring sources, with clear location and freshness signals.`;
 
   return {
     title: { absolute: `${title} | Hirevate` },
@@ -177,7 +177,14 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
 
           <div className="mt-5 space-y-4">
             {visibleJobs.map((job) => (
-              <JobCard canApply={false} hasAccount={false} job={job} key={job.id} showApplyAction={false} />
+              <JobCard
+                canApply={false}
+                country={country}
+                hasAccount={false}
+                job={job}
+                key={job.id}
+                showApplyAction={false}
+              />
             ))}
           </div>
 

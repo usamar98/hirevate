@@ -465,6 +465,7 @@ export default async function JobsPage({
             {visibleJobs.map((job) => (
               <JobCard
                 canApply={isPaid}
+                country={countryPreference.country}
                 hasAccount={Boolean(user)}
                 isSaved={savedJobIds.has(job.id)}
                 job={job}

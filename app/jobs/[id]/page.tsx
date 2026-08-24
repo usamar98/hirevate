@@ -13,8 +13,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import {
   getCurrentUserIfSessionPresent,
   getProfile,
-  hasPremiumAccess,
-  hasProductAccess
+  hasPremiumAccess
 } from "@/lib/auth/session";
 import { getJobActionErrorMessage } from "@/lib/jobs/action-feedback";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
@@ -22,13 +21,15 @@ import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jo
 import { getJobBySlugOrId, getSavedJobIds } from "@/lib/jobs/queries";
 import {
   buildJobBreadcrumbJsonLd,
+  buildJobPostingJsonLd,
   getJobCompanyName,
   getJobMetaDescription,
   getJobMetaTitle,
   getJobPath,
   getJobSlug,
+  isJobPostingEligible,
 } from "@/lib/jobs/seo";
-import { getJobSourceTrust } from "@/lib/jobs/sources";
+import { getJobSourceTrust, getSafeJobApplyUrl } from "@/lib/jobs/sources";
 import { canViewJob, recordJobView } from "@/lib/jobs/view-limits";
 import { sanitizeJobDescription } from "@/lib/jobs/sanitize";
 import { formatDate } from "@/lib/utils";
@@ -113,7 +114,6 @@ export default async function JobDetailPage({
     user ? getSavedJobIds(user.id) : Promise.resolve(new Set<string>()),
     user ? getProfile(user.id) : Promise.resolve(null)
   ]);
-  const hasAccess = hasProductAccess(profile);
   const isPaid = hasPremiumAccess(profile);
 
   if (user && access.allowed) {
@@ -125,6 +125,7 @@ export default async function JobDetailPage({
   const compensationLabel = getJobCompensationLabel(job);
   const locationLabel = getJobLocationLabel(job);
   const sourceTrust = getJobSourceTrust(job);
+  const applyUrl = getSafeJobApplyUrl(job.apply_url);
   const saveJobError = getJobActionErrorMessage(resolvedSearchParams?.jobActionError);
   const trackerParams = new URLSearchParams({
     jobId: job.id,
@@ -142,6 +143,7 @@ export default async function JobDetailPage({
     <>
       <JsonLd
         data={[
+          ...(isJobPostingEligible(job) ? [buildJobPostingJsonLd(job)] : []),
           buildJobBreadcrumbJsonLd(job)
         ]}
       />
@@ -196,24 +198,16 @@ export default async function JobDetailPage({
                 </div>
               ) : null}
               <div className="mt-5 space-y-2">
-                {job.apply_url && hasAccess ? (
-                  <form action={`/api/jobs/${job.id}/apply`} method="post" target="_blank">
-                    <Button className="w-full" type="submit">
-                      {sourceTrust.applyCta}
-                      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                    </Button>
-                  </form>
-                ) : job.apply_url ? (
+                {applyUrl ? (
                   <Button
                     asChild
-                    href={
-                      user
-                        ? "/pricing?limit=apply-access#plans"
-                        : `/signup?redirect=${encodeURIComponent(canonicalPath)}`
-                    }
+                    href={applyUrl}
                     className="w-full"
+                    rel="noopener noreferrer"
+                    target="_blank"
                   >
-                    {user ? "Upgrade to apply" : "Sign up to apply"}
+                    {sourceTrust.applyCta}
+                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 ) : null}
                 <SaveJobButton

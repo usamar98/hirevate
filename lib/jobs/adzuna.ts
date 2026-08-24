@@ -1,5 +1,6 @@
 import { env, hasAdzunaConfig } from "@/lib/env";
 import { formatJobLocation } from "@/lib/jobs/display";
+import { getCompanyProminenceRank } from "@/lib/jobs/company-prominence";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -255,6 +256,7 @@ async function ensureAdzunaCompanies(
         greenhouse_slug: greenhouseSlug,
         industry: job.category?.label ?? null,
         is_active: true,
+        prominence_rank: getCompanyProminenceRank(getCompanyName(job)),
         website: null
       });
     }

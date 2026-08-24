@@ -9,12 +9,16 @@ import { absoluteUrl, publicSeoRoutes } from "@/lib/seo";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const contentLastModified = new Date("2026-08-22T00:00:00.000Z");
+  const contentLastModified = new Date("2026-08-24T00:00:00.000Z");
+  const jobListingsLastModified = new Date();
   const jobs = await getSitemapJobs();
 
   const publicRoutes = publicSeoRoutes.map((route) => ({
     url: absoluteUrl(route.path),
-    lastModified: contentLastModified
+    lastModified:
+      route.path === "/jobs" || route.path.startsWith("/jobs/")
+        ? jobListingsLastModified
+        : contentLastModified
   }));
 
   const legalRoutes = legalDocuments.map((document) => ({

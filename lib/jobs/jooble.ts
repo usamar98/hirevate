@@ -1,5 +1,6 @@
 import { env, hasJoobleConfig } from "@/lib/env";
 import { formatJobLocation } from "@/lib/jobs/display";
+import { getCompanyProminenceRank } from "@/lib/jobs/company-prominence";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
@@ -243,6 +244,7 @@ async function ensureCompanies(
         industry: `Jooble ${market.displayName}`,
         is_active: true,
         name: getCompanyName(job),
+        prominence_rank: getCompanyProminenceRank(getCompanyName(job)),
         website: null
       });
     }

@@ -7,8 +7,10 @@ import { Card } from "@/components/ui/card";
 import { FreshnessBadge } from "@/components/jobs/freshness-badge";
 import { JobSourceAttribution } from "@/components/jobs/job-source-attribution";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
+import type { JobCountry } from "@/lib/jobs/countries";
 import { getJobLocationLabel, getWorkModeLabel, getWorkModeTone } from "@/lib/jobs/display";
 import { getJobPath } from "@/lib/jobs/seo";
+import { getSafeJobApplyUrl } from "@/lib/jobs/sources";
 import { classifyStudentJob } from "@/lib/jobs/student-part-time";
 import { cn, formatRelativeDate } from "@/lib/utils";
 import type { JobWithCompany } from "@/types/database";
@@ -25,14 +27,14 @@ function getJobCardColor(seed: string) {
 }
 
 export function JobCard({
-  canApply,
-  hasAccount,
+  country,
   job,
   showApplyAction = true,
   showStudentSignals = false
 }: {
-  canApply: boolean;
-  hasAccount: boolean;
+  canApply?: boolean;
+  country?: JobCountry | null;
+  hasAccount?: boolean;
   isSaved?: boolean;
   job: JobWithCompany;
   showApplyAction?: boolean;
@@ -41,8 +43,9 @@ export function JobCard({
 }) {
   const companyName = job.companies?.name ?? "Unknown company";
   const jobPath = getJobPath(job);
+  const applyUrl = getSafeJobApplyUrl(job.apply_url);
   const compensationLabel = getJobCompensationLabel(job);
-  const locationLabel = getJobLocationLabel(job);
+  const locationLabel = getJobLocationLabel(job, country);
   const studentClassification = showStudentSignals ? classifyStudentJob(job) : null;
   const hasEligibilityEvidence = studentClassification?.signals.some((signal) =>
     ["cpt-opt-mentioned", "authorization-required", "sponsorship-unavailable"].includes(signal.key)
@@ -87,7 +90,14 @@ export function JobCard({
                 <Building2 className="h-4 w-4" aria-hidden="true" />
                 {companyName}
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-flex items-center gap-1.5"
+                title={
+                  country && job.location && job.location !== locationLabel
+                    ? `Source locations: ${job.location}`
+                    : undefined
+                }
+              >
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 {locationLabel}
               </span>
@@ -105,23 +115,15 @@ export function JobCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          {showApplyAction && job.apply_url && canApply ? (
-            <form action={`/api/jobs/${job.id}/apply`} method="post" target="_blank">
-              <Button type="submit">
-                Apply now
-                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            </form>
-          ) : showApplyAction && job.apply_url ? (
+          {showApplyAction && applyUrl ? (
             <Button
               asChild
-              href={
-                hasAccount
-                  ? "/pricing?limit=apply-access#plans"
-                  : `/signup?redirect=${encodeURIComponent(jobPath)}`
-              }
+              href={applyUrl}
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              {hasAccount ? "Upgrade to apply" : "Sign up to apply"}
+              Apply now
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           ) : null}
           <Button asChild href={jobPath} variant="outline">

@@ -33,21 +33,21 @@ export function CookieConsent({ language }: { language: SupportedLanguage }) {
   return (
     <div
       aria-label={copy.label}
-      className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-4 shadow-soft"
+      className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-5xl rounded-lg border border-gray-200 bg-white p-3 shadow-soft"
       role="region"
     >
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <p className="text-sm leading-6 text-ink-600">
+      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <p className="text-sm leading-5 text-ink-600">
           {copy.message}{" "}
-          <Link className="inline-flex min-h-12 items-center font-semibold text-brand-700" href="/legal/cookie-policy">
+          <Link className="font-semibold text-brand-700 underline underline-offset-2" href="/legal/cookie-policy">
             {copy.policy}
           </Link>
         </p>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Button onClick={() => saveChoice("essential")} size="lg" type="button" variant="outline">
+          <Button onClick={() => saveChoice("essential")} size="sm" type="button" variant="outline">
             {copy.essential}
           </Button>
-          <Button onClick={() => saveChoice("optional")} size="lg" type="button">
+          <Button onClick={() => saveChoice("optional")} size="sm" type="button">
             {copy.optional}
           </Button>
         </div>

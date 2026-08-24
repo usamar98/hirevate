@@ -1,5 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
+import { notifyIndexNowAboutJobHubs } from "@/lib/indexnow";
 import { syncDailyFreshJobs } from "@/lib/jobs/daily-fresh-sync";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,16 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await syncDailyFreshJobs();
+
+    if (result.totalJobsInserted + result.totalJobsUpdated + (result.totalJobsDeleted ?? 0) > 0) {
+      after(async () => {
+        try {
+          await notifyIndexNowAboutJobHubs();
+        } catch (error) {
+          console.error("IndexNow notification failed", error);
+        }
+      });
+    }
 
     return NextResponse.json({
       ok: true,

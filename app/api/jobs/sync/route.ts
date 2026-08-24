@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, getProfile, isAdminProfile } from "@/lib/auth/session";
 import { env } from "@/lib/env";
+import { notifyIndexNowAboutJobHubs } from "@/lib/indexnow";
 import { syncDailyFreshJobs } from "@/lib/jobs/daily-fresh-sync";
 
 const WINDOW_MS = 10 * 60 * 1000;
@@ -43,6 +44,17 @@ function hasValidCronSecret(request: NextRequest) {
 async function runSync() {
   try {
     const result = await syncDailyFreshJobs();
+
+    if (result.totalJobsInserted + result.totalJobsUpdated + (result.totalJobsDeleted ?? 0) > 0) {
+      after(async () => {
+        try {
+          await notifyIndexNowAboutJobHubs();
+        } catch (error) {
+          console.error("IndexNow notification failed", error);
+        }
+      });
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(

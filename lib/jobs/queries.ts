@@ -25,10 +25,10 @@ type RawSearchParams = Record<string, string | string[] | undefined> | undefined
 type PublicJobsReadClient = SupabaseClient<Database>;
 
 const jobListWithCompanySelect =
-  "id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website)";
+  "id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id!inner(id, name, greenhouse_slug, prominence_rank, website)";
 const featuredJobWithCompanySelect =
-  "id, company_id, external_id, title, description, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, raw_data, companies:company_id(id, name, greenhouse_slug, website)";
-const jobDetailWithCompanySelect = "*, companies:company_id(id, name, greenhouse_slug, website)";
+  "id, company_id, external_id, title, description, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, raw_data, companies:company_id!inner(id, name, greenhouse_slug, prominence_rank, website)";
+const jobDetailWithCompanySelect = "*, companies:company_id!inner(id, name, greenhouse_slug, prominence_rank, website)";
 export const PUBLIC_JOBS_PAGE_SIZE = 10;
 export const PAID_JOBS_PAGE_SIZE = 50;
 const CATEGORY_JOB_FETCH_LIMIT = 11;
@@ -221,6 +221,12 @@ async function getJobsUncached(searchParams: RawSearchParams, pageSize = PUBLIC_
       .order("last_seen_at", { ascending: false, nullsFirst: false })
       .order("discovered_at", { ascending: false });
   } else {
+    if (selectedCountry) {
+      query = query.order("companies(prominence_rank)", {
+        ascending: true,
+        nullsFirst: false
+      });
+    }
     query = query
       .order("last_seen_at", { ascending: false, nullsFirst: false })
       .order("discovered_at", { ascending: false });
@@ -256,7 +262,7 @@ async function getJobsUncached(searchParams: RawSearchParams, pageSize = PUBLIC_
 const getCachedJobs = unstable_cache(
   async (serializedSearchParams: string, pageSize: number) =>
     getJobsUncached(JSON.parse(serializedSearchParams) as Record<string, string>, pageSize),
-  ["public-jobs-search"],
+  ["public-jobs-search-v2"],
   {
     revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
     tags: ["public-jobs"]
@@ -596,6 +602,7 @@ async function getCountryJobsUncached(country: JobCountry, limit = CATEGORY_JOB_
     .select(jobListWithCompanySelect)
     .eq("status", "active")
     .or(getCountryLocationFilter(country))
+    .order("companies(prominence_rank)", { ascending: true, nullsFirst: false })
     .order("freshness_score", { ascending: false })
     .order("last_seen_at", { ascending: false, nullsFirst: false })
     .order("discovered_at", { ascending: false })
@@ -615,7 +622,7 @@ const getCachedCountryJobs = unstable_cache(
     if (!country) return { jobs: [] as JobWithCompany[], configured: true };
     return getCountryJobsUncached(country, limit);
   },
-  ["public-country-jobs"],
+  ["public-country-jobs-v2"],
   {
     revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
     tags: ["public-jobs"]
@@ -814,7 +821,7 @@ export async function getSavedJobs(userId: string) {
   const { data, error } = await supabase
     .from("saved_jobs")
     .select(
-      "*, jobs:job_id(id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, website))"
+      "*, jobs:job_id(id, company_id, external_id, title, location, remote_type, source, source_url, apply_url, posted_at, discovered_at, updated_at, last_seen_at, freshness_score, status, companies:company_id(id, name, greenhouse_slug, prominence_rank, website))"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });

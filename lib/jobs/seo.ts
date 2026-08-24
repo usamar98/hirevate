@@ -1,12 +1,14 @@
 import { getJobStructuredSalary } from "@/lib/jobs/compensation";
-import { jobCountries } from "@/lib/jobs/countries";
-import { getJobLocationLabel } from "@/lib/jobs/display";
-import { isEmployerOrAtsApplyUrl } from "@/lib/jobs/sources";
+import {
+  getJobLocationCountries,
+  getJobLocationLocalities
+} from "@/lib/jobs/countries";
+import { getSafeJobApplyUrl, isEmployerOrAtsApplyUrl } from "@/lib/jobs/sources";
 import { classifyStudentJob } from "@/lib/jobs/student-part-time";
 import { absoluteUrl, siteName } from "@/lib/seo";
 import type { Company, Job, JobWithCompany } from "@/types/database";
 
-const JOB_SCHEMA_MAX_AGE_DAYS = 10;
+const JOB_SCHEMA_MAX_AGE_DAYS = 5;
 const JOB_META_TITLE_MAX_LENGTH = 60;
 const JOB_META_DESCRIPTION_MAX_LENGTH = 155;
 
@@ -119,17 +121,22 @@ function inferEmploymentType(job: JobWithCompany) {
   return "FULL_TIME";
 }
 
-function buildJobLocation(job: JobWithCompany) {
-  const country = inferApplicantCountry(job.location);
+function buildJobLocations(job: JobWithCompany) {
+  const countries = getJobLocationCountries(job.location);
 
-  return {
-    "@type": "Place",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: getJobLocationLabel(job),
-      addressCountry: country?.code
-    }
-  };
+  return countries.flatMap((country) => {
+    const localities = getJobLocationLocalities(job.location, country, countries.length);
+    const locations = localities.length > 0 ? localities : [undefined];
+
+    return locations.map((addressLocality) => ({
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality,
+        addressCountry: country.code
+      }
+    }));
+  });
 }
 
 function buildBaseSalary(job: JobWithCompany) {
@@ -148,16 +155,6 @@ function buildBaseSalary(job: JobWithCompany) {
   };
 }
 
-function inferApplicantCountry(location: string | null) {
-  const text = (location ?? "").toLowerCase();
-
-  return (
-    jobCountries.find((country) =>
-      country.locationTerms.some((term) => text.includes(term.toLowerCase()))
-    ) ?? null
-  );
-}
-
 export function isJobPostingEligible(job: JobWithCompany) {
   const lastSeen = new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at);
   const ageMs = Date.now() - lastSeen.getTime();
@@ -169,24 +166,24 @@ export function isJobPostingEligible(job: JobWithCompany) {
     Boolean(job.title.trim()) &&
     Boolean(job.companies?.name?.trim()) &&
     stripHtml(job.description).length >= 100 &&
-    Boolean(job.apply_url);
+    Boolean(job.posted_at) &&
+    isEmployerOrAtsApplyUrl(job);
+  const locationCountries = getJobLocationCountries(job.location);
   const hasValidLocation =
-    job.remote_type === "remote"
-      ? Boolean(inferApplicantCountry(job.location))
-      : Boolean(job.location?.trim() && inferApplicantCountry(job.location));
+    Boolean(job.location?.trim()) && locationCountries.length > 0;
 
   return hasCurrentSource && hasRequiredContent && hasValidLocation;
 }
 
 export function buildJobPostingJsonLd(job: JobWithCompany) {
   const companyName = getJobCompanyName(job);
-  const postedAt = job.posted_at ?? job.discovered_at;
-  const lastSeenAt = job.last_seen_at ?? job.updated_at ?? job.discovered_at;
   const description = stripHtml(job.description) || getJobMetaDescription(job);
-  const applicantCountry = job.remote_type === "remote" ? inferApplicantCountry(job.location) : null;
-  const validThrough = new Date(
-    new Date(lastSeenAt).getTime() + JOB_SCHEMA_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
-  ).toISOString();
+  const countries = getJobLocationCountries(job.location);
+  const jobLocations = job.remote_type === "remote" ? [] : buildJobLocations(job);
+  const applicantLocations = countries.map((country) => ({
+    "@type": "Country",
+    name: country.name
+  }));
 
   return {
     "@context": "https://schema.org",
@@ -198,23 +195,26 @@ export function buildJobPostingJsonLd(job: JobWithCompany) {
       name: companyName,
       value: job.external_id
     },
-    datePosted: postedAt,
-    dateModified: lastSeenAt,
-    validThrough,
+    datePosted: job.posted_at,
     employmentType: inferEmploymentType(job),
     hiringOrganization: {
       "@type": "Organization",
       name: companyName,
-      sameAs: job.companies?.website ?? undefined
+      sameAs: getSafeJobApplyUrl(job.companies?.website) ?? undefined
     },
     baseSalary: buildBaseSalary(job),
-    jobLocation: job.remote_type === "remote" ? undefined : buildJobLocation(job),
-    applicantLocationRequirements: applicantCountry
-      ? {
-          "@type": "Country",
-          name: applicantCountry.name
-        }
-      : undefined,
+    jobLocation:
+      jobLocations.length === 0
+        ? undefined
+        : jobLocations.length === 1
+          ? jobLocations[0]
+          : jobLocations,
+    applicantLocationRequirements:
+      job.remote_type !== "remote"
+        ? undefined
+        : applicantLocations.length === 1
+          ? applicantLocations[0]
+          : applicantLocations,
     jobLocationType: job.remote_type === "remote" ? "TELECOMMUTE" : undefined,
     directApply: false,
     url: absoluteUrl(getJobPath(job))

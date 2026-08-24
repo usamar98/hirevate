@@ -1,4 +1,5 @@
 import { formatJobLocation } from "@/lib/jobs/display";
+import { getCompanyProminenceRank } from "@/lib/jobs/company-prominence";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
@@ -186,7 +187,11 @@ async function ensureDefaultCompanies(
     return;
   }
 
-  const { error } = await supabase.from("companies").upsert(defaultGreenhouseCompanies, {
+  const companyRows = defaultGreenhouseCompanies.map((company) => ({
+    ...company,
+    prominence_rank: getCompanyProminenceRank(company.name)
+  }));
+  const { error } = await supabase.from("companies").upsert(companyRows, {
     onConflict: "greenhouse_slug"
   });
 

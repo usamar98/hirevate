@@ -164,7 +164,7 @@ export const legalDocuments: LegalDocument[] = [
     slug: "terms-of-service",
     shortTitle: "Terms",
     title: "Hirevate Terms of Service",
-    description: "Terms governing Hirevate accounts, the three-day free trial, paid subscriptions, job discovery, AI resume and cover-letter tools, acceptable use, cancellations, refunds, and liability.",
+    description: "Terms for Hirevate accounts, trials, subscriptions, job discovery, AI career tools, acceptable use, cancellations, refunds, and liability.",
     summary: "These terms form the agreement for using Hirevate's job-search, resume, cover-letter, application-tracking, free-access, and paid subscription services.",
     sections: [
       {

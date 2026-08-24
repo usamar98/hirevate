@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { env, hasAshbyConfig } from "@/lib/env";
 import { defaultAshbySources } from "@/lib/jobs/default-ashby-sources";
+import { getCompanyProminenceRank } from "@/lib/jobs/company-prominence";
 import { formatJobLocation } from "@/lib/jobs/display";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { validateNewJobLinks } from "@/lib/jobs/link-validation";
@@ -432,6 +433,7 @@ async function ensureAshbyCompanies(
       industry: source.industry,
       is_active: true,
       name: source.companyName,
+      prominence_rank: getCompanyProminenceRank(source.companyName),
       website: getCompanyWebsite(source)
     })) satisfies Database["public"]["Tables"]["companies"]["Insert"][];
 

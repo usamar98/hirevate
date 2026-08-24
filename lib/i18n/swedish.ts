@@ -40,6 +40,7 @@ export const swedishSiteCopy = {
       ukJobs: "Jobb i Storbritannien",
       engineeringJobs: "Ingenjörsjobb",
       resume: "CV",
+      jobTracker: "Jobbspårare",
       coverLetter: "Personligt brev",
       pricing: "Priser",
       guides: "Guider",
@@ -303,7 +304,7 @@ export const swedishShowcaseCopy = {
         "Samla steg, prioriteringar, uppföljningsdatum, annonsstatus och nästa åtgärder från första intresse till intervju och beslut.",
       bullets: ["Pipeline för ansökningssteg", "Påminnelser om uppföljning", "Signaler för framsteg och resultat"],
       cta: "Öppna jobbspåraren",
-      href: "/account/job-tracker",
+      href: "/job-application-tracker",
       previewTitle: "Ansökningscentral"
     },
     {

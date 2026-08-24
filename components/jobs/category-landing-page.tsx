@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { JobCard } from "@/components/jobs/job-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { jobCategoryList, type JobCategoryPage } from "@/lib/jobs/categories";
+import { getJobCountryBySlug } from "@/lib/jobs/countries";
 import {
   getEngineeringJobs,
   getKeywordJobs,
@@ -95,6 +96,7 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
   const visibleJobs = jobs.slice(0, 10);
   const isLimited = jobs.length > visibleJobs.length;
   const siblingCategories = jobCategoryList.filter((item) => item.slug !== category.slug);
+  const country = category.slug === "uk" ? getJobCountryBySlug("united-kingdom") : null;
 
   return (
     <>
@@ -170,6 +172,7 @@ export async function JobCategoryLandingPage({ category }: { category: JobCatego
             {visibleJobs.map((job) => (
               <JobCard
                 canApply={false}
+                country={country}
                 hasAccount={false}
                 job={job}
                 key={job.id}
