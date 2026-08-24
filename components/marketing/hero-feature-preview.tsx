@@ -5,13 +5,15 @@ import {
   BriefcaseBusiness,
   CalendarClock,
   Check,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   ListChecks,
   Search,
   Sparkles,
   Target
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { CompanyLogo } from "@/components/company-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,54 +65,108 @@ function PreviewShell({
 }
 
 function JobsPreview({ copy, jobs }: { copy: HeroJobsPreviewCopy; jobs: HeroPreviewJob[] }) {
+  const [activeJobIndex, setActiveJobIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const activeJob = jobs[activeJobIndex % Math.max(jobs.length, 1)] ?? jobs[0];
+
+  useEffect(() => {
+    if (jobs.length < 2 || paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveJobIndex((current) => (current + 1) % jobs.length);
+    }, 4_500);
+
+    return () => window.clearInterval(interval);
+  }, [jobs.length, paused]);
+
+  function showAdjacentJob(offset: number) {
+    setActiveJobIndex((current) => (current + offset + jobs.length) % jobs.length);
+  }
+
   return (
     <PreviewShell status={copy.verified} title={copy.title}>
-      <div className="mt-3 rounded-md border border-gray-100 bg-gray-50 p-4">
-        <p className="text-xs text-ink-500">{copy.subtitle}</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
-          <div className="flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm text-ink-500">
-            <Search className="h-4 w-4" aria-hidden="true" />
-            {copy.searchTerm}
+      <div
+        onBlurCapture={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        <div className="mt-3 rounded-md border border-gray-100 bg-gray-50 p-4">
+          <p className="text-xs text-ink-500">{copy.subtitle}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+            <div className="flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm text-ink-500">
+              <Search className="h-4 w-4" aria-hidden="true" />
+              {copy.searchTerm}
+            </div>
+            <Button asChild href="/jobs#results" className="w-full sm:w-auto">
+              {copy.search}
+            </Button>
           </div>
-          <Button asChild href="/jobs#results" className="w-full sm:w-auto">
-            {copy.search}
-          </Button>
         </div>
-      </div>
-      <div className="mt-3 space-y-3">
-        {jobs.map((job) => (
+
+        {activeJob ? (
           <div
-            className="rounded-md border border-gray-100 bg-white p-4 shadow-sm"
-            key={`${job.company}-${job.title}`}
+            className="mt-3 rounded-md border border-gray-100 bg-white p-4 shadow-sm"
+            key={activeJob.href}
           >
             <div className="flex min-w-0 items-start gap-3">
-              <CompanyLogo companyName={job.company} website={job.website} />
+              <CompanyLogo companyName={activeJob.company} website={activeJob.website} />
               <div className="min-w-0 flex-1">
-                <Link href={job.href} className="font-semibold text-ink-900 hover:text-brand-600">
-                  {job.title}
+                <Link href={activeJob.href} className="font-semibold text-ink-900 hover:text-brand-600">
+                  {activeJob.title}
                 </Link>
                 <p className="mt-1 truncate text-sm text-ink-500">
-                  {job.company} - {job.location}
+                  {activeJob.company} - {activeJob.location}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {job.compensation ? (
+                  {activeJob.compensation ? (
                     <span className="inline-flex items-center rounded-full bg-black px-2.5 py-1 text-xs font-semibold leading-none text-white">
-                      {job.compensation}
+                      {activeJob.compensation}
                     </span>
                   ) : null}
-                  {job.score === null ? null : <Badge tone="green">{copy.score} {job.score}</Badge>}
+                  {activeJob.score === null ? null : <Badge tone="green">{copy.score} {activeJob.score}</Badge>}
                 </div>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-start gap-3 sm:justify-between">
-              <Badge tone="blue">{job.sourceLabel}</Badge>
-              <Link href={job.href} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
+              <Badge tone="blue">{activeJob.sourceLabel}</Badge>
+              <Link href={activeJob.href} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600">
                 <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
                 {copy.apply}
               </Link>
             </div>
           </div>
-        ))}
+        ) : null}
+
+        {jobs.length > 1 ? (
+          <div className="mt-4 flex h-10 items-center justify-between gap-3 border-t border-gray-100 pt-3">
+            <span className="text-xs font-semibold text-ink-500">
+              {activeJobIndex + 1} of {jobs.length} fresh jobs
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                aria-label="Show previous job"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-ink-600 hover:border-brand-200 hover:text-brand-700"
+                onClick={() => showAdjacentJob(-1)}
+                title="Previous job"
+                type="button"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <button
+                aria-label="Show next job"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-ink-600 hover:border-brand-200 hover:text-brand-700"
+                onClick={() => showAdjacentJob(1)}
+                title="Next job"
+                type="button"
+              >
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </PreviewShell>
   );

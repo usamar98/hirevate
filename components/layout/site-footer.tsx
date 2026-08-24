@@ -22,7 +22,6 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
     { href: "/cover-letter", label: copy.links.coverLetter },
     { href: "/pricing", label: copy.links.pricing },
     { href: "/guides", label: copy.links.guides },
-    { href: "/research/student-part-time-jobs", label: "Job methodology" },
     { href: "/about", label: copy.links.about },
     { href: "/login", label: copy.links.login }
   ];
@@ -52,6 +51,38 @@ export function SiteFooter({ language }: { language: SupportedLanguage }) {
           <Logo />
           <p className="mt-3 max-w-xl text-sm leading-6 text-ink-500">
             {copy.description}
+          </p>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink-500">
+            Company career pages and public ATS boards are prioritized, with stale listings removed
+            from active search. Read the{" "}
+            <Link
+              className="font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800"
+              href="/research/student-part-time-jobs"
+            >
+              source and freshness methodology
+            </Link>
+            .
+          </p>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-ink-500">
+            Publishing standards:{" "}
+            <a
+              className="font-semibold text-brand-700 underline underline-offset-4"
+              href="https://developers.google.com/search/docs/appearance/structured-data/job-posting"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Google job content policies
+            </a>{" "}
+            and{" "}
+            <a
+              className="font-semibold text-brand-700 underline underline-offset-4"
+              href="https://github.com/lever/postings-api"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Lever public postings documentation
+            </a>
+            .
           </p>
         </div>
         <nav aria-label={copy.productLinksLabel} className="flex max-w-2xl flex-wrap gap-x-5 gap-y-3 text-sm font-medium text-ink-500">

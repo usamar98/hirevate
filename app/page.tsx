@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getJobCompensationLabel } from "@/lib/jobs/compensation";
-import { getActiveJobsCount, getSalaryFeaturedJobs } from "@/lib/jobs/queries";
+import { getActiveJobsCount, getFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { getLandingCopy } from "@/lib/i18n/content";
@@ -237,7 +237,7 @@ export default async function LandingPage() {
   const language = "en" as const;
   const copy = getLandingCopy(language);
   const [featuredJobs, activeJobsCount] = await Promise.all([
-    getSalaryFeaturedJobs(3),
+    getFeaturedJobs(5),
     getActiveJobsCount()
   ]);
   const heroTitle = activeJobsCount > 0
@@ -353,38 +353,6 @@ export default async function LandingPage() {
                 {" "}
                 — no card required and no automatic charge.
               </span>
-            </p>
-            <p className="mt-5 max-w-lg text-sm leading-6 text-ink-500">
-              Company career pages and public ATS boards are prioritized, with stale listings
-              removed from active search. Read the{" "}
-              <Link
-                className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800"
-                href="/research/student-part-time-jobs"
-              >
-                source and freshness methodology
-              </Link>
-              .
-            </p>
-            <p className="mt-3 max-w-lg text-xs leading-5 text-ink-500">
-              Publishing standards: {" "}
-              <a
-                className="font-semibold text-brand-700 underline underline-offset-4"
-                href="https://developers.google.com/search/docs/appearance/structured-data/job-posting"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Google job content policies
-              </a>{" "}
-              and {" "}
-              <a
-                className="font-semibold text-brand-700 underline underline-offset-4"
-                href="https://github.com/lever/postings-api"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Lever public postings documentation
-              </a>
-              .
             </p>
           </div>
           <HeroFeaturePreview

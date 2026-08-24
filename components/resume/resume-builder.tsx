@@ -500,11 +500,13 @@ function buildPrintableHtml(draft: ResumeDraft) {
 export function ResumeBuilder({
   canExport,
   canUseAi,
-  isAuthenticated
+  isAuthenticated,
+  mode = "job-tailored"
 }: {
   canExport: boolean;
   canUseAi: boolean;
   isAuthenticated: boolean;
+  mode?: "job-tailored" | "manual";
 }) {
   const authStatus = useAuthStatus();
   const effectiveIsAuthenticated = authStatus.loaded
@@ -522,6 +524,8 @@ export function ResumeBuilder({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState<"summary" | string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const isManualMode = mode === "manual";
+  const resumePath = isManualMode ? "/resume-builder/manual" : "/resume-builder";
 
   const analysis = useMemo(() => scoreResume(draft), [draft]);
 
@@ -568,7 +572,7 @@ export function ResumeBuilder({
   function requireAiAccess() {
     if (effectiveCanUseAi) return true;
     window.location.assign(
-      effectiveIsAuthenticated ? "/pricing" : "/login?redirect=%2Fresume-builder"
+      effectiveIsAuthenticated ? "/pricing" : `/login?redirect=${encodeURIComponent(resumePath)}`
     );
     return false;
   }
@@ -701,10 +705,13 @@ export function ResumeBuilder({
       <section className="border-b border-gray-200 bg-white">
         <div className="container-shell flex flex-col justify-between gap-6 py-8 lg:flex-row lg:items-end">
           <div>
-            <h1 className="text-4xl font-semibold text-ink-900">Free resume builder with job analysis</h1>
+            <h1 className="text-4xl font-semibold text-ink-900">
+              {isManualMode ? "Build your resume manually" : "AI resume builder from a job"}
+            </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-ink-500">
-              Edit and score your resume for free. An eligible trial or plan adds job-analysis
-              tailoring, AI assistance, professional templates, and PDF export.
+              {isManualMode
+                ? "Write and organize every section yourself with free ATS checks. An eligible trial or plan adds AI writing assistance, professional templates, and PDF export."
+                : "Paste a job link or description, then tailor and score your resume. An eligible trial or plan adds AI assistance, professional templates, and PDF export."}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -719,13 +726,15 @@ export function ResumeBuilder({
         </div>
       </section>
 
-      <JobResumeGenerator
-        accessReady={accessReady}
-        canUseAi={effectiveCanUseAi}
-        draft={draft}
-        isAuthenticated={effectiveIsAuthenticated}
-        onGenerated={applyTailoredResume}
-      />
+      {isManualMode ? null : (
+        <JobResumeGenerator
+          accessReady={accessReady}
+          canUseAi={effectiveCanUseAi}
+          draft={draft}
+          isAuthenticated={effectiveIsAuthenticated}
+          onGenerated={applyTailoredResume}
+        />
+      )}
 
       <section className="container-shell grid gap-5 py-6 xl:grid-cols-[340px_minmax(0,1fr)_310px]">
         <Card className="h-fit p-4">
