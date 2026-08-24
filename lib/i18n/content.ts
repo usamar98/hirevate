@@ -1,4 +1,5 @@
 import type { SupportedLanguage } from "@/lib/i18n/config";
+import { spanishLandingCopy, spanishSiteCopy } from "@/lib/i18n/spanish";
 import { swedishLandingCopy, swedishSiteCopy } from "@/lib/i18n/swedish";
 
 export const siteCopy = {
@@ -61,6 +62,7 @@ export const siteCopy = {
       optional: "Allow optional"
     }
   },
+  es: spanishSiteCopy,
   sv: swedishSiteCopy,
   de: {
     navigation: {
@@ -342,6 +344,7 @@ export const landingCopy = {
       apply: "Apply now"
     }
   },
+  es: spanishLandingCopy,
   sv: swedishLandingCopy,
   de: {
     landingDescription:

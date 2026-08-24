@@ -16,7 +16,8 @@ type LanguageSwitcherProps = {
 const englishOption = { code: "en", label: "English", shortLabel: "EN" } as const;
 const regionalOptions = {
   de: { code: "de", label: "Deutsch", shortLabel: "DE" },
-  sv: { code: "sv", label: "Svenska", shortLabel: "SV" }
+  sv: { code: "sv", label: "Svenska", shortLabel: "SV" },
+  es: { code: "es", label: "Español", shortLabel: "ES" }
 } as const satisfies Record<
   RegionalLanguage,
   { code: RegionalLanguage; label: string; shortLabel: string }
@@ -25,7 +26,8 @@ const regionalOptions = {
 const controlLabels: Record<SupportedLanguage, string> = {
   en: "Choose language",
   de: "Sprache auswählen",
-  sv: "Välj språk"
+  sv: "Välj språk",
+  es: "Elegir idioma"
 };
 
 export function LanguageSwitcher({ language, regionalLanguage }: LanguageSwitcherProps) {

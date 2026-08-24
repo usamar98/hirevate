@@ -13,6 +13,7 @@ import {
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { SupportedLanguage } from "@/lib/i18n/config";
+import { spanishShowcaseCopy } from "@/lib/i18n/spanish";
 import { swedishShowcaseCopy } from "@/lib/i18n/swedish";
 
 const showcaseCopy = {
@@ -61,6 +62,7 @@ const showcaseCopy = {
       }
     ]
   },
+  es: spanishShowcaseCopy,
   sv: swedishShowcaseCopy,
   de: {
     eyebrow: "Hirevate in Aktion",

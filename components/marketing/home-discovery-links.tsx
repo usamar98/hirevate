@@ -6,7 +6,8 @@ import { jobCountries } from "@/lib/jobs/countries";
 const linkCopy = {
   en: { countryLabel: "Browse by country:" },
   de: { countryLabel: "Nach Land durchsuchen:" },
-  sv: { countryLabel: "Bläddra efter land:" }
+  sv: { countryLabel: "Bläddra efter land:" },
+  es: { countryLabel: "Explorar por país:" }
 } as const;
 
 const linkClassName =
@@ -23,7 +24,14 @@ function LinkRow({ children, label }: { children: ReactNode; label: string }) {
 
 export function HomeDiscoveryLinks({ language }: { language: SupportedLanguage }) {
   const copy = linkCopy[language];
-  const studentLabel = language === "de" ? "Studium und Teilzeit:" : language === "sv" ? "Student och deltid:" : "Student and part-time:";
+  const studentLabel =
+    language === "de"
+      ? "Studium und Teilzeit:"
+      : language === "sv"
+        ? "Student och deltid:"
+        : language === "es"
+          ? "Estudiantes y media jornada:"
+          : "Student and part-time:";
 
   return (
     <section

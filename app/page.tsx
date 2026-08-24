@@ -24,6 +24,8 @@ import { getActiveJobsCount, getFeaturedJobs } from "@/lib/jobs/queries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { getJobSourceTrust } from "@/lib/jobs/sources";
 import { getLandingCopy } from "@/lib/i18n/content";
+import { languageLocales, type SupportedLanguage } from "@/lib/i18n/config";
+import { resolveLanguagePreference } from "@/lib/i18n/server";
 import { publicPricingPlans, startTrialHref } from "@/lib/pricing";
 import {
   absoluteUrl,
@@ -231,10 +233,29 @@ const homeOfferItems = publicPricingPlans.flatMap((plan) =>
   }))
 );
 
+const trialCopy: Record<SupportedLanguage, { cta: string; detail: string }> = {
+  en: {
+    cta: "Start a 3-day free trial",
+    detail: "— no card required and no automatic charge."
+  },
+  de: {
+    cta: "3-tägige kostenlose Testphase starten",
+    detail: "— keine Karte erforderlich und keine automatische Abbuchung."
+  },
+  sv: {
+    cta: "Starta en kostnadsfri provperiod på 3 dagar",
+    detail: "— inget kort krävs och ingen automatisk debitering."
+  },
+  es: {
+    cta: "Inicia una prueba gratuita de 3 días",
+    detail: "— sin tarjeta y sin cargos automáticos."
+  }
+};
+
 export const revalidate = 3600;
 
 export default async function LandingPage() {
-  const language = "en" as const;
+  const { language } = await resolveLanguagePreference();
   const copy = getLandingCopy(language);
   const [featuredJobs, activeJobsCount] = await Promise.all([
     getFeaturedJobs(5),
@@ -243,7 +264,7 @@ export default async function LandingPage() {
   const heroTitle = activeJobsCount > 0
     ? copy.hero.countedTitle.replace(
         "{count}",
-        new Intl.NumberFormat("en-US").format(activeJobsCount)
+        new Intl.NumberFormat(languageLocales[language]).format(activeJobsCount)
       )
     : copy.hero.title;
   const localizedEmptyPreviewJobs =
@@ -306,7 +327,7 @@ export default async function LandingPage() {
               "@id": absoluteUrl("/#software-application")
             },
             primaryImageOfPage: absoluteUrl(defaultOgImagePath),
-            inLanguage: "en-US"
+            inLanguage: languageLocales[language]
           },
           {
             "@context": "https://schema.org",
@@ -347,11 +368,11 @@ export default async function LandingPage() {
             </div>
             <p className="mt-4 text-sm font-semibold text-brand-700">
               <Link className="inline-flex min-h-11 items-center" href={startTrialHref}>
-                Start a 3-day free trial
+                {trialCopy[language].cta}
               </Link>
               <span className="font-medium text-ink-500">
                 {" "}
-                — no card required and no automatic charge.
+                {trialCopy[language].detail}
               </span>
             </p>
           </div>

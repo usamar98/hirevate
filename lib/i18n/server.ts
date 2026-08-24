@@ -23,6 +23,33 @@ function isCrawler(userAgent: string) {
 function getRegionalLanguage(countryCode: string): RegionalLanguage | null {
   if (countryCode === "DE") return "de";
   if (countryCode === "SE") return "sv";
+  if (
+    [
+      "AR",
+      "BO",
+      "CL",
+      "CO",
+      "CR",
+      "CU",
+      "DO",
+      "EC",
+      "ES",
+      "GQ",
+      "GT",
+      "HN",
+      "MX",
+      "NI",
+      "PA",
+      "PE",
+      "PR",
+      "PY",
+      "SV",
+      "UY",
+      "VE"
+    ].includes(countryCode)
+  ) {
+    return "es";
+  }
   return null;
 }
 

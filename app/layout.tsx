@@ -3,11 +3,14 @@ import "./globals.css";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { VisitorTracker } from "@/components/analytics/visitor-tracker";
 import { AuthStatusProvider } from "@/components/auth/auth-status-provider";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { CookieConsent } from "@/components/legal/cookie-consent";
 import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
+import { languageLocales } from "@/lib/i18n/config";
+import { resolveLanguagePreference } from "@/lib/i18n/server";
 import {
   absoluteUrl,
   defaultDescription,
@@ -127,23 +130,31 @@ const websiteJsonLd = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { language, regionalLanguage } = await resolveLanguagePreference();
+
   return (
-    <html lang="en">
+    <html lang={language}>
       <body>
-        <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
+        <JsonLd
+          data={[
+            organizationJsonLd,
+            { ...websiteJsonLd, inLanguage: languageLocales[language] }
+          ]}
+        />
         <AuthStatusProvider>
-          <SiteHeader language="en" />
+          <SiteHeader language={language} />
           <main className="flex-1">{children}</main>
-          <SiteFooter language="en" />
+          <SiteFooter language={language} />
         </AuthStatusProvider>
         <GoogleAnalytics />
         <VisitorTracker />
-        <CookieConsent language="en" />
+        <CookieConsent language={language} />
+        <LanguageSwitcher language={language} regionalLanguage={regionalLanguage} />
       </body>
     </html>
   );
