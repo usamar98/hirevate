@@ -94,6 +94,15 @@ export const configuredJobCountries = [
     popularCities: ["Stockholm", "Gothenburg", "Malmö", "Uppsala", "Lund"]
   },
   {
+    slug: "spain",
+    code: "ES",
+    name: "Spain",
+    demonym: "Spanish",
+    path: "/jobs/country/spain",
+    locationTerms: ["Spain", "España", "Espana", "Madrid", "Barcelona", "Valencia", "Seville", "Sevilla", "Málaga", "Malaga", "Bilbao", "Zaragoza", "Alicante"],
+    popularCities: ["Madrid", "Barcelona", "Valencia", "Seville", "Málaga", "Bilbao"]
+  },
+  {
     slug: "france",
     code: "FR",
     name: "France",
@@ -199,7 +208,6 @@ const additionalLocationCountries: readonly JobLocationCountry[] = [
   { code: "SA", name: "Saudi Arabia", aliases: ["Saudi Arabia"], cityTerms: [] },
   { code: "ZA", name: "South Africa", aliases: ["South Africa"], cityTerms: [] },
   { code: "KR", name: "South Korea", aliases: ["South Korea"], cityTerms: [] },
-  { code: "ES", name: "Spain", aliases: ["Spain"], cityTerms: [] },
   { code: "CH", name: "Switzerland", aliases: ["Switzerland"], cityTerms: [] },
   { code: "TW", name: "Taiwan", aliases: ["Taiwan"], cityTerms: [] },
   { code: "TH", name: "Thailand", aliases: ["Thailand"], cityTerms: [] },
@@ -210,6 +218,7 @@ const additionalLocationCountries: readonly JobLocationCountry[] = [
 const configuredCountryAliases: Record<string, readonly string[]> = {
   AE: ["United Arab Emirates", "UAE"],
   AU: ["Australia", "AU"],
+  ES: ["Spain", "España", "Espana"],
   GB: ["United Kingdom", "UK", "Great Britain"],
   US: ["United States", "United States of America", "USA", "US"]
 };
@@ -276,12 +285,12 @@ export function getJobLocationLocalities(
   return fallback ? [fallback] : [];
 }
 
-const dailyCoverageCountryCodes = new Set(["US", "GB", "CA", "AU", "AE"]);
+const supportedCountryCodes = new Set(["US", "GB", "CA", "AU", "AE", "ES"]);
 
-// Only advertise markets that the current source mix refreshes reliably every day.
-// Other countries can be re-enabled after they have dependable daily source coverage.
+// These markets have a country search and a supported ingestion path. Availability
+// depends on configured providers and successful refreshes, not a daily guarantee.
 export const jobCountries = configuredJobCountries.filter((country) =>
-  dailyCoverageCountryCodes.has(country.code)
+  supportedCountryCodes.has(country.code)
 );
 
 export function getJobCountryBySlug(slug: string | null | undefined) {

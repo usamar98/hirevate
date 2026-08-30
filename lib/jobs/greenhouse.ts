@@ -5,6 +5,7 @@ import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { defaultGreenhouseCompanies } from "@/lib/jobs/default-companies";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
+import { selectRotatingBatch } from "@/lib/jobs/source-rotation";
 import type { Company, Database, Json } from "@/types/database";
 import type { JobSyncError, JobSyncSourceResult } from "@/lib/jobs/sync-types";
 
@@ -61,16 +62,9 @@ function normalizeBatchSize(value: number | undefined, total: number) {
   return Math.min(Math.max(Math.floor(value), 1), total);
 }
 
-function rotateItems<T>(items: T[], seed = 0) {
-  if (items.length <= 1) return items;
-
-  const offset = ((Math.abs(seed) % items.length) + items.length) % items.length;
-  return [...items.slice(offset), ...items.slice(0, offset)];
-}
-
 function selectCompanyBatch(companies: Company[], options: SourceBatchOptions) {
   const batchSize = normalizeBatchSize(options.maxCompanies, companies.length);
-  return rotateItems(companies, options.offsetSeed).slice(0, batchSize);
+  return selectRotatingBatch(companies, batchSize, options.offsetSeed);
 }
 
 function normalizeJob(company: Company, job: GreenhouseJob) {

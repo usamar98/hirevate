@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { comparisons } from "@/lib/content/comparisons";
 import { guides } from "@/lib/content/guides";
-import { getSitemapJobs } from "@/lib/jobs/queries";
+import { getCountryJobs, getSitemapJobs } from "@/lib/jobs/queries";
+import { getJobCountryBySlug } from "@/lib/jobs/countries";
 import { getJobPath } from "@/lib/jobs/seo";
 import { legalDocuments, legalEffectiveDate } from "@/lib/legal";
 import { absoluteUrl, publicSeoRoutes } from "@/lib/seo";
@@ -10,15 +11,21 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const contentLastModified = new Date("2026-08-24T00:00:00.000Z");
-  const jobListingsLastModified = new Date();
-  const jobs = await getSitemapJobs();
+  const spain = getJobCountryBySlug("spain");
+  const [jobs, spainInventory] = await Promise.all([
+    getSitemapJobs(),
+    spain ? getCountryJobs(spain, 1) : Promise.resolve(null)
+  ]);
 
-  const publicRoutes = publicSeoRoutes.map((route) => ({
+  const publicRoutes = publicSeoRoutes
+    .filter((route) => route.path !== "/jobs/country/spain" || Boolean(spainInventory?.jobs.length))
+    .map((route) => ({
     url: absoluteUrl(route.path),
-    lastModified:
-      route.path === "/jobs" || route.path.startsWith("/jobs/")
-        ? jobListingsLastModified
-        : contentLastModified
+    // We do not track material modifications per hub. Omit the optional field
+    // rather than claim every hub changed each time the sitemap is requested.
+    ...(route.path === "/jobs" || route.path.startsWith("/jobs/")
+      ? {}
+      : { lastModified: contentLastModified })
   }));
 
   const legalRoutes = legalDocuments.map((document) => ({
@@ -38,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const jobRoutes = jobs.map((job) => ({
     url: absoluteUrl(getJobPath(job)),
-    lastModified: new Date(job.last_seen_at ?? job.updated_at ?? job.discovered_at)
+    lastModified: new Date(job.updated_at ?? job.discovered_at)
   }));
 
   return [

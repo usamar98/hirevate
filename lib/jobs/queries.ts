@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { unstable_cache as nextCache } from "next/cache";
 import { jobSearchSchema, type JobSearchInput } from "@/lib/validators/jobs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -11,7 +11,7 @@ import {
   getJobCountryBySlug,
   type JobCountry
 } from "@/lib/jobs/countries";
-import { getJobSlug, getJobSlugToken, isUuidLike, jobMatchesSlug } from "@/lib/jobs/seo";
+import { getJobIdToken, getJobSlug, getJobSlugToken, isUuidLike } from "@/lib/jobs/seo";
 import {
   matchesStudentJobAudience,
   studentCandidateTerms,
@@ -32,7 +32,7 @@ const jobDetailWithCompanySelect = "*, companies:company_id!inner(id, name, gree
 export const PUBLIC_JOBS_PAGE_SIZE = 10;
 export const PAID_JOBS_PAGE_SIZE = 50;
 const CATEGORY_JOB_FETCH_LIMIT = 11;
-const JOB_SLUG_LOOKUP_LIMIT = 250;
+const JOB_ID_BATCH_SIZE = 1000;
 const PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS = 30 * 60;
 const SITEMAP_FRESH_DAYS = 30;
 // Leave room for static, legal, guide, comparison and future sitemap entries so
@@ -40,6 +40,16 @@ const SITEMAP_FRESH_DAYS = 30;
 const SITEMAP_JOBS_LIMIT = 48_000;
 const SITEMAP_JOBS_BATCH_SIZE = 1_000;
 const STUDENT_JOB_CANDIDATE_LIMIT = 240;
+
+// A migrated database must not reuse successful (or formerly poisoned) results
+// from the previous project. Failures must reject, never become cached emptiness.
+const unstable_cache: typeof nextCache = (callback, keyParts, options) =>
+  nextCache(callback, ["healthy-public-jobs-v3", env.supabaseUrl, ...(keyParts ?? [])], options);
+
+function publicJobsReadFailed(operation: string, error: { code?: string }): never {
+  console.error("Public jobs read failed", { operation, code: error.code ?? "unknown" });
+  throw new Error("Job data is temporarily unavailable. Please try again shortly.");
+}
 
 function createAnonPublicJobsClient() {
   if (!hasSupabaseBrowserConfig()) return null;
@@ -110,7 +120,11 @@ function createPublicJobsReadClient(): PublicJobsReadClient | null {
     return admin;
   }
 
-  return createAnonPublicJobsClient();
+  const anon = createAnonPublicJobsClient();
+  if (!anon && process.env.VERCEL_ENV === "production") {
+    publicJobsReadFailed("configuration", { code: "missing_supabase_config" });
+  }
+  return anon;
 }
 
 async function getJobsUncached(searchParams: RawSearchParams, pageSize = PUBLIC_JOBS_PAGE_SIZE) {
@@ -142,16 +156,7 @@ async function getJobsUncached(searchParams: RawSearchParams, pageSize = PUBLIC_
       .limit(1000);
 
     if (companiesError) {
-      console.error("Failed to filter companies", companiesError);
-      return {
-        jobs: [] as JobWithCompany[],
-        filters,
-        configured: true,
-        page,
-        pageSize,
-        totalCount: 0,
-        totalPages: 0
-      };
+      publicJobsReadFailed("company filter", companiesError);
     }
 
     matchingCompanyIds = (companies ?? []).map((company) => company.id);
@@ -234,16 +239,7 @@ async function getJobsUncached(searchParams: RawSearchParams, pageSize = PUBLIC_
 
   const { count, data, error } = await query;
   if (error) {
-    console.error("Failed to load jobs", error);
-    return {
-      jobs: [] as JobWithCompany[],
-      filters,
-      configured: true,
-      page,
-      pageSize,
-      totalCount: 0,
-      totalPages: 0
-    };
+    publicJobsReadFailed("job search", error);
   }
 
   const totalCount = count ?? 0;
@@ -285,8 +281,7 @@ async function getJobByIdUncached(id: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to load job detail", error);
-    return null;
+    publicJobsReadFailed("job detail", error);
   }
 
   return data as JobWithCompany | null;
@@ -301,59 +296,47 @@ export async function getJobById(id: string) {
   return getCachedJobById(id);
 }
 
-function getSlugTitleProbes(slugOrId: string) {
-  const withoutToken = slugOrId.replace(/-[a-z0-9]{6}$/i, "");
-  const ignoredWords = new Set(["and", "for", "from", "the", "with"]);
-
-  return withoutToken
-    .split("-")
-    .map((word) => word.trim())
-    .filter((word) => word.length >= 3 && !ignoredWords.has(word))
-    .slice(0, 6);
-}
+// Resolve legacy URL tokens from a shared compact ID index, not a capped title
+// search. This also preserves URLs when a source edits the title or its accents.
+// Only IDs are transferred, once per cache window, instead of full job rows for
+// every URL. Job details are still individually cached and checked as active.
+const getCachedActiveJobIds = unstable_cache(async () => {
+  const supabase = createPublicJobsReadClient();
+  if (!supabase) return [] as { id: string }[];
+  const ids: { id: string }[] = [];
+  for (let offset = 0; ; offset += JOB_ID_BATCH_SIZE) {
+    const { data, error } = await supabase.from("jobs").select("id")
+      .eq("status", "active").order("id", { ascending: true })
+      .range(offset, offset + JOB_ID_BATCH_SIZE - 1);
+    if (error) publicJobsReadFailed("job URL index", error);
+    const batch = data ?? [];
+    ids.push(...batch);
+    if (batch.length < JOB_ID_BATCH_SIZE) return ids;
+  }
+}, ["public-active-job-ids"], {
+  revalidate: PUBLIC_JOBS_CACHE_REVALIDATE_SECONDS,
+  tags: ["public-jobs"]
+});
 
 async function getJobBySlugOrIdUncached(slugOrId: string) {
-  const decodedSlug = decodeURIComponent(slugOrId).toLowerCase();
+  let decodedSlug: string;
+  try {
+    decodedSlug = decodeURIComponent(slugOrId).toLowerCase();
+  } catch {
+    return null;
+  }
 
   if (isUuidLike(decodedSlug)) {
     return getJobById(decodedSlug);
   }
 
-  const supabase = createPublicJobsReadClient();
-  if (!supabase) return null;
-
   const token = getJobSlugToken(decodedSlug);
-  const titleProbes = getSlugTitleProbes(decodedSlug);
-  if (!token || titleProbes.length === 0) return null;
-
-  for (const titleProbe of titleProbes) {
-    const { data, error } = await supabase
-      .from("jobs")
-      .select(jobListWithCompanySelect)
-      .eq("status", "active")
-      .ilike("title", `%${titleProbe}%`)
-      .order("freshness_score", { ascending: false })
-      .order("last_seen_at", { ascending: false, nullsFirst: false })
-      .order("discovered_at", { ascending: false })
-      .limit(JOB_SLUG_LOOKUP_LIMIT);
-
-    if (error) {
-      console.error("Failed to resolve job slug", error);
-      return null;
-    }
-
-    const jobs = (data ?? []) as JobWithCompany[];
-    const match =
-      jobs.find((job) => getJobSlug(job) === decodedSlug) ??
-      jobs.find((job) => jobMatchesSlug(job, decodedSlug)) ??
-      null;
-
-    if (match) {
-      return getJobById(match.id);
-    }
-  }
-
-  return null;
+  if (!token) return null;
+  const matches = (await getCachedActiveJobIds()).filter((job) => getJobIdToken(job.id) === token);
+  const jobs = (await Promise.all(matches.map((job) => getJobById(job.id))))
+    .filter((job): job is JobWithCompany => Boolean(job));
+  // Resolve rare token collisions by the full canonical slug, never arbitrarily.
+  return jobs.find((job) => getJobSlug(job) === decodedSlug) ?? (jobs.length === 1 ? jobs[0] : null);
 }
 
 const getCachedJobBySlugOrId = unstable_cache(
@@ -383,8 +366,7 @@ async function getFeaturedJobsUncached(limit = 3) {
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load featured jobs", error);
-    return [] as JobWithCompany[];
+    publicJobsReadFailed("featured jobs", error);
   }
 
   return dedupeJobs((data ?? []) as JobWithCompany[]);
@@ -413,8 +395,7 @@ async function getActiveJobsCountUncached() {
     .eq("status", "active");
 
   if (error) {
-    console.error("Failed to count active jobs", error);
-    return 0;
+    publicJobsReadFailed("active count", error);
   }
 
   return count ?? 0;
@@ -449,8 +430,7 @@ async function getSalaryFeaturedJobsUncached(limit = 3) {
     .limit(candidateLimit);
 
   if (error) {
-    console.error("Failed to load salary-listed featured jobs", error);
-    return [] as JobWithCompany[];
+    publicJobsReadFailed("salary jobs", error);
   }
 
   const jobs = dedupeJobs((data ?? []) as JobWithCompany[]);
@@ -494,11 +474,11 @@ async function getSitemapJobsUncached(limit = SITEMAP_JOBS_LIMIT) {
       .order("updated_at", { ascending: false, nullsFirst: false })
       .order("last_seen_at", { ascending: false, nullsFirst: false })
       .order("discovered_at", { ascending: false })
+      .order("id", { ascending: true })
       .range(offset, offset + batchSize - 1);
 
     if (error) {
-      console.error("Failed to load sitemap jobs", error);
-      break;
+      publicJobsReadFailed("sitemap jobs", error);
     }
 
     const batch = (data ?? []) as JobWithCompany[];
@@ -538,8 +518,7 @@ async function getRemoteJobsUncached(limit = CATEGORY_JOB_FETCH_LIMIT) {
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load remote jobs", error);
-    return { jobs: [] as JobWithCompany[], configured: true };
+    publicJobsReadFailed("remote jobs", error);
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
@@ -573,8 +552,7 @@ async function getLocationJobsUncached(location: string, limit = CATEGORY_JOB_FE
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load location jobs", error);
-    return { jobs: [] as JobWithCompany[], configured: true };
+    publicJobsReadFailed("location jobs", error);
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
@@ -609,8 +587,7 @@ async function getCountryJobsUncached(country: JobCountry, limit = CATEGORY_JOB_
     .limit(limit);
 
   if (error) {
-    console.error(`Failed to load ${country.name} jobs`, error);
-    return { jobs: [] as JobWithCompany[], configured: true };
+    publicJobsReadFailed("country jobs", error);
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
@@ -657,8 +634,7 @@ async function getEngineeringJobsUncached(limit = CATEGORY_JOB_FETCH_LIMIT) {
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load engineering jobs", error);
-    return { jobs: [] as JobWithCompany[], configured: true };
+    publicJobsReadFailed("engineering jobs", error);
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
@@ -699,8 +675,7 @@ async function getKeywordJobsUncached(keywords: string[], limit = CATEGORY_JOB_F
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load keyword jobs", error);
-    return { jobs: [] as JobWithCompany[], configured: true };
+    publicJobsReadFailed("keyword jobs", error);
   }
 
   return { jobs: dedupeJobs((data ?? []) as JobWithCompany[]), configured: true };
@@ -768,8 +743,7 @@ async function getStudentPartTimeJobsUncached(
     .limit(STUDENT_JOB_CANDIDATE_LIMIT);
 
   if (error) {
-    console.error(`Failed to load ${country ?? "all"} ${audience} job candidates`, error);
-    return { jobs: [] as JobWithCompany[], configured: true };
+    publicJobsReadFailed("student jobs", error);
   }
 
   const jobs = dedupeJobs((data ?? []) as JobWithCompany[])

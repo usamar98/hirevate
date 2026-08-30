@@ -26,7 +26,7 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function stableToken(value: string) {
+export function getJobIdToken(value: string) {
   let hash = 2166136261;
 
   for (let index = 0; index < value.length; index += 1) {
@@ -51,7 +51,7 @@ export function getJobSlug(job: JobSlugSource) {
     .slice(0, 12)
     .join("-");
 
-  return `${core || "job"}-${stableToken(job.id)}`;
+  return `${core || "job"}-${getJobIdToken(job.id)}`;
 }
 
 export function getJobSlugToken(slugOrId: string) {
@@ -62,7 +62,7 @@ export function jobMatchesSlug(job: JobSlugSource, slugOrId: string) {
   const normalized = slugOrId.toLowerCase();
   const token = getJobSlugToken(normalized);
 
-  return getJobSlug(job) === normalized || Boolean(token && stableToken(job.id) === token);
+  return getJobSlug(job) === normalized || Boolean(token && getJobIdToken(job.id) === token);
 }
 
 export function getJobPath(job: JobSlugSource) {

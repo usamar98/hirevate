@@ -1,7 +1,9 @@
 import { after, NextResponse, type NextRequest } from "next/server";
+import { revalidateTag } from "next/cache";
 import { env } from "@/lib/env";
 import { notifyIndexNowAboutJobHubs } from "@/lib/indexnow";
 import { syncDailyFreshJobs } from "@/lib/jobs/daily-fresh-sync";
+import { getJobSyncHealth } from "@/lib/jobs/sync-health";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -27,8 +29,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await syncDailyFreshJobs();
+    const health = getJobSyncHealth(result);
 
-    if (result.totalJobsInserted + result.totalJobsUpdated + (result.totalJobsDeleted ?? 0) > 0) {
+    if (result.totalJobsInserted + result.totalJobsUpdated + (result.totalJobsDeleted ?? 0) + (result.totalJobsExpired ?? 0) > 0) {
+      revalidateTag("public-jobs");
       after(async () => {
         try {
           await notifyIndexNowAboutJobHubs();
@@ -39,12 +43,13 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      ok: true,
+      ok: health.status === "healthy",
+      status: health.status,
       route: "/api/cron/jobs-sync",
       schedule: request.headers.get("x-vercel-cron-schedule") ?? "manual",
       syncedAt: new Date().toISOString(),
       result
-    });
+    }, { status: health.refreshed ? 200 : 503 });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to run daily job sync." },

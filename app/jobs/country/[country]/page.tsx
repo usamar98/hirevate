@@ -29,8 +29,12 @@ export async function generateMetadata({ params }: CountryJobsPageProps): Promis
   if (!country || country.path !== `/jobs/country/${country.slug}`) return {};
 
   const searchName = country.code === "AE" ? "UAE" : country.name;
-  const title = `${searchName} Jobs Updated Daily`;
-  const description = `Browse fresh ${searchName} jobs in ${country.popularCities.slice(0, 3).join(", ")} from public hiring sources, with clear location and freshness signals.`;
+  const isSpain = country.code === "ES";
+  const title = isSpain ? "Jobs in Spain: Madrid, Barcelona & Remote Roles" : `${searchName} Jobs Updated Daily`;
+  const description = isSpain
+    ? "Search jobs in Spain, including Madrid, Barcelona, Valencia and Spain-based remote roles. Review original job descriptions, locations and application sources."
+    : `Browse fresh ${searchName} jobs in ${country.popularCities.slice(0, 3).join(", ")} from public hiring sources, with clear location and freshness signals.`;
+  const spainInventory = isSpain ? await getCountryJobs(country, 1) : null;
 
   return {
     title: { absolute: `${title} | Hirevate` },
@@ -42,12 +46,36 @@ export async function generateMetadata({ params }: CountryJobsPageProps): Promis
       ...country.popularCities.slice(0, 3).map((city) => `jobs in ${city}`)
     ],
     alternates: { canonical: country.path },
+    robots: isSpain
+      ? { index: Boolean(spainInventory?.configured && spainInventory.jobs.length > 0), follow: true }
+      : undefined,
     openGraph: { title, description, url: country.path, images: [defaultOgImagePath] },
     twitter: { title, description, card: "summary_large_image", images: [defaultOgImagePath] }
   };
 }
 
 function getCountryFaqs(country: NonNullable<ReturnType<typeof getJobCountryBySlug>>) {
+  if (country.code === "ES") {
+    return [
+      {
+        question: "Which locations does the Spain job search include?",
+        answer: "The Spain filter recognises Spain, España and Espana, as well as Madrid, Barcelona, Valencia, Sevilla / Seville, Málaga / Malaga, Bilbao, Zaragoza and Alicante in source location text. It is a location filter, not a filter for every Spanish-speaking country."
+      },
+      {
+        question: "Can I find English-speaking jobs in Spain?",
+        answer: "Search for English or your role title in the Spain feed, then check the original description. Listings can be in Spanish or English; the language of a title does not establish an employer's language requirements."
+      },
+      {
+        question: "Are remote jobs open to applicants outside Spain?",
+        answer: "Not necessarily. A remote listing associated with Spain may still require you to live or work there. Confirm the employer's stated location, time-zone and eligibility requirements before applying."
+      },
+      {
+        question: "Where do Spain listings come from, and why might the feed be empty?",
+        answer: "Matching roles can come from connected public employer ATS boards and the Adzuna Spain feed when enabled. Listings appear only after a successful import and depend on current source coverage; Hirevate does not guarantee a daily number of Spain jobs."
+      }
+    ];
+  }
+
   return [
     {
       question: `Where does Hirevate find jobs in ${country.name}?`,
@@ -83,6 +111,7 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
   const siblingCountries = jobCountries.filter((item) => item.slug !== country.slug);
   const searchName = country.code === "AE" ? "UAE" : country.name;
   const isUae = country.code === "AE";
+  const isSpain = country.code === "ES";
 
   return (
     <>
@@ -93,7 +122,7 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
             "@type": "CollectionPage",
             name: `Jobs in ${country.name}`,
             url: absoluteUrl(country.path),
-            description: `Fresh public-source jobs in ${country.name}.`,
+            description: `${isSpain ? "Public-source" : "Fresh public-source"} jobs in ${country.name}.`,
             about: { "@type": "Country", name: country.name },
             audience: { "@type": "Audience", audienceType: `Job seekers in ${country.name}` }
           },
@@ -109,7 +138,7 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
           {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            name: `Fresh jobs in ${country.name}`,
+            name: `${isSpain ? "Jobs" : "Fresh jobs"} in ${country.name}`,
             numberOfItems: visibleJobs.length,
             itemListElement: visibleJobs.map((job, index) => ({
               "@type": "ListItem",
@@ -130,9 +159,16 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
               </p>
               <h1 className="mt-3 text-4xl font-semibold text-ink-900">Jobs in {searchName}</h1>
               <p className="mt-3 max-w-3xl text-base leading-7 text-ink-500">
-                Browse fresh roles connected to {searchName} from company career pages, public ATS
-                boards, and trusted hiring sources. Supported sources refresh every day, while
-                location matching uses the information published by each source and can include {country.popularCities.join(", ")}.
+                {isSpain ? (
+                  <>Explore roles whose published locations match Spain, including Madrid, Barcelona,
+                    Valencia, Seville, Málaga and Bilbao. Search with Spanish or English job titles,
+                    then review the original listing for language requirements and where you can work.
+                    Availability depends on connected sources and successful imports.</>
+                ) : (
+                  <>Browse fresh roles connected to {searchName} from company career pages, public ATS
+                    boards, and trusted hiring sources. Supported sources refresh every day, while
+                    location matching uses the information published by each source and can include {country.popularCities.join(", ")}.</>
+                )}
               </p>
             </div>
             <Button asChild href={`/jobs?country=${country.slug}`}>
@@ -159,7 +195,7 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
 
           {configured ? (
             <p className="mt-8 text-sm font-medium text-ink-500">
-              Showing {visibleJobs.length} of {jobs.length} fresh roles matched to {country.name}.
+              Showing {visibleJobs.length} of {jobs.length} {isSpain ? "available" : "fresh"} roles matched to {country.name}.
             </p>
           ) : null}
 
@@ -201,7 +237,9 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
             <div className="mt-8">
               <EmptyState
                 title={`No ${country.demonym} jobs found yet`}
-                description="Browse all countries while Hirevate refreshes more public hiring sources."
+                description={isSpain
+                  ? "There are currently no available Spain matches. Try the full job search or return after the next successful source refresh."
+                  : "Browse all countries while Hirevate refreshes more public hiring sources."}
                 action={<Button asChild href="/jobs?country=all" variant="outline">Browse all jobs</Button>}
               />
             </div>
@@ -257,6 +295,41 @@ export default async function CountryJobsPage({ params }: CountryJobsPageProps) 
                 </Link>
                 <Link className="font-semibold text-brand-700" href="/jobs?country=uae&workMode=remote">
                   Remote jobs in the UAE
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          {isSpain ? (
+            <section className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6">
+              <h2 className="text-2xl font-semibold text-ink-900">Find the right role in Spain</h2>
+              <div className="mt-3 grid gap-4 text-sm leading-6 text-ink-600 md:grid-cols-2">
+                <p>
+                  Start with a city if your search is location-specific: Madrid, Barcelona and Valencia
+                  have separate filters below. Source locations may use Spanish spellings such as
+                  España, Sevilla or Málaga. A Spain match identifies the listing&apos;s advertised
+                  location; it does not establish an applicant&apos;s eligibility.
+                </p>
+                <p>
+                  Try both local and English role names, such as &ldquo;desarrollador&rdquo; and
+                  &ldquo;software engineer&rdquo;, or &ldquo;analista de datos&rdquo; and
+                  &ldquo;data analyst&rdquo;. Check the employer&apos;s full description for working
+                  language, on-site attendance and remote-location restrictions. Spanish interface
+                  translations do not translate or change the employer&apos;s original requirements.
+                </p>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {country.popularCities.slice(0, 3).map((city) => (
+                  <Link
+                    className="font-semibold text-brand-700"
+                    href={`/jobs?country=spain&location=${encodeURIComponent(city)}`}
+                    key={city}
+                  >
+                    Jobs in {city}
+                  </Link>
+                ))}
+                <Link className="font-semibold text-brand-700" href="/jobs?country=spain&workMode=remote">
+                  Remote jobs in Spain
                 </Link>
               </div>
             </section>

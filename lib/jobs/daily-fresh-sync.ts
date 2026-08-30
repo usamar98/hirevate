@@ -6,6 +6,7 @@ import { syncJoobleAustraliaJobs, syncJoobleUaeJobs } from "@/lib/jobs/jooble";
 import { syncLeverJobs } from "@/lib/jobs/lever";
 import { revalidateExistingJobLinks } from "@/lib/jobs/existing-link-validation";
 import { deleteStaleJobs, expireDuplicateJobs, JOB_RETENTION_DAYS } from "@/lib/jobs/maintenance";
+import { getSourceBatchSeed, rotateItems } from "@/lib/jobs/source-rotation";
 import type { JobSyncResult } from "@/lib/jobs/sync-types";
 
 const defaultDailyFreshQueries = [
@@ -41,6 +42,7 @@ type DailyFreshJobPlan = {
   leverCompanyCount: number;
   runDate: string;
   sourceRotationSeed: number;
+  sourceOrder: string[];
   retentionDays: number;
   syncBudgetMs: number;
 };
@@ -160,7 +162,7 @@ function hasTimeBudget(startedAt: number, budgetMs: number) {
 }
 
 function budgetSkipMessage(source: string, budgetMs: number) {
-  return `${source} skipped because the daily sync reached its ${Math.round(budgetMs / 1000)}s time budget. It will rotate into the next run.`;
+  return `${source} skipped because the daily sync reached its ${Math.round(budgetMs / 1000)}s time budget. Provider priority rotates daily; active listings are retained when refreshes are skipped.`;
 }
 
 export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
@@ -170,9 +172,10 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
   const freshWindowDays = parsePositiveInt(env.dailyFreshMaxDaysOld, 3, 14);
   const adzunaQueryCount = parsePositiveInt(env.dailyFreshAdzunaQueryCount, 8, 20);
   const joobleQueryCount = parsePositiveInt(env.dailyFreshJoobleQueryCount, 4, 12);
+  const adzunaCountries = getConfiguredAdzunaCountries();
 
   return {
-    adzunaCountries: getConfiguredAdzunaCountries(),
+    adzunaCountries,
     adzunaQueries: rotateQueries(pool, adzunaQueryCount, seed),
     ashbyCompanyCount: parsePositiveInt(env.dailyFreshAshbyCompanyCount, 35, 200),
     freshWindowDays,
@@ -181,9 +184,16 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
     leverCompanyCount: parsePositiveInt(env.dailyFreshLeverCompanyCount, 35, 200),
     runDate: now.toISOString().slice(0, 10),
     sourceRotationSeed: seed,
+    sourceOrder: rotateItems([
+      "jooble-ae",
+      ...adzunaCountries.map((country) => `adzuna-${country}`),
+      "jooble-au",
+      "ashby",
+      "lever",
+      "greenhouse"
+    ], seed),
     retentionDays: JOB_RETENTION_DAYS,
-    // Vercel Hobby functions have a 60-second ceiling. Keep a five-second
-    // response buffer even if an older environment variable requests more time.
+    // Preserve the existing conservative budget and five-second response buffer.
     syncBudgetMs: parsePositiveInt(env.dailyFreshSyncBudgetMs, 55_000, 55_000)
   };
 }
@@ -191,7 +201,7 @@ export function buildDailyFreshJobPlan(now = new Date()): DailyFreshJobPlan {
 function addPlannerSummary(result: JobSyncResult, plan: DailyFreshJobPlan) {
   result.sourceResults.unshift({
     configured: true,
-    skippedReason: `Daily fresh plan ${plan.runDate}: prioritized Jooble UAE (${plan.joobleQueries.length} searches), Adzuna ${plan.adzunaCountries.map((country) => country.toUpperCase()).join("/")} (${plan.adzunaQueries.length} searches per market), optional Jooble Australia (${plan.joobleQueries.length} searches), then rotating ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Freshness window ${plan.freshWindowDays} days; jobs not refreshed for ${plan.retentionDays} days are permanently deleted; time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
+    skippedReason: `Daily fresh plan ${plan.runDate}: rotating provider order ${plan.sourceOrder.join(" -> ")}. Adzuna ${plan.adzunaQueries.length} searches per market; Jooble ${plan.joobleQueries.length} searches per market; ATS batches: Ashby ${plan.ashbyCompanyCount}, Lever ${plan.leverCompanyCount}, Greenhouse ${plan.greenhouseCompanyCount}. Discovery window ${plan.freshWindowDays} days; only expired jobs beyond the ${plan.retentionDays}-day recovery window may be deleted. Active jobs are never deleted for a missed refresh. Time budget ${Math.round(plan.syncBudgetMs / 1000)}s.`,
     source: "freshness-planner",
     totalJobsExpired: 0,
     totalJobsFetched: 0,
@@ -231,98 +241,85 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
   const result = emptyResult();
   const startedAt = Date.now();
 
-  // UAE discovery runs first so the new market is refreshed every day even
-  // when later providers consume the remaining function time budget.
-  await runPlannedSource(
-    result,
-    "jooble-ae",
-    startedAt,
-    plan.syncBudgetMs,
-    () =>
-      syncJoobleUaeJobs({
+  const sources: Array<{
+    source: string;
+    action: () => Promise<JobSyncResult>;
+    fallback: string;
+  }> = [
+    {
+      source: "jooble-ae",
+      action: () => syncJoobleUaeJobs({
         maxDaysOld: plan.freshWindowDays,
         queries: plan.joobleQueries
       }),
-    "Jooble UAE sync failed."
-  );
+      fallback: "Jooble UAE sync failed."
+    },
+    ...plan.adzunaCountries.map((country) => ({
+      source: `adzuna-${country}`,
+      action: () => syncAdzunaJobs({
+        country,
+        maxDaysOld: plan.freshWindowDays,
+        queries: plan.adzunaQueries
+      }),
+      fallback: `Adzuna ${country.toUpperCase()} sync failed.`
+    })),
+    {
+      source: "jooble-au",
+      action: () => syncJoobleAustraliaJobs({
+        maxDaysOld: plan.freshWindowDays,
+        queries: plan.joobleQueries
+      }),
+      fallback: "Jooble Australia sync failed."
+    },
+    {
+      source: "ashby",
+      action: () => syncAshbyJobs({
+        maxCompanies: plan.ashbyCompanyCount,
+        offsetSeed: getSourceBatchSeed(plan.sourceRotationSeed, plan.sourceOrder, "ashby")
+      }),
+      fallback: "Ashby sync failed."
+    },
+    {
+      source: "lever",
+      action: () => syncLeverJobs({
+        maxCompanies: plan.leverCompanyCount,
+        offsetSeed: getSourceBatchSeed(plan.sourceRotationSeed, plan.sourceOrder, "lever")
+      }),
+      fallback: "Lever sync failed."
+    },
+    {
+      source: "greenhouse",
+      action: async () => {
+        const greenhouse = await syncGreenhouseJobs({
+          maxCompanies: plan.greenhouseCompanyCount,
+          offsetSeed: getSourceBatchSeed(plan.sourceRotationSeed, plan.sourceOrder, "greenhouse")
+        });
 
-  for (const country of plan.adzunaCountries) {
+        return {
+          errors: greenhouse.errors,
+          sourceResults: [greenhouse.sourceResult],
+          totalCompaniesChecked: greenhouse.totalCompaniesChecked,
+          totalJobsExpired: greenhouse.totalJobsExpired ?? 0,
+          totalJobsInserted: greenhouse.totalJobsInserted,
+          totalJobsUpdated: greenhouse.totalJobsUpdated
+        };
+      },
+      fallback: "Greenhouse sync failed."
+    }
+  ];
+
+  // Await each provider: no timed-out background sync may keep mutating jobs.
+  // Rotating priority stops the same late providers being skipped every day.
+  for (const source of rotateItems(sources, plan.sourceRotationSeed)) {
     await runPlannedSource(
       result,
-      `adzuna-${country}`,
+      source.source,
       startedAt,
       plan.syncBudgetMs,
-      () =>
-        syncAdzunaJobs({
-          country,
-          maxDaysOld: plan.freshWindowDays,
-          queries: plan.adzunaQueries
-        }),
-      `Adzuna ${country.toUpperCase()} sync failed.`
+      source.action,
+      source.fallback
     );
   }
-
-  await runPlannedSource(
-    result,
-    "jooble-au",
-    startedAt,
-    plan.syncBudgetMs,
-    () =>
-      syncJoobleAustraliaJobs({
-        maxDaysOld: plan.freshWindowDays,
-        queries: plan.joobleQueries
-      }),
-    "Jooble Australia sync failed."
-  );
-
-  await runPlannedSource(
-    result,
-    "ashby",
-    startedAt,
-    plan.syncBudgetMs,
-    () =>
-      syncAshbyJobs({
-        maxCompanies: plan.ashbyCompanyCount,
-        offsetSeed: plan.sourceRotationSeed
-      }),
-    "Ashby sync failed."
-  );
-
-  await runPlannedSource(
-    result,
-    "lever",
-    startedAt,
-    plan.syncBudgetMs,
-    () =>
-      syncLeverJobs({
-        maxCompanies: plan.leverCompanyCount,
-        offsetSeed: plan.sourceRotationSeed
-      }),
-    "Lever sync failed."
-  );
-
-  await runPlannedSource(
-    result,
-    "greenhouse",
-    startedAt,
-    plan.syncBudgetMs,
-    async () => {
-      const greenhouse = await syncGreenhouseJobs({
-        maxCompanies: plan.greenhouseCompanyCount,
-        offsetSeed: plan.sourceRotationSeed
-      });
-
-      return {
-        errors: greenhouse.errors,
-        sourceResults: [greenhouse.sourceResult],
-        totalCompaniesChecked: greenhouse.totalCompaniesChecked,
-        totalJobsExpired: greenhouse.totalJobsExpired ?? 0,
-        totalJobsInserted: greenhouse.totalJobsInserted,
-        totalJobsUpdated: greenhouse.totalJobsUpdated
-      };
-    },
-    "Greenhouse sync failed."
-  );
 
   // Recheck a bounded rotating queue after source upserts so a dead link cannot
   // be reactivated later in this run. Only a second permanent failure expires it.
@@ -338,7 +335,8 @@ export async function syncDailyFreshJobs(now = new Date()): Promise<JobSyncResul
     );
   }
 
-  // Always enforce retention after refresh attempts, even when a source used the time budget.
+  // Cleanup is safe after failed/skipped refreshes: only already-expired jobs
+  // beyond their recovery window are eligible, never active unseen listings.
   try {
     mergeResult(result, await deleteStaleJobs(plan.retentionDays));
   } catch (error) {

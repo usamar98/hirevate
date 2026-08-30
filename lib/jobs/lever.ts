@@ -7,6 +7,7 @@ import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
 import { validateNewJobLinks } from "@/lib/jobs/link-validation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSourceHealthStatus, recordSourceFailure, recordSourceSuccess } from "@/lib/jobs/source-health";
+import { selectRotatingBatch } from "@/lib/jobs/source-rotation";
 import type { Company, Database, Json } from "@/types/database";
 import type { JobSyncResult, JobSyncSourceResult } from "@/lib/jobs/sync-types";
 
@@ -94,16 +95,9 @@ function normalizeBatchSize(value: number | undefined, total: number) {
   return Math.min(Math.max(Math.floor(value), 1), total);
 }
 
-function rotateItems<T>(items: T[], seed = 0) {
-  if (items.length <= 1) return items;
-
-  const offset = ((Math.abs(seed) % items.length) + items.length) % items.length;
-  return [...items.slice(offset), ...items.slice(0, offset)];
-}
-
 function selectSourceBatch(sources: LeverSource[], options: SourceBatchOptions) {
   const batchSize = normalizeBatchSize(options.maxCompanies, sources.length);
-  return rotateItems(sources, options.offsetSeed).slice(0, batchSize);
+  return selectRotatingBatch(sources, batchSize, options.offsetSeed);
 }
 
 function titleizeSlug(slug: string) {

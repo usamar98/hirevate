@@ -1,4 +1,10 @@
 import { env, hasAdzunaConfig } from "@/lib/env";
+import {
+  getAdzunaMarketQueries,
+  normalizeAdzunaCountry as normalizeCountry,
+  qualifyAdzunaLocation,
+  resolveAdzunaCountries
+} from "@/lib/jobs/adzuna-markets";
 import { formatJobLocation } from "@/lib/jobs/display";
 import { getCompanyProminenceRank } from "@/lib/jobs/company-prominence";
 import { calculateFreshnessScore, inferRemoteType } from "@/lib/jobs/freshness";
@@ -71,50 +77,8 @@ export type AdzunaSyncOptions = {
   resultsPerQuery?: number;
 };
 
-const supportedAdzunaCountries = new Set([
-  "au",
-  "at",
-  "be",
-  "br",
-  "ca",
-  "ch",
-  "de",
-  "es",
-  "fr",
-  "gb",
-  "in",
-  "it",
-  "mx",
-  "nl",
-  "nz",
-  "pl",
-  "sg",
-  "us",
-  "za"
-]);
-
-function normalizeCountry(value: string) {
-  const country = value.trim().toLowerCase();
-  return supportedAdzunaCountries.has(country) ? country : null;
-}
-
 export function getConfiguredAdzunaCountries() {
-  const configured = env.adzunaCountries
-    .split(/[,.\n;\s]+/)
-    .map(normalizeCountry)
-    .filter((country): country is string => Boolean(country));
-
-  // Keep the old single-country variable working while guaranteeing the newly
-  // supported Australian market participates in daily refreshes.
-  const fallback = [normalizeCountry(env.adzunaCountry), "au"].filter(
-    (country): country is string => Boolean(country)
-  );
-
-  return Array.from(new Set(configured.length > 0 ? configured : fallback)).sort((left, right) => {
-    if (left === "au") return -1;
-    if (right === "au") return 1;
-    return left.localeCompare(right);
-  });
+  return resolveAdzunaCountries(env.adzunaCountries, env.adzunaCountry);
 }
 
 function getQuerySourceKey(country: string, query: string) {
@@ -182,11 +146,7 @@ function getLocation(job: AdzunaJob, country?: string) {
     job.location?.display_name ?? job.location?.area?.filter(Boolean).join(", ") ?? null
   );
 
-  if (country === "au" && location && !/\baustralia\b/i.test(location)) {
-    return `${location}, Australia`;
-  }
-
-  return location;
+  return qualifyAdzunaLocation(location, country);
 }
 
 function getAdzunaUrl(query: string, options: AdzunaSyncOptions = {}) {
@@ -353,7 +313,7 @@ export async function syncAdzunaJobs(options: AdzunaSyncOptions = {}): Promise<J
 
   const batches: AdzunaFetchBatch[] = [];
 
-  await mapWithConcurrency(getSearchQueries(options), 4, async (query) => {
+  await mapWithConcurrency(getAdzunaMarketQueries(getSearchQueries(options), country), 4, async (query) => {
     const sourceKey = getQuerySourceKey(country, query);
     const healthIdentity = {
       displayName: `Adzuna ${country.toUpperCase()}: ${query}`,
